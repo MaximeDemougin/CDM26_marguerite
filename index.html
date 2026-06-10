@@ -59,6 +59,15 @@ body{font-family:'Inter',sans-serif;background:var(--paper);color:var(--ink);min
 .day-meta{margin-left:auto;display:flex;align-items:center;gap:8px}
 .day-prog{font-size:10px;color:var(--faint);font-weight:600}
 .day-pill{font-size:10px;color:var(--dim);font-weight:600;background:var(--paper);border:1px solid var(--line2);padding:2px 8px;border-radius:20px}
+.day.finished{opacity:.62}
+.day.finished:hover{opacity:1}
+.day-prog.done{color:var(--accent)}
+.datebar{display:flex;align-items:center;gap:9px;padding:12px 20px 2px}
+.datebar-lbl{font-size:11px;font-weight:600;color:var(--dim);white-space:nowrap}
+.datesel{flex:1;background:var(--card);border:1px solid var(--line2);color:var(--ink);font-size:12px;font-weight:500;padding:8px 10px;cursor:pointer;font-family:inherit;border-radius:8px}
+.datesel:focus{outline:none;border-color:var(--accent)}
+.datereset{background:var(--card);border:1px solid var(--line2);color:var(--dim);font-size:12px;font-weight:600;padding:8px 11px;cursor:pointer;font-family:inherit;border-radius:8px;flex-shrink:0;transition:all .15s}
+.datereset:hover{border-color:var(--ink);color:var(--ink)}
 .day-body{overflow:hidden}
 .card{margin:0 18px 9px;border:1px solid var(--line2);background:var(--card);border-radius:10px;overflow:hidden;transition:border-color .2s}
 .card:hover{border-color:var(--line)}
@@ -301,12 +310,16 @@ let me=localStorage.getItem("cdm26_me")||null;
 // Libellés de jour (jj/mm -> "Jeudi 11 juin")
 const JOURS=["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
 const MOIS=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
-function dayLabel(d){const [jj,mm]=d.split("/").map(Number);const dt=new Date(2026,mm-1,jj);const nom=JOURS[dt.getDay()];const cap=nom.charAt(0).toUpperCase()+nom.slice(1);return `${cap} ${jj} ${MOIS[mm-1]}`;}
+function matchDate(d){const [jj,mm]=d.split("/").map(Number);return new Date(2026,mm-1,jj);}
+function dayLabel(d){const dt=matchDate(d);const nom=JOURS[dt.getDay()];const cap=nom.charAt(0).toUpperCase()+nom.slice(1);const [jj,mm]=d.split("/").map(Number);return `${cap} ${jj} ${MOIS[mm-1]}`;}
+function isPastDay(d){const dt=matchDate(d);const today=new Date();today.setHours(0,0,0,0);return dt<today;}
 
 // État repliage. Par défaut : tout replié sauf cas particuliers gérés au render.
 let openDays={};       // clé = libellé du jour -> true si déplié
 let openCards={};      // clé = match id -> true si déplié
 let collapseInit=false;
+let filterDate="Toutes"; // filtre par date (jj/mm) ou "Toutes"
+let autoCollapsed={};    // journées déjà repliées automatiquement (une seule fois)
 
 function setSync(s){const d=document.getElementById("sync-dot"),t=document.getElementById("sync-txt");d.className="sync-dot"+(s==="off"?" off":s==="busy"?" busy":"");t.textContent=s==="off"?"hors ligne":s==="busy"?"sync…":"synchronisé";}
 function showBanner(m){const b=document.getElementById("banner");if(m){b.textContent=m;b.classList.add("show");}else b.classList.remove("show");}
@@ -338,9 +351,18 @@ function renderMatchs(sc){
   const phases=["Groupes","1/16","1/8","Quart","Demi","FINALE"];
   let matches=filterPhase==="Groupes"?(filterGroupe==="Tous"?MG:filterGroupe==="France"?MG.filter(m=>m.fr):MG.filter(m=>m.g===filterGroupe)):MKO.filter(m=>m.t===filterPhase);
   const groups=["Tous","France",...[...new Set(MG.map(m=>m.g))].sort()];
+
+  // Dates disponibles dans la sélection courante (avant filtre date)
+  const dates=[...new Set(matches.map(m=>m.date))];
+  // Applique le filtre date s'il est actif et présent dans la sélection
+  if(filterDate!=="Toutes" && dates.includes(filterDate)) matches=matches.filter(m=>m.date===filterDate);
+
   let html=`<div class="scroller">${phases.map(p=>`<button class="chip ${filterPhase===p?'on':''}" onclick="setPhase('${p}')">${p==="Groupes"?"Phase de groupes":p==="FINALE"?"Finale":p}</button>`).join('')}</div>${filterPhase==="Groupes"?`<div class="scroller sub">${groups.map(g=>`<button class="chip ${filterGroupe===g?'on':''}" onclick="setGroupe('${g}')">${g==="Tous"?"Tous":g==="France"?"France":"Gr. "+g}</button>`).join('')}</div>`:''}`;
 
-  // Regroupement par jour (ordre conservé : les matchs sont déjà chronologiques)
+  // Barre de filtre par date
+  html+=`<div class="datebar"><span class="datebar-lbl">📅 Aller à</span><select class="datesel" onchange="setFilterDate(this.value)"><option value="Toutes" ${filterDate==="Toutes"?'selected':''}>Toutes les dates</option>${dates.map(d=>`<option value="${d}" ${filterDate===d?'selected':''}>${dayLabel(d)}</option>`).join('')}</select>${filterDate!=="Toutes"?`<button class="datereset" onclick="setFilterDate('Toutes')">✕</button>`:''}</div>`;
+
+  // Regroupement par jour
   const days=[];const byDay={};
   matches.forEach(m=>{const lbl=dayLabel(m.date);if(!byDay[lbl]){byDay[lbl]=[];days.push(lbl);}byDay[lbl].push(m);});
 
@@ -348,13 +370,16 @@ function renderMatchs(sc){
 
   days.forEach(lbl=>{
     const dayMatches=byDay[lbl];
-    const open=!!openDays[lbl];
     const done=dayMatches.filter(m=>results[m.id]).length;
-    html+=`<button class="day ${open?'open':''}" onclick="toggleDay('${lbl.replace(/'/g,"\\'")}')">
+    const allDone=done===dayMatches.length;
+    // Auto-repli (une seule fois) quand une journée devient entièrement jouée
+    if(allDone && !autoCollapsed[lbl]){autoCollapsed[lbl]=true;openDays[lbl]=false;}
+    const open=!!openDays[lbl];
+    html+=`<button class="day ${open?'open':''} ${allDone?'finished':''}" onclick="toggleDay('${lbl.replace(/'/g,"\\'")}')">
       <span class="day-chev">▶</span>
       <span class="day-name">${lbl}</span>
       <span class="day-meta">
-        ${done>0?`<span class="day-prog">${done}/${dayMatches.length} joués</span>`:''}
+        ${allDone?`<span class="day-prog done">✓ terminée</span>`:done>0?`<span class="day-prog">${done}/${dayMatches.length} joués</span>`:''}
         <span class="day-pill">${dayMatches.length} match${dayMatches.length>1?'s':''}</span>
       </span>
     </button>`;
@@ -385,6 +410,12 @@ window.setMe=function(p){me=(me===p?null:p);if(me)localStorage.setItem("cdm26_me
 function renderMatchsOnly(){const sc=computeScores();const c=document.getElementById("content");const y=c.scrollTop;c.innerHTML=renderMatchs(sc);c.scrollTop=y;}
 window.toggleDay=function(lbl){openDays[lbl]=!openDays[lbl];renderMatchsOnly();};
 window.toggleCard=function(id){openCards[id]=!openCards[id];renderMatchsOnly();};
+window.setFilterDate=function(d){filterDate=d;
+  // En filtrant sur une date, on ouvre cette journée automatiquement
+  if(d!=="Toutes"){openDays[dayLabel(d)]=true;}
+  const c=document.getElementById("content");if(c)c.scrollTop=0;
+  renderMatchsOnly();
+};
 window.vote=async function(id,pi,v){
   if(me!==PARTICIPANTS[pi])return;
   const cur=votes[id]?[...votes[id]]:[null,null,null,null];
@@ -421,9 +452,18 @@ async function refresh(){
   await loadAll();
   if(!collapseInit){
     collapseInit=true;
+    // On regroupe tous les matchs (groupes + finales) par jour, dans l'ordre chrono
     const byDay={};const order=[];
-    MG.forEach(m=>{const l=dayLabel(m.date);if(!byDay[l]){byDay[l]=[];order.push(l);}byDay[l].push(m);});
-    let target=order.find(l=>byDay[l].some(m=>!results[m.id]))||order[0];
+    ALL.forEach(m=>{const l=dayLabel(m.date);if(!byDay[l]){byDay[l]=[];order.push(l);}byDay[l].push(m);});
+    // Journée cible : la 1re qui n'est PAS passée et dont au moins un match n'a pas de résultat.
+    // À défaut (tournoi fini), on ouvre la dernière journée.
+    let target=order.find(l=>{
+      const ms=byDay[l];
+      const past=isPastDay(ms[0].date);
+      const allDone=ms.every(m=>results[m.id]);
+      return !past && !allDone;
+    });
+    if(!target) target=order.find(l=>byDay[l].some(m=>!results[m.id]))||order[order.length-1];
     if(target)openDays[target]=true;
   }
   render();
