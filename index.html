@@ -109,7 +109,7 @@ body{font-family:'Inter',sans-serif;background:var(--paper);color:var(--ink);min
 .vbtn:disabled{cursor:default;opacity:.85}
 .vbtn.locked.on{background:var(--dim);border-color:var(--dim)}
 .retenu{display:flex;flex-direction:column;align-items:stretch;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
-.retenu-main{display:flex;align-items:center;gap:10px;justify-content:center;min-width:0}
+.retenu-main{display:flex;align-items:center;gap:10px;justify-content:center;min-width:0;flex-wrap:wrap}
 .retenu-tools{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
 .retenu-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .retenu-row.scoreline{justify-content:center}
@@ -565,13 +565,13 @@ function matchCard(m,sc){
   const coteRaw=coteOf(m.id);
   const cote=Number(String(coteRaw).replace(",","."));
   const hasCote=Number.isFinite(cote)&&cote>0;
-  const gainValue=hasCote&&maj?(real?((maj===real?4*cote:0)):4*cote):null;
+  const gainValue=hasCote&&maj?(real?((maj===real?4*cote:-4)):4*cote):null;
   const gainLabel=gainValue==null?"Gain : —":`${real?"Gain":"Potentiel"} : ${gainValue.toFixed(2)} €`;
   const gainClass=gainValue==null?"":(real?(maj===real?"win":"loss"):"");
   const scoreEditor=`<div class="retenu-row"><span class="rlabel">Résultat :</span><div class="m-score ${filled?'filled':''}"><input class="score-in" type="number" min="0" step="1" value="${s.s1}" oninput="setScoreDraft(${m.id},'s1',this.value,this)"><span class="score-vs">-</span><input class="score-in" type="number" min="0" step="1" value="${s.s2}" oninput="setScoreDraft(${m.id},'s2',this.value,this)"></div></div>`;
   const coteEditor=`<div class="retenu-row"><span class="rlabel">Cote :</span><div class="odds-box"><input class="odds-in" type="text" inputmode="decimal" value="${coteRaw}" onchange="setCoteDraft(${m.id},this.value,this)"></div></div>`;
   const gainEditor=`<span class="gain-pill ${gainClass}">${gainLabel}</span>`;
-  return `<div class="card ${m.fr?'fr':''}">${topBar}<div class="teams"><div class="team">${i1}<span class="tname">${m.e1}</span></div><div class="vs">VS</div><div class="team r"><span class="tname">${m.e2}</span>${i2}</div></div><div class="votes">${rows}<div class="retenu"><div class="retenu-main"><span class="rlabel">Retenu :</span>${majL?`<span class="rval">${majL}</span>`:'<span class="rpending">en attente</span>'}</div><div class="retenu-tools"><div class="retenu-row scoreline">${coteEditor}${scoreEditor}${gainEditor}</div></div>${real&&badges?`<div class="badges">${badges}</div>`:''}</div></div></div>`;
+  return `<div class="card ${m.fr?'fr':''}">${topBar}<div class="teams"><div class="team">${i1}<span class="tname">${m.e1}</span></div><div class="vs">VS</div><div class="team r"><span class="tname">${m.e2}</span>${i2}</div></div><div class="votes">${rows}<div class="retenu"><div class="retenu-main"><span class="rlabel">Retenu :</span>${majL?`<span class="rval">${majL}</span>`:'<span class="rpending">en attente</span>'}${coteEditor}</div><div class="retenu-tools"><div class="retenu-row scoreline">${scoreEditor}${gainEditor}</div></div>${real&&badges?`<div class="badges">${badges}</div>`:''}</div></div></div>`;
 }
 function renderClassement(sc){
   const sorted=[...PARTICIPANTS].sort((a,b)=>(sc[b]||0)-(sc[a]||0));
