@@ -774,8 +774,6 @@ function renderMatchs(sc){
     const dayMatches=byDay[lbl];
     const done=dayMatches.filter(m=>results[m.id]).length;
     const allDone=done===dayMatches.length;
-    // Auto-repli (une seule fois) quand une journée devient entièrement jouée
-    if(allDone && !autoCollapsed[lbl]){autoCollapsed[lbl]=true;openDays[lbl]=false;}
     const open=!!openDays[lbl];
     html+=`<button class="day ${open?'open':''} ${allDone?'finished':''}" onclick="toggleDay('${lbl.replace(/'/g,"\\'")}')">
       <span class="day-chev">▶</span>
