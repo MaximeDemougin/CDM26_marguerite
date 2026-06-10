@@ -632,6 +632,7 @@ const MKO=[
   {id:104,date:"19/07",h:"21:00",t:"FINALE",e1:"V.M101",e2:"V.M102"}
 ];
 const ALL=[...MG,...MKO];const MEDALS=["🥇","🥈","🥉","4ᵉ"];
+const TIE_BREAK_PARTICIPANT="__TIE_BREAK__";
 
 let votes={},results={},tab="matchs",filterPhase="Groupes",filterGroupe="Tous";
 let filterSearch="",filterTeam="Toutes";
@@ -682,8 +683,12 @@ async function loadAll(){
     await ensureMatchsRows();
     const [pr,ma]=await Promise.all([db.from("pronostics").select("*"),db.from("matchs").select("id,resultat,score_dom,score_ext")]);
     if(pr.error)throw pr.error;if(ma.error)throw ma.error;
-    votes={};
-    pr.data.forEach(row=>{const i=PARTICIPANTS.indexOf(row.participant);if(i<0)return;if(!votes[row.match_id])votes[row.match_id]=[null,null,null,null];votes[row.match_id][i]=row.choix;});
+    votes={};tieChoiceMap={};
+    pr.data.forEach(row=>{
+      if(row.participant===TIE_BREAK_PARTICIPANT){if(row.choix)tieChoiceMap[row.match_id]=row.choix;return;}
+      const i=PARTICIPANTS.indexOf(row.participant);if(i<0)return;if(!votes[row.match_id])votes[row.match_id]=[null,null,null,null];votes[row.match_id][i]=row.choix;
+    });
+    localStorage.setItem("cdm26_tie_choices",JSON.stringify(tieChoiceMap));
     results={};scoreMap={};
     ma.data.forEach(row=>{const s1=row.score_dom==null?"":String(row.score_dom),s2=row.score_ext==null?"":String(row.score_ext);scoreMap[row.id]={s1,s2};results[row.id]=winnerFromScore(s1,s2)||row.resultat||null;});
     setSync("ok");showBanner(null);
@@ -919,6 +924,15 @@ function betSummary(matches,sc){
     return acc;
   },{count:0,settled:0,pendingStake:0});
 }
+async function saveTieChoiceDb(id,choice){
+  if(choice==null){
+    const {error}=await db.from("pronostics").delete().match({match_id:id,participant:TIE_BREAK_PARTICIPANT});
+    if(error)throw error;
+    return;
+  }
+  const {error}=await db.from("pronostics").upsert({match_id:id,participant:TIE_BREAK_PARTICIPANT,choix:choice});
+  if(error)throw error;
+}
 function groupTables(){
   const groups={};
   MG.forEach(m=>{if(!groups[m.g])groups[m.g]={};if(!groups[m.g][m.e1])groups[m.g][m.e1]={team:m.e1,pts:0,j:0,gf:0,ga:0,d:0};if(!groups[m.g][m.e2])groups[m.g][m.e2]={team:m.e2,pts:0,j:0,gf:0,ga:0,d:0};
@@ -1062,8 +1076,12 @@ window.resetMatchAdmin=async function(id){
   render();
   setSync("busy");
   try{
-    const {error}=await db.from("matchs").update({score_dom:null,score_ext:null}).eq("id",id);
-    if(error)throw error;
+    const [{error:scoreErr},{error:tieErr}]=await Promise.all([
+      db.from("matchs").update({score_dom:null,score_ext:null}).eq("id",id),
+      db.from("pronostics").delete().match({match_id:id,participant:TIE_BREAK_PARTICIPANT})
+    ]);
+    if(scoreErr)throw scoreErr;
+    if(tieErr)throw tieErr;
     setSync("ok");showBanner(null);
   }catch(e){setSync("off");showBanner("Échec de la réinitialisation — base injoignable.");console.error(e);} 
 };
@@ -1092,22 +1110,25 @@ window.vote=async function(id,pi,v){
   const cur=votes[id]?[...votes[id]]:[null,null,null,null];
   const newv=cur[pi]===v?null:v;cur[pi]=newv;votes[id]=cur;render();
   const tieOptions=majorityCandidates(cur);
-  if(tieOptions.length<=1||!tieOptions.includes(tieChoiceMap[id])){delete tieChoiceMap[id];localStorage.setItem("cdm26_tie_choices",JSON.stringify(tieChoiceMap));}
+  const shouldClearTie=tieOptions.length<=1||!tieOptions.includes(tieChoiceMap[id]);
+  if(shouldClearTie){delete tieChoiceMap[id];localStorage.setItem("cdm26_tie_choices",JSON.stringify(tieChoiceMap));}
   setSync("busy");
   try{
     if(newv===null){const {error}=await db.from("pronostics").delete().match({match_id:id,participant:PARTICIPANTS[pi]});if(error)throw error;}
     else{const {error}=await db.from("pronostics").upsert({match_id:id,participant:PARTICIPANTS[pi],choix:newv});if(error)throw error;}
+    if(shouldClearTie)await saveTieChoiceDb(id,null);
     setSync("ok");showBanner(null);
   }catch(e){setSync("off");showBanner("Échec de l'enregistrement — base injoignable.");console.error(e);}
 };
-window.setTieDecision=function(id,v){
+window.setTieDecision=async function(id,v){
   const opts=majorityCandidates(votes[id]||[]);
   if(opts.length<=1||!opts.includes(v))return;
   if(tieChoiceMap[id]===v)delete tieChoiceMap[id];
   else tieChoiceMap[id]=v;
   localStorage.setItem("cdm26_tie_choices",JSON.stringify(tieChoiceMap));
-  if(tab==="matchs")renderMatchsOnly();
-  else render();
+  if(tab==="matchs")renderMatchsOnly();else render();
+  setSync("busy");
+  try{await saveTieChoiceDb(id,tieChoiceMap[id]||null);setSync("ok");showBanner(null);}catch(e){setSync("off");showBanner("Échec de l'enregistrement — base injoignable.");console.error(e);} 
 };
 window.setResult=async function(id,v){
   results[id]=v||null;render();setSync("busy");
