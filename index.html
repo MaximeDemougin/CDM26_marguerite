@@ -123,9 +123,10 @@ body{font-family:'Inter',sans-serif;background:radial-gradient(circle at top lef
 .vopts{display:flex;gap:5px;flex:1}
 .vbtn{flex:1;padding:7px 4px;border:1px solid var(--line2);background:var(--paper);color:var(--dim);font-size:11px;font-weight:600;cursor:pointer;transition:all .14s;font-family:inherit;border-radius:6px;display:flex;align-items:center;justify-content:center;gap:6px}
 .vbtn:hover:not(:disabled){border-color:var(--ink);color:var(--ink)}
-.vrow .vbtn.on{background:linear-gradient(180deg,#263246,#151b26);border-color:var(--pv, var(--ink));color:#fff;box-shadow:0 0 0 1px color-mix(in oklab,var(--pv, var(--ink)) 16%, transparent),0 8px 16px rgba(15,29,49,.18)}
+.vrow .vbtn.on{background:linear-gradient(180deg,#566274,#3b4554);border-color:var(--pv, var(--ink));color:#fff;box-shadow:0 0 0 1px color-mix(in oklab,var(--pv, var(--ink)) 12%, transparent),0 6px 12px rgba(15,29,49,.10)}
 .vbtn:disabled{cursor:default;opacity:.85}
 .vrow .vbtn.locked.on{background:linear-gradient(180deg,#2d384c,#1a212e);border-color:color-mix(in oklab,var(--pv, var(--ink)) 88%, black 6%);color:#fff;opacity:.96}
+.vrow.me-row .vbtn.on{background:linear-gradient(180deg,#3a4351,#242c37);box-shadow:0 0 0 1px color-mix(in oklab,var(--pv, var(--ink)) 14%, transparent),0 8px 14px rgba(15,29,49,.14)}
 .retenu{display:flex;flex-direction:column;align-items:stretch;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
 .retenu-main{display:flex;align-items:center;gap:10px;justify-content:center;min-width:0;flex-wrap:wrap}
 .retenu-tools{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
