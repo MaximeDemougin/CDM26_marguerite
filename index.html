@@ -50,10 +50,32 @@ body{font-family:'Inter',sans-serif;background:var(--paper);color:var(--ink);min
 .slabel-text{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink);white-space:nowrap}
 .slabel-line{flex:1;height:1px;background:var(--line2)}
 .slabel-count{font-size:10px;color:var(--faint);font-weight:600}
+/* En-tête de journée (collapsible) */
+.day{display:flex;align-items:center;gap:11px;width:calc(100% - 36px);margin:14px 18px 4px;padding:10px 14px;border:1px solid var(--line2);background:var(--card);border-radius:10px;cursor:pointer;font-family:inherit;transition:border-color .15s}
+.day:hover{border-color:var(--ink)}
+.day-chev{font-size:11px;color:var(--faint);transition:transform .2s;flex-shrink:0}
+.day.open .day-chev{transform:rotate(90deg)}
+.day-name{font-size:13px;font-weight:700;color:var(--ink);letter-spacing:-.2px}
+.day-meta{margin-left:auto;display:flex;align-items:center;gap:8px}
+.day-prog{font-size:10px;color:var(--faint);font-weight:600}
+.day-pill{font-size:10px;color:var(--dim);font-weight:600;background:var(--paper);border:1px solid var(--line2);padding:2px 8px;border-radius:20px}
+.day-body{overflow:hidden}
 .card{margin:0 18px 9px;border:1px solid var(--line2);background:var(--card);border-radius:10px;overflow:hidden;transition:border-color .2s}
 .card:hover{border-color:var(--line)}
 .card.fr{border-left:2px solid var(--fr)}
-.card-top{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line)}
+/* Carte repliée : ligne compacte cliquable */
+.card-top{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line);cursor:pointer}
+.card.collapsed .card-top{border-bottom:none}
+.card.collapsed .teams{padding:10px 14px}
+.card-chev{font-size:10px;color:var(--faint);transition:transform .2s;margin-left:2px}
+.card:not(.collapsed) .card-chev{transform:rotate(90deg)}
+.mini-status{margin-left:auto;display:flex;align-items:center;gap:7px}
+.mini-pron{font-size:11px;font-weight:600;color:var(--accent)}
+.mini-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.mini-dot.done{background:var(--accent)}
+.mini-dot.partial{background:#d0a030}
+.mini-dot.empty{background:var(--line2)}
+.collapsible{overflow:hidden;transition:none}
 .c-num{font-size:10px;color:var(--faint);font-weight:600}
 .c-when{font-size:11px;color:var(--dim);font-weight:500}
 .c-tag{margin-left:auto;font-size:9px;font-weight:600;letter-spacing:.8px;padding:3px 9px;background:var(--paper);border:1px solid var(--line2);color:var(--dim);border-radius:20px;text-transform:uppercase}
@@ -276,6 +298,16 @@ const ALL=[...MG,...MKO];const MEDALS=["🥇","🥈","🥉","4ᵉ"];
 let votes={},results={},tab="matchs",filterPhase="Groupes",filterGroupe="Tous";
 let me=localStorage.getItem("cdm26_me")||null;
 
+// Libellés de jour (jj/mm -> "Jeudi 11 juin")
+const JOURS=["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
+const MOIS=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+function dayLabel(d){const [jj,mm]=d.split("/").map(Number);const dt=new Date(2026,mm-1,jj);const nom=JOURS[dt.getDay()];const cap=nom.charAt(0).toUpperCase()+nom.slice(1);return `${cap} ${jj} ${MOIS[mm-1]}`;}
+
+// État repliage. Par défaut : tout replié sauf cas particuliers gérés au render.
+let openDays={};       // clé = libellé du jour -> true si déplié
+let openCards={};      // clé = match id -> true si déplié
+let collapseInit=false;
+
 function setSync(s){const d=document.getElementById("sync-dot"),t=document.getElementById("sync-txt");d.className="sync-dot"+(s==="off"?" off":s==="busy"?" busy":"");t.textContent=s==="off"?"hors ligne":s==="busy"?"sync…":"synchronisé";}
 function showBanner(m){const b=document.getElementById("banner");if(m){b.textContent=m;b.classList.add("show");}else b.classList.remove("show");}
 
@@ -302,14 +334,57 @@ function render(){renderWho();const sc=computeScores();renderBoard(sc);renderCon
 function renderWho(){document.getElementById("who").innerHTML=PARTICIPANTS.map(p=>`<button class="who-btn ${me===p?'on':''}" onclick="setMe('${p}')">${p}</button>`).join('');}
 function renderBoard(sc){const sorted=[...PARTICIPANTS].sort((a,b)=>(sc[b]||0)-(sc[a]||0));const total=Object.values(results).filter(Boolean).length;document.getElementById("board").innerHTML=sorted.map((p,i)=>`<div class="board-cell ${i===0&&(sc[p]||0)>0?'lead':''}"><div class="b-rank">${MEDALS[i]}</div><div class="b-name">${p}</div><div class="b-score">${sc[p]||0}</div><div class="b-pct">${total>0?Math.round(((sc[p]||0)/total)*100)+'%':'—'}</div></div>`).join('');}
 function renderContent(sc){document.getElementById("content").innerHTML=tab==="matchs"?renderMatchs(sc):tab==="classement"?renderClassement(sc):renderStats(sc);}
-function renderMatchs(sc){const phases=["Groupes","1/16","1/8","Quart","Demi","FINALE"];let matches=filterPhase==="Groupes"?(filterGroupe==="Tous"?MG:filterGroupe==="France"?MG.filter(m=>m.fr):MG.filter(m=>m.g===filterGroupe)):MKO.filter(m=>m.t===filterPhase);const groups=["Tous","France",...[...new Set(MG.map(m=>m.g))].sort()];return `<div class="scroller">${phases.map(p=>`<button class="chip ${filterPhase===p?'on':''}" onclick="setPhase('${p}')">${p==="Groupes"?"Phase de groupes":p==="FINALE"?"Finale":p}</button>`).join('')}</div>${filterPhase==="Groupes"?`<div class="scroller sub">${groups.map(g=>`<button class="chip ${filterGroupe===g?'on':''}" onclick="setGroupe('${g}')">${g==="Tous"?"Tous":g==="France"?"France":"Gr. "+g}</button>`).join('')}</div>`:''}<div class="slabel"><span class="slabel-text">${filterPhase==="Groupes"?(filterGroupe==="Tous"?"Tous les matchs":filterGroupe==="France"?"La France":"Groupe "+filterGroupe):filterPhase}</span><span class="slabel-line"></span><span class="slabel-count">${matches.length} matchs</span></div>${matches.map(m=>matchCard(m,sc)).join('')}`;}
+function renderMatchs(sc){
+  const phases=["Groupes","1/16","1/8","Quart","Demi","FINALE"];
+  let matches=filterPhase==="Groupes"?(filterGroupe==="Tous"?MG:filterGroupe==="France"?MG.filter(m=>m.fr):MG.filter(m=>m.g===filterGroupe)):MKO.filter(m=>m.t===filterPhase);
+  const groups=["Tous","France",...[...new Set(MG.map(m=>m.g))].sort()];
+  let html=`<div class="scroller">${phases.map(p=>`<button class="chip ${filterPhase===p?'on':''}" onclick="setPhase('${p}')">${p==="Groupes"?"Phase de groupes":p==="FINALE"?"Finale":p}</button>`).join('')}</div>${filterPhase==="Groupes"?`<div class="scroller sub">${groups.map(g=>`<button class="chip ${filterGroupe===g?'on':''}" onclick="setGroupe('${g}')">${g==="Tous"?"Tous":g==="France"?"France":"Gr. "+g}</button>`).join('')}</div>`:''}`;
+
+  // Regroupement par jour (ordre conservé : les matchs sont déjà chronologiques)
+  const days=[];const byDay={};
+  matches.forEach(m=>{const lbl=dayLabel(m.date);if(!byDay[lbl]){byDay[lbl]=[];days.push(lbl);}byDay[lbl].push(m);});
+
+  html+=`<div class="slabel"><span class="slabel-text">${filterPhase==="Groupes"?(filterGroupe==="Tous"?"Par journée":filterGroupe==="France"?"La France":"Groupe "+filterGroupe):filterPhase}</span><span class="slabel-line"></span><span class="slabel-count">${matches.length} matchs</span></div>`;
+
+  days.forEach(lbl=>{
+    const dayMatches=byDay[lbl];
+    const open=!!openDays[lbl];
+    const done=dayMatches.filter(m=>results[m.id]).length;
+    html+=`<button class="day ${open?'open':''}" onclick="toggleDay('${lbl.replace(/'/g,"\\'")}')">
+      <span class="day-chev">▶</span>
+      <span class="day-name">${lbl}</span>
+      <span class="day-meta">
+        ${done>0?`<span class="day-prog">${done}/${dayMatches.length} joués</span>`:''}
+        <span class="day-pill">${dayMatches.length} match${dayMatches.length>1?'s':''}</span>
+      </span>
+    </button>`;
+    if(open){
+      html+=`<div class="day-body">${dayMatches.map(m=>matchCard(m,sc)).join('')}</div>`;
+    }
+  });
+  return html;
+}
 function matchCard(m,sc){const mv=votes[m.id]||[null,null,null,null];const maj=getMajority(mv,sc),real=results[m.id];const s1=m.e1.split(' ')[0],s2=m.e2.split(' ')[0];const majL=maj?(maj==="1"?m.e1:maj==="2"?m.e2:"Match nul"):null;
+const cardOpen=!!openCards[m.id];
+// Indicateur d'état pour la vue repliée
+const nbVotes=mv.filter(Boolean).length;
+const dotCls=real?"done":nbVotes===4?"done":nbVotes>0?"partial":"empty";
+const miniLabel=real?(real==="1"?s1+" ✓":real==="2"?s2+" ✓":"Nul ✓"):(majL?majL:`${nbVotes}/4 votes`);
+const tag=m.g?`<span class="c-tag">Groupe ${m.g}</span>`:`<span class="c-tag">${m.t}</span>`;
+const topBar=`<div class="card-top" onclick="toggleCard(${m.id})"><span class="card-chev">▶</span><span class="c-num">M${String(m.id).padStart(2,'0')}</span><span class="c-when">${m.h}</span>${m.fr?`<span class="c-tag frtag">France</span>`:''}${cardOpen?tag:`<span class="mini-status"><span class="mini-pron">${miniLabel}</span><span class="mini-dot ${dotCls}"></span></span>`}</div>`;
+if(!cardOpen){
+  return `<div class="card collapsed ${m.fr?'fr':''}">${topBar}<div class="teams"><div class="team"><span class="flag">${f(m.e1)}</span><span class="tname">${m.e1}</span></div><div class="vs">VS</div><div class="team r"><span class="tname">${m.e2}</span><span class="flag">${f(m.e2)}</span></div></div></div>`;
+}
 const rows=PARTICIPANTS.map((p,i)=>{const isMe=me===p;const dis=isMe?"":"disabled";const lk=isMe?"":"locked";return `<div class="vrow"><span class="vname ${isMe?'me':''}">${p}</span><div class="vopts"><button class="vbtn ${lk} ${mv[i]==='1'?'on':''}" ${dis} onclick="vote(${m.id},${i},'1')">${s1}</button><button class="vbtn ${lk} ${mv[i]==='N'?'on':''}" ${dis} onclick="vote(${m.id},${i},'N')">Nul</button><button class="vbtn ${lk} ${mv[i]==='2'?'on':''}" ${dis} onclick="vote(${m.id},${i},'2')">${s2}</button></div></div>`;}).join('');
-const badges=real?PARTICIPANTS.map((p,i)=>mv[i]?`<span class="badge ${mv[i]===real?'ok':'ko'}">${mv[i]===real?'✓':'✗'} ${p}</span>`:'').join(''):'';const tag=m.g?`<span class="c-tag">Groupe ${m.g}</span>`:`<span class="c-tag">${m.t}</span>`;return `<div class="card ${m.fr?'fr':''}"><div class="card-top"><span class="c-num">M${String(m.id).padStart(2,'0')}</span><span class="c-when">${m.date} · ${m.h}</span>${m.fr?`<span class="c-tag frtag">France</span>`:''}${tag}</div><div class="teams"><div class="team"><span class="flag">${f(m.e1)}</span><span class="tname">${m.e1}</span></div><div class="vs">VS</div><div class="team r"><span class="tname">${m.e2}</span><span class="flag">${f(m.e2)}</span></div></div><div class="votes">${rows}<div class="retenu"><span class="rlabel">Retenu</span>${majL?`<span class="rval">${majL}</span>`:'<span class="rpending">en attente</span>'}<select class="rsel" onchange="setResult(${m.id},this.value)"><option value="" ${!real?'selected':''}>Résultat ?</option><option value="1" ${real==='1'?'selected':''}>${s1}</option><option value="N" ${real==='N'?'selected':''}>Nul</option><option value="2" ${real==='2'?'selected':''}>${s2}</option></select>${real&&badges?`<div class="badges">${badges}</div>`:''}</div></div></div>`;}
+const badges=real?PARTICIPANTS.map((p,i)=>mv[i]?`<span class="badge ${mv[i]===real?'ok':'ko'}">${mv[i]===real?'✓':'✗'} ${p}</span>`:'').join(''):'';return `<div class="card ${m.fr?'fr':''}">${topBar}<div class="teams"><div class="team"><span class="flag">${f(m.e1)}</span><span class="tname">${m.e1}</span></div><div class="vs">VS</div><div class="team r"><span class="tname">${m.e2}</span><span class="flag">${f(m.e2)}</span></div></div><div class="votes">${rows}<div class="retenu"><span class="rlabel">Retenu</span>${majL?`<span class="rval">${majL}</span>`:'<span class="rpending">en attente</span>'}<select class="rsel" onchange="setResult(${m.id},this.value)"><option value="" ${!real?'selected':''}>Résultat ?</option><option value="1" ${real==='1'?'selected':''}>${s1}</option><option value="N" ${real==='N'?'selected':''}>Nul</option><option value="2" ${real==='2'?'selected':''}>${s2}</option></select>${real&&badges?`<div class="badges">${badges}</div>`:''}</div></div></div>`;}
 function renderClassement(sc){const sorted=[...PARTICIPANTS].sort((a,b)=>(sc[b]||0)-(sc[a]||0));const total=Object.values(results).filter(Boolean).length;const max=Math.max(...Object.values(sc),1);const last=sorted[sorted.length-1];return `<div class="slabel"><span class="slabel-text">Classement</span><span class="slabel-line"></span><span class="slabel-count">${total} joués</span></div>${sorted.map((p,i)=>`<div class="rcard ${i===0&&(sc[p]||0)>0?'gold':''}"><div class="rtop"><span class="rmedal ${i===3?'txt':''}">${MEDALS[i]}</span><span class="rname">${p}</span><span class="rscore">${sc[p]||0}<span class="runit">pts</span></span></div><div class="rbars"><div class="brow"><span class="blabel">Bons pronos</span><div class="btrack"><div class="bfill" style="width:${max>0?((sc[p]||0)/max*100):0}%"></div></div><span class="bval">${sc[p]||0}/${total}</span></div><div class="brow"><span class="blabel">Réussite</span><div class="btrack"><div class="bfill neutral" style="width:${total>0?((sc[p]||0)/total*100):0}%"></div></div><span class="bval">${total>0?Math.round(((sc[p]||0)/total)*100)+'%':'—'}</span></div></div></div>`).join('')}${total>0?`<div class="apero"><span class="apero-ico">🍻</span><div class="apero-txt"><b>Clause Apéro —</b> à ce stade, <span class="apero-name">${last}</span> offre l'apéro à la fin du tournoi.</div></div>`:''}`;}
 function renderStats(sc){const total=Object.values(results).filter(Boolean).length;const max=Math.max(...Object.values(sc),0);const sorted=[...PARTICIPANTS].sort((a,b)=>(sc[b]||0)-(sc[a]||0));const detail=PARTICIPANTS.map((p,pi)=>{const voted=ALL.filter(m=>results[m.id]&&(votes[m.id]||[])[pi]).length;const correct=ALL.filter(m=>{const r=results[m.id];return r&&(votes[m.id]||[])[pi]===r;}).length;const missed=ALL.filter(m=>results[m.id]&&!(votes[m.id]||[])[pi]).length;return `<div class="rcard"><div class="rtop"><span class="rname">${p}</span><span class="rscore" style="font-size:24px">${sc[p]||0}<span class="runit">pts</span></span></div><div class="rbars"><div class="brow"><span class="blabel">Saisis</span><div class="btrack"><div class="bfill neutral" style="width:${total>0?(voted/total*100):0}%"></div></div><span class="bval">${voted}/${total}</span></div><div class="brow"><span class="blabel">Corrects</span><div class="btrack"><div class="bfill" style="width:${voted>0?(correct/voted*100):0}%"></div></div><span class="bval">${correct}</span></div><div class="brow"><span class="blabel">Manqués</span><div class="btrack"><div class="bfill neutral" style="width:${total>0?(missed/total*100):0}%"></div></div><span class="bval">${missed}</span></div></div></div>`;}).join('');const rules=[["⚽","Mise","1 € par personne et par match — 4 € collectifs"],["🗳️","Vote majoritaire","Le pronostic le plus choisi est retenu avant chaque match"],["⚖️","Égalité","En cas d'ex-æquo, le meilleur taux de réussite tranche"],["💰","Gains","Répartis équitablement entre les quatre participants"],["🍻","Apéro","Le dernier du classement offre l'apéro à Niort"]].map(([i,t,d])=>`<div class="rule"><span class="rule-ico">${i}</span><div><div class="rule-t">${t}</div><div class="rule-d">${d}</div></div></div>`).join('');return `<div class="slabel"><span class="slabel-text">Vue d'ensemble</span><span class="slabel-line"></span></div><div class="grid"><div class="scard"><div class="slbl">Matchs joués</div><div class="sval a">${total}</div><div class="ssub">sur 104 au total</div></div><div class="scard"><div class="slbl">Mise engagée</div><div class="sval">${total*4} €</div><div class="ssub">1 € × 4 × ${total}</div></div><div class="scard"><div class="slbl">En tête</div><div class="sval">${max}</div><div class="ssub">${sorted[0]}</div></div><div class="scard"><div class="slbl">Restants</div><div class="sval">${104-total}</div><div class="ssub">${(104-total)*4} € à jouer</div></div></div><div class="slabel"><span class="slabel-text">Par joueur</span><span class="slabel-line"></span></div>${detail}<div class="slabel"><span class="slabel-text">Règles</span><span class="slabel-line"></span></div>${rules}<div style="height:16px"></div>`;}
 
 window.setMe=function(p){me=(me===p?null:p);if(me)localStorage.setItem("cdm26_me",me);else localStorage.removeItem("cdm26_me");render();};
+// Repliage : on ne redessine QUE le contenu, en préservant la position de scroll
+function renderMatchsOnly(){const sc=computeScores();const c=document.getElementById("content");const y=c.scrollTop;c.innerHTML=renderMatchs(sc);c.scrollTop=y;}
+window.toggleDay=function(lbl){openDays[lbl]=!openDays[lbl];renderMatchsOnly();};
+window.toggleCard=function(id){openCards[id]=!openCards[id];renderMatchsOnly();};
 window.vote=async function(id,pi,v){
   if(me!==PARTICIPANTS[pi])return;
   const cur=votes[id]?[...votes[id]]:[null,null,null,null];
@@ -333,9 +408,38 @@ window.setTab=function(t){tab=t;document.querySelectorAll(".nbtn").forEach(b=>b.
 window.setPhase=function(p){filterPhase=p;render();};
 window.setGroupe=function(g){filterGroupe=g;render();};
 
-async function refresh(){await loadAll();render();}
+// Rafraîchit les données puis redessine SANS casser le scroll ni les sections ouvertes
+async function softRefresh(){
+  const c=document.getElementById("content");
+  const y=c?c.scrollTop:0;
+  await loadAll();
+  if(tab==="matchs"){const sc=computeScores();renderWho();renderBoard(sc);c.innerHTML=renderMatchs(sc);c.scrollTop=y;}
+  else render();
+}
+
+async function refresh(){
+  await loadAll();
+  if(!collapseInit){
+    collapseInit=true;
+    const byDay={};const order=[];
+    MG.forEach(m=>{const l=dayLabel(m.date);if(!byDay[l]){byDay[l]=[];order.push(l);}byDay[l].push(m);});
+    let target=order.find(l=>byDay[l].some(m=>!results[m.id]))||order[0];
+    if(target)openDays[target]=true;
+  }
+  render();
+}
+
+// ── Temps réel : on écoute les changements et on rafraîchit aussitôt ──
+function subscribeRealtime(){
+  db.channel("cdm26")
+    .on("postgres_changes",{event:"*",schema:"public",table:"pronostics"},softRefresh)
+    .on("postgres_changes",{event:"*",schema:"public",table:"resultats"},softRefresh)
+    .subscribe();
+}
+
 refresh();
-setInterval(refresh,15000);
+subscribeRealtime();
+setInterval(refresh,20000); // filet de sécurité si le temps réel se coupe
 </script>
 </body>
 </html>
