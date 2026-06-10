@@ -108,16 +108,35 @@ body{font-family:'Inter',sans-serif;background:var(--paper);color:var(--ink);min
 .vbtn.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
 .vbtn:disabled{cursor:default;opacity:.85}
 .vbtn.locked.on{background:var(--dim);border-color:var(--dim)}
-.retenu{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);flex-wrap:wrap}
+.retenu{display:flex;flex-direction:column;align-items:stretch;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.retenu-main{display:flex;align-items:center;gap:10px;justify-content:center;min-width:0}
+.retenu-tools{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.retenu-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.retenu-row.scoreline{justify-content:center}
 .rlabel{font-size:9px;font-weight:600;letter-spacing:1px;color:var(--faint);text-transform:uppercase}
 .rval{font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-soft);padding:4px 11px;border-radius:6px}
 .rpending{font-size:11px;color:var(--faint);font-style:italic}
 .rsel{margin-left:auto;background:var(--paper);border:1px solid var(--line2);color:var(--ink);font-size:11px;font-weight:500;padding:6px 9px;cursor:pointer;font-family:inherit;border-radius:6px}
 .rsel:focus{outline:none;border-color:var(--accent)}
-.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;width:100%}
+.m-score{display:flex;align-items:center;gap:6px;border:1px solid var(--line2);background:var(--paper);border-radius:8px;padding:4px 6px}
+.m-score.filled{border-color:var(--ok);box-shadow:0 0 0 1px color-mix(in oklab,var(--ok) 25%, transparent)}
+.m-score .score-in{width:34px;padding:5px 2px;font-size:12px}
+.m-score .score-vs{font-size:9px}
+.odds-box{display:flex;align-items:center;gap:6px;border:1px solid var(--line2);background:var(--paper);border-radius:8px;padding:4px 6px}
+.odds-in{width:56px;padding:5px 4px;border:1px solid var(--line2);border-radius:6px;background:var(--card);color:var(--ink);font:inherit;font-size:12px;text-align:center}
+.odds-in:focus{outline:none;border-color:var(--accent)}
+.gain-pill{font-size:11px;font-weight:600;border-radius:20px;padding:5px 10px;border:1px solid var(--line2);background:var(--paper);color:var(--dim)}
+.gain-pill.win{border-color:var(--ok);color:var(--ok);background:color-mix(in oklab,var(--ok) 12%, white)}
+.gain-pill.loss{border-color:var(--ko);color:var(--ko);background:color-mix(in oklab,var(--ko) 10%, white)}
+.badges{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;width:100%}
 .badge{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px}
 .badge.ok{background:var(--accent-soft);color:var(--ok)}
 .badge.ko{background:#f6ecec;color:var(--ko)}
+@media (max-width:760px){
+  .retenu-main{justify-content:flex-start}
+  .retenu-tools{justify-content:flex-start}
+  .retenu-row.scoreline{justify-content:flex-start}
+}
 .rcard{margin:0 18px 12px;border:1px solid var(--line2);background:var(--card);border-radius:10px;overflow:hidden}
 .rcard.gold{border-color:var(--accent)}
 .rtop{display:flex;align-items:center;gap:13px;padding:15px 16px;border-bottom:1px solid var(--line)}
@@ -293,7 +312,6 @@ body{font-family:'Inter',sans-serif;background:var(--paper);color:var(--ink);min
   <div class="content" id="content"></div>
   <div class="nav">
     <button class="nbtn on" id="nav-matchs" onclick="setTab('matchs')"><span class="nico">⚽</span><span class="nlbl">Matchs</span></button>
-    <button class="nbtn" id="nav-resultats" onclick="setTab('resultats')"><span class="nico">🧾</span><span class="nlbl">Résultats</span></button>
     <button class="nbtn" id="nav-competition" onclick="setTab('competition')"><span class="nico">🏟️</span><span class="nlbl">Compétition</span></button>
     <button class="nbtn" id="nav-classement" onclick="setTab('classement')"><span class="nico">🏆</span><span class="nlbl">Classement</span></button>
     <button class="nbtn" id="nav-stats" onclick="setTab('stats')"><span class="nico">📊</span><span class="nlbl">Stats</span></button>
@@ -428,8 +446,10 @@ const ALL=[...MG,...MKO];const MEDALS=["🥇","🥈","🥉","4ᵉ"];
 let votes={},results={},tab="matchs",filterPhase="Groupes",filterGroupe="Tous";
 let me=localStorage.getItem("cdm26_me")||null;
 let scoreMap={};
+let coteMap={};
 let scoreSaveTimers={};
 let matchsSeeded=false;
+try{coteMap=JSON.parse(localStorage.getItem("cdm26_cotes")||"{}");}catch{coteMap={};}
 
 // Libellés de jour (jj/mm -> "Jeudi 11 juin")
 const JOURS=["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
@@ -486,7 +506,7 @@ function centerCompetitionBracket(){const b=document.querySelector('.bracket-wra
 function render(){renderWho();const sc=computeScores();renderBoard(sc);renderContent(sc);if(tab==="competition")requestAnimationFrame(centerCompetitionBracket);}
 function renderWho(){document.getElementById("who").innerHTML=PARTICIPANTS.map(p=>`<button class="who-btn ${me===p?'on':''}" onclick="setMe('${p}')">${p}</button>`).join('');}
 function renderBoard(sc){const sorted=[...PARTICIPANTS].sort((a,b)=>(sc[b]||0)-(sc[a]||0));const total=Object.values(results).filter(Boolean).length;document.getElementById("board").innerHTML=sorted.map((p,i)=>`<div class="board-cell ${i===0&&(sc[p]||0)>0?'lead':''}"><div class="b-rank">${MEDALS[i]}</div><div class="b-name">${p}</div><div class="b-score">${sc[p]||0}</div><div class="b-pct">${total>0?Math.round(((sc[p]||0)/total)*100)+'%':'—'}</div></div>`).join('');}
-function renderContent(sc){document.getElementById("content").innerHTML=tab==="matchs"?renderMatchs(sc):tab==="resultats"?renderResultats():tab==="competition"?renderCompetition():tab==="classement"?renderClassement(sc):renderStats(sc);}
+function renderContent(sc){document.getElementById("content").innerHTML=tab==="matchs"?renderMatchs(sc):tab==="competition"?renderCompetition():tab==="classement"?renderClassement(sc):renderStats(sc);}
 function renderMatchs(sc){
   const phases=["Groupes","1/16","1/8","Quart","Demi","FINALE"];
   let matches=filterPhase==="Groupes"?(filterGroupe==="Tous"?MG:filterGroupe==="France"?MG.filter(m=>m.fr):MG.filter(m=>m.g===filterGroupe)):MKO.filter(m=>m.t===filterPhase);
@@ -529,11 +549,30 @@ function renderMatchs(sc){
   });
   return html;
 }
-function matchCard(m,sc){const mv=votes[m.id]||[null,null,null,null];const maj=getMajority(mv,sc),real=results[m.id];const s1=m.e1.split(' ')[0],s2=m.e2.split(' ')[0];const fl1=f(m.e1),fl2=f(m.e2);const i1=flagImg(m.e1),i2=flagImg(m.e2),i1s=flagImg(m.e1,"flag-sm"),i2s=flagImg(m.e2,"flag-sm");const s1f=`${fl1} ${s1}`,s2f=`${fl2} ${s2}`;const s1h=`<span class="with-flag">${i1s}<span>${s1}</span></span>`,s2h=`<span class="with-flag">${i2s}<span>${s2}</span></span>`;const majL=maj?(maj==="1"?`<span class="with-flag">${i1s}<span>${m.e1}</span></span>`:maj==="2"?`<span class="with-flag">${i2s}<span>${m.e2}</span></span>`:"Match nul"):null;
-const tag=m.g?`<span class="c-tag">Groupe ${m.g}</span>`:`<span class="c-tag">${m.t}</span>`;
-const topBar=`<div class="card-top"><span class="c-num">M${String(m.id).padStart(2,'0')}</span><span class="c-when">${m.h}</span>${m.fr?`<span class="c-tag frtag">France</span>`:''}${tag}</div>`;
-const rows=PARTICIPANTS.map((p,i)=>{const isMe=me===p;const dis=isMe?"":"disabled";const lk=isMe?"":"locked";return `<div class="vrow"><span class="vname ${isMe?'me':''}">${p}</span><div class="vopts"><button class="vbtn ${lk} ${mv[i]==='1'?'on':''}" ${dis} onclick="vote(${m.id},${i},'1')">${s1h}</button><button class="vbtn ${lk} ${mv[i]==='N'?'on':''}" ${dis} onclick="vote(${m.id},${i},'N')">Nul</button><button class="vbtn ${lk} ${mv[i]==='2'?'on':''}" ${dis} onclick="vote(${m.id},${i},'2')">${s2h}</button></div></div>`;}).join('');
-const badges=real?PARTICIPANTS.map((p,i)=>mv[i]?`<span class="badge ${mv[i]===real?'ok':'ko'}">${mv[i]===real?'✓':'✗'} ${p}</span>`:'').join(''):'';return `<div class="card ${m.fr?'fr':''}">${topBar}<div class="teams"><div class="team">${i1}<span class="tname">${m.e1}</span></div><div class="vs">VS</div><div class="team r"><span class="tname">${m.e2}</span>${i2}</div></div><div class="votes">${rows}<div class="retenu"><span class="rlabel">Retenu</span>${majL?`<span class="rval">${majL}</span>`:'<span class="rpending">en attente</span>'}<select class="rsel" onchange="setResult(${m.id},this.value)"><option value="" ${!real?'selected':''}>Résultat ?</option><option value="1" ${real==='1'?'selected':''}>${s1f}</option><option value="N" ${real==='N'?'selected':''}>Nul</option><option value="2" ${real==='2'?'selected':''}>${s2f}</option></select>${real&&badges?`<div class="badges">${badges}</div>`:''}</div></div></div>`;}
+function matchCard(m,sc){
+  const mv=votes[m.id]||[null,null,null,null];
+  const maj=getMajority(mv,sc),real=results[m.id];
+  const s1=m.e1.split(' ')[0],s2=m.e2.split(' ')[0];
+  const i1=flagImg(m.e1),i2=flagImg(m.e2),i1s=flagImg(m.e1,"flag-sm"),i2s=flagImg(m.e2,"flag-sm");
+  const s1h=`<span class="with-flag">${i1s}<span>${s1}</span></span>`,s2h=`<span class="with-flag">${i2s}<span>${s2}</span></span>`;
+  const majL=maj?(maj==="1"?`<span class="with-flag">${i1s}<span>${m.e1}</span></span>`:maj==="2"?`<span class="with-flag">${i2s}<span>${m.e2}</span></span>`:"Match nul"):null;
+  const s=scoreOf(m.id);
+  const filled=s.s1!==""&&s.s2!=="";
+  const tag=m.g?`<span class="c-tag">Groupe ${m.g}</span>`:`<span class="c-tag">${m.t}</span>`;
+  const topBar=`<div class="card-top"><span class="c-num">M${String(m.id).padStart(2,'0')}</span><span class="c-when">${m.h}</span>${m.fr?`<span class="c-tag frtag">France</span>`:''}${tag}</div>`;
+  const rows=PARTICIPANTS.map((p,i)=>{const isMe=me===p;const dis=isMe?"":"disabled";const lk=isMe?"":"locked";return `<div class="vrow"><span class="vname ${isMe?'me':''}">${p}</span><div class="vopts"><button class="vbtn ${lk} ${mv[i]==='1'?'on':''}" ${dis} onclick="vote(${m.id},${i},'1')">${s1h}</button><button class="vbtn ${lk} ${mv[i]==='N'?'on':''}" ${dis} onclick="vote(${m.id},${i},'N')">Nul</button><button class="vbtn ${lk} ${mv[i]==='2'?'on':''}" ${dis} onclick="vote(${m.id},${i},'2')">${s2h}</button></div></div>`;}).join('');
+  const badges=real?PARTICIPANTS.map((p,i)=>mv[i]?`<span class="badge ${mv[i]===real?'ok':'ko'}">${mv[i]===real?'✓':'✗'} ${p}</span>`:'').join(''):'';
+  const coteRaw=coteOf(m.id);
+  const cote=Number(String(coteRaw).replace(",","."));
+  const hasCote=Number.isFinite(cote)&&cote>0;
+  const gainValue=hasCote&&maj?(real?((maj===real?4*cote:0)):4*cote):null;
+  const gainLabel=gainValue==null?"Gain : —":`${real?"Gain":"Potentiel"} : ${gainValue.toFixed(2)} €`;
+  const gainClass=gainValue==null?"":(real?(maj===real?"win":"loss"):"");
+  const scoreEditor=`<div class="retenu-row"><span class="rlabel">Résultat :</span><div class="m-score ${filled?'filled':''}"><input class="score-in" type="number" min="0" step="1" value="${s.s1}" oninput="setScoreDraft(${m.id},'s1',this.value,this)"><span class="score-vs">-</span><input class="score-in" type="number" min="0" step="1" value="${s.s2}" oninput="setScoreDraft(${m.id},'s2',this.value,this)"></div></div>`;
+  const coteEditor=`<div class="retenu-row"><span class="rlabel">Cote :</span><div class="odds-box"><input class="odds-in" type="text" inputmode="decimal" value="${coteRaw}" onchange="setCoteDraft(${m.id},this.value,this)"></div></div>`;
+  const gainEditor=`<span class="gain-pill ${gainClass}">${gainLabel}</span>`;
+  return `<div class="card ${m.fr?'fr':''}">${topBar}<div class="teams"><div class="team">${i1}<span class="tname">${m.e1}</span></div><div class="vs">VS</div><div class="team r"><span class="tname">${m.e2}</span>${i2}</div></div><div class="votes">${rows}<div class="retenu"><div class="retenu-main"><span class="rlabel">Retenu :</span>${majL?`<span class="rval">${majL}</span>`:'<span class="rpending">en attente</span>'}</div><div class="retenu-tools"><div class="retenu-row scoreline">${coteEditor}${scoreEditor}${gainEditor}</div></div>${real&&badges?`<div class="badges">${badges}</div>`:''}</div></div></div>`;
+}
 function renderClassement(sc){
   const sorted=[...PARTICIPANTS].sort((a,b)=>(sc[b]||0)-(sc[a]||0));
   const total=Object.values(results).filter(Boolean).length;
@@ -552,6 +591,7 @@ function renderCompetition(){
 function renderStats(sc){const total=Object.values(results).filter(Boolean).length;const max=Math.max(...Object.values(sc),0);const sorted=[...PARTICIPANTS].sort((a,b)=>(sc[b]||0)-(sc[a]||0));const detail=PARTICIPANTS.map((p,pi)=>{const voted=ALL.filter(m=>results[m.id]&&(votes[m.id]||[])[pi]).length;const correct=ALL.filter(m=>{const r=results[m.id];return r&&(votes[m.id]||[])[pi]===r;}).length;const missed=ALL.filter(m=>results[m.id]&&!(votes[m.id]||[])[pi]).length;return `<div class="rcard"><div class="rtop"><span class="rname">${p}</span><span class="rscore" style="font-size:24px">${sc[p]||0}<span class="runit">pts</span></span></div><div class="rbars"><div class="brow"><span class="blabel">Saisis</span><div class="btrack"><div class="bfill neutral" style="width:${total>0?(voted/total*100):0}%"></div></div><span class="bval">${voted}/${total}</span></div><div class="brow"><span class="blabel">Corrects</span><div class="btrack"><div class="bfill" style="width:${voted>0?(correct/voted*100):0}%"></div></div><span class="bval">${correct}</span></div><div class="brow"><span class="blabel">Manqués</span><div class="btrack"><div class="bfill neutral" style="width:${total>0?(missed/total*100):0}%"></div></div><span class="bval">${missed}</span></div></div></div>`;}).join('');const rules=[["⚽","Mise","1 € par personne et par match — 4 € collectifs"],["🗳️","Vote majoritaire","Le pronostic le plus choisi est retenu avant chaque match"],["⚖️","Égalité","En cas d'ex-æquo, le meilleur taux de réussite tranche"],["💰","Gains","Répartis équitablement entre les quatre participants"],["🍻","Apéro","Le dernier du classement offre l'apéro à Niort"]].map(([i,t,d])=>`<div class="rule"><span class="rule-ico">${i}</span><div><div class="rule-t">${t}</div><div class="rule-d">${d}</div></div></div>`).join('');return `<div class="slabel"><span class="slabel-text">Vue d'ensemble</span><span class="slabel-line"></span></div><div class="grid"><div class="scard"><div class="slbl">Matchs joués</div><div class="sval a">${total}</div><div class="ssub">sur 104 au total</div></div><div class="scard"><div class="slbl">Mise engagée</div><div class="sval">${total*4} €</div><div class="ssub">1 € × 4 × ${total}</div></div><div class="scard"><div class="slbl">En tête</div><div class="sval">${max}</div><div class="ssub">${sorted[0]}</div></div><div class="scard"><div class="slbl">Restants</div><div class="sval">${104-total}</div><div class="ssub">${(104-total)*4} € à jouer</div></div></div><div class="slabel"><span class="slabel-text">Par joueur</span><span class="slabel-line"></span></div>${detail}<div class="slabel"><span class="slabel-text">Règles</span><span class="slabel-line"></span></div>${rules}<div style="height:16px"></div>`;}
 
 function scoreOf(id){return scoreMap[id]||{s1:"",s2:""};}
+function coteOf(id){return coteMap[id]==null?"":String(coteMap[id]);}
 function winnerFromScore(s1,s2){if(s1===""||s2==="")return null;const a=Number(s1),b=Number(s2);if(Number.isNaN(a)||Number.isNaN(b))return null;return a===b?"N":(a>b?"1":"2");}
 function groupTables(){
   const groups={};
@@ -666,13 +706,26 @@ window.setScoreDraft=function(id,key,val,el){
   if(el&&el.value!==cleaned)el.value=cleaned;
 
   const card=el?el.closest(".admin-card"):null;
+  const scoreBox=el?el.closest(".m-score"):null;
   const filled=scoreMap[id].s1!==""&&scoreMap[id].s2!=="";
   if(card)card.classList.toggle("filled",filled);
+  if(scoreBox)scoreBox.classList.toggle("filled",filled);
 
   if(scoreSaveTimers[id])clearTimeout(scoreSaveTimers[id]);
   if(filled){
     scoreSaveTimers[id]=setTimeout(()=>saveScore(id),450);
   }
+};
+window.setCoteDraft=function(id,val,el){
+  let cleaned=String(val).replace(/,/g,'.').replace(/[^0-9.]/g,'');
+  const p=cleaned.split('.');
+  if(p.length>2)cleaned=`${p.shift()}.${p.join('')}`;
+  coteMap[id]=cleaned;
+  if(!cleaned)delete coteMap[id];
+  localStorage.setItem("cdm26_cotes",JSON.stringify(coteMap));
+  if(el&&el.value!==cleaned)el.value=cleaned;
+  if(tab==="matchs")renderMatchsOnly();
+  else render();
 };
 window.saveScore=async function(id){
   const s=scoreOf(id);
@@ -711,7 +764,7 @@ window.setResult=async function(id,v){
     setSync("ok");showBanner(null);
   }catch(e){setSync("off");showBanner("Échec de l'enregistrement — base injoignable.");console.error(e);}
 };
-window.setTab=function(t){tab=t;document.querySelectorAll(".nbtn").forEach(b=>b.classList.remove("on"));document.getElementById("nav-"+t).classList.add("on");document.querySelector(".app").classList.toggle("wide",t==="competition");document.getElementById("content").scrollTop=0;render();};
+window.setTab=function(t){if(t==="resultats")t="matchs";tab=t;document.querySelectorAll(".nbtn").forEach(b=>b.classList.remove("on"));const nav=document.getElementById("nav-"+t);if(nav)nav.classList.add("on");document.querySelector(".app").classList.toggle("wide",t==="competition");document.getElementById("content").scrollTop=0;render();};
 window.setPhase=function(p){filterPhase=p;render();};
 window.setGroupe=function(g){filterGroupe=g;render();};
 
