@@ -27,6 +27,13 @@ body{font-family:'Inter',sans-serif;background:radial-gradient(circle at top lef
 .who-btn{padding:5px 11px;border:1px solid var(--line2);border-radius:30px;background:var(--card);color:var(--dim);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
 .who-btn:hover{border-color:var(--ink);color:var(--ink)}
 .who-btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.who-menu{position:relative}
+.who-menu summary{list-style:none}
+.who-menu summary::-webkit-details-marker{display:none}
+.who-menu-btn{display:inline-flex;align-items:center;gap:8px;padding:6px 11px;border:1px solid var(--line2);border-radius:999px;background:var(--card);color:var(--dim);font-size:11px;font-weight:600;cursor:pointer;user-select:none;transition:all .15s}
+.who-menu-btn:hover,.who-menu[open] .who-menu-btn{border-color:var(--ink);color:var(--ink);box-shadow:0 10px 24px rgba(15,29,49,.08)}
+.who-menu-dot{width:10px;height:10px;border-radius:999px;box-shadow:0 0 0 1px rgba(15,29,49,.08) inset;flex-shrink:0}
+.who-menu-pop{position:absolute;top:calc(100% + 8px);right:0;min-width:210px;padding:10px;border:1px solid var(--line2);border-radius:14px;background:rgba(255,255,255,.98);box-shadow:0 18px 40px rgba(15,29,49,.14);backdrop-filter:blur(12px);display:grid;gap:8px;z-index:30}
 .who-color{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--line2);border-radius:999px;background:var(--card);color:var(--dim);font-size:11px;font-weight:600}
 .who-color input[type="color"]{width:28px;height:28px;border:none;background:none;padding:0;cursor:pointer}
 .who-color input[type="color"]::-webkit-color-swatch-wrapper{padding:0}
@@ -514,7 +521,7 @@ body{font-family:'Inter',sans-serif;background:radial-gradient(circle at top lef
     <div class="h-row">
       <div>
         <div class="eyebrow">Coupe du Monde 2026</div>
-        <div class="title">Pronostics entre nous</div>
+        <div class="title">Pronostics marguerite</div>
         <div class="subtitle" id="who-subtitle">Choisis qui tu es pour pronostiquer&nbsp;:</div>
       </div>
       <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span></div>
@@ -753,13 +760,13 @@ async function loadAll(){
   }
 }
 
-function computeScores(){const sc={};PARTICIPANTS.forEach(p=>sc[p]=0);ALL.forEach(m=>{const r=results[m.id];if(!r)return;const mv=votes[m.id]||[];const maj=getMajority(mv,sc,m.id);if(maj===r)PARTICIPANTS.forEach((p,i)=>{if(mv[i]===r)sc[p]=(sc[p]||0)+1;});});return sc;}
+function computeScores(){const sc={};PARTICIPANTS.forEach(p=>sc[p]=0);ALL.forEach(m=>{const r=results[m.id];if(!r)return;const mv=votes[m.id]||[];PARTICIPANTS.forEach((p,i)=>{if(mv[i]===r)sc[p]=(sc[p]||0)+1;});});return sc;}
 function majorityCandidates(mv){const c={};mv.forEach(v=>{if(v)c[v]=(c[v]||0)+1;});if(!Object.keys(c).length)return [];const mx=Math.max(...Object.values(c));return Object.keys(c).filter(k=>c[k]===mx);}
 function getMajority(mv,sc,id){const w=majorityCandidates(mv);if(!w.length)return null;if(w.length===1)return w[0];const forced=tieChoiceMap[id];return forced&&w.includes(forced)?forced:null;}
 
 function centerCompetitionBracket(){const b=document.querySelector('.bracket-wrap');if(!b)return;b.scrollLeft=Math.max(0,Math.round((b.scrollWidth-b.clientWidth)/2));}
 function render(){renderWho();const sc=computeScores();renderBoard(sc);renderContent(sc);if(tab==="competition")requestAnimationFrame(centerCompetitionBracket);}
-function renderWho(){const who=document.getElementById("who"),subtitle=document.getElementById("who-subtitle");if(tab!=="matchs"){who.innerHTML="";who.style.display="none";if(subtitle)subtitle.style.display="none";return;}who.style.display="block";if(subtitle)subtitle.style.display="block";const picker=me?`<div class="who-tools"><label class="who-color">Couleur<input type="color" value="${(customColorMap[me]||themeForPronostiqueur(me).accent)}" onchange="setPronostiqueurColor('${me}',this.value)"></label><button class="who-reset" onclick="resetPronostiqueurColor('${me}')">Réinitialiser</button></div>`:'';who.innerHTML=`<div class="who">${PARTICIPANTS.map(p=>`<button class="who-btn ${me===p?'on':''}" onclick="setMe('${p}')">${p}</button>`).join('')}</div>${picker}`;}
+function renderWho(){const who=document.getElementById("who"),subtitle=document.getElementById("who-subtitle");if(tab!=="matchs"){who.innerHTML="";who.style.display="none";if(subtitle)subtitle.style.display="none";return;}who.style.display="block";if(subtitle)subtitle.style.display="block";const currentColor=me?(customColorMap[me]||themeForPronostiqueur(me).accent):null;const picker=me?`<div class="who-tools"><details class="who-menu"><summary class="who-menu-btn"><span class="who-menu-dot" style="background:${currentColor}"></span>Couleurs</summary><div class="who-menu-pop"><label class="who-color">Couleur de ${me}<input type="color" value="${currentColor}" onchange="setPronostiqueurColor('${me}',this.value)"></label><button class="who-reset" onclick="resetPronostiqueurColor('${me}')">Reinitialiser</button></div></details></div>`:'';who.innerHTML=`<div class="who">${PARTICIPANTS.map(p=>`<button class="who-btn ${me===p?'on':''}" onclick="setMe('${p}')">${p}</button>`).join('')}</div>${picker}`;}
 function renderBoard(sc){const board=document.getElementById("board");if(tab!=="matchs"){board.innerHTML="";board.style.display="none";return;}board.style.display="grid";const sorted=[...PARTICIPANTS].sort((a,b)=>(sc[b]||0)-(sc[a]||0));const total=Object.values(results).filter(Boolean).length;board.innerHTML=sorted.map((p,i)=>`<div class="board-cell ${i===0&&(sc[p]||0)>0?'lead':''}"><div class="b-rank">${MEDALS[i]}</div><div class="b-name">${p}</div><div class="b-score">${sc[p]||0}</div><div class="b-pct">${total>0?Math.round(((sc[p]||0)/total)*100)+'%':'—'}</div></div>`).join('');}
 function renderPageHead(title,sub){return `<div class="page-head"><div class="page-head-title">${title}</div>${sub?`<div class="page-head-sub">${sub}</div>`:''}</div>`;}
 function renderContent(sc){
@@ -926,9 +933,9 @@ function renderStatsRich(sc){
   const maxPoints=Math.max(...stats.map(s=>s.points),1);
   const bestAccuracy=Math.max(...stats.map(s=>s.accuracy),0);
   const avgAccuracy=stats.length?Math.round(stats.reduce((sum,s)=>sum+s.accuracy,0)/stats.length):0;
-  const scoreBars=stats.map((s,i)=>`<div class="bar-row"><div><div class="bar-name">${MEDALS[i]||'•'} ${s.name}</div><div class="bar-meta">${s.correct} bons sur ${s.voted||0} saisis</div></div><div class="bar-rail"><div class="bar-fill" style="width:${maxPoints?Math.max(8,s.points/maxPoints*100):0}%"></div></div><div class="bar-val">${s.points} pts</div></div>`).join('');
-  const accuracyBars=stats.map(s=>`<div class="bar-row"><div><div class="bar-name">${s.name}</div><div class="bar-meta">Couverture ${s.coverage}%</div></div><div class="bar-rail"><div class="bar-fill alt" style="width:${Math.max(s.accuracy>0?8:0,s.accuracy)}%"></div></div><div class="bar-val">${s.accuracy}%</div></div>`).join('');
-  const tableRows=stats.map((s,i)=>`<tr><td class="stats-rank">${i+1}</td><td><div class="stats-player"><span class="stats-dot"></span><span>${s.name}</span></div></td><td>${s.points}</td><td>${s.voted}</td><td>${s.correct}</td><td>${s.wrong}</td><td>${s.missed}</td><td><span class="stats-chip ${s.accuracy>=60?'good':s.accuracy<35&&s.voted?'warn':''}">${s.accuracy}%</span></td><td>${s.coverage}%</td></tr>`).join('');
+  const scoreBars=stats.map((s,i)=>`<div class="bar-row" style="${pronostiqueurStatStyle(s.name)}"><div><div class="bar-name player">${MEDALS[i]||'•'} ${s.name}</div><div class="bar-meta">${s.correct} bons sur ${s.voted||0} saisis</div></div><div class="bar-rail"><div class="bar-fill player" style="width:${maxPoints?Math.max(8,s.points/maxPoints*100):0}%"></div></div><div class="bar-val">${s.points} pts</div></div>`).join('');
+  const accuracyBars=stats.map(s=>`<div class="bar-row" style="${pronostiqueurStatStyle(s.name)}"><div><div class="bar-name player">${s.name}</div><div class="bar-meta">Couverture ${s.coverage}%</div></div><div class="bar-rail"><div class="bar-fill alt player" style="width:${Math.max(s.accuracy>0?8:0,s.accuracy)}%"></div></div><div class="bar-val">${s.accuracy}%</div></div>`).join('');
+  const tableRows=stats.map((s,i)=>`<tr><td class="stats-rank">${i+1}</td><td><div class="stats-player player" style="${pronostiqueurStatStyle(s.name)}"><span class="stats-dot player"></span><span>${s.name}</span></div></td><td>${s.points}</td><td>${s.voted}</td><td>${s.correct}</td><td>${s.wrong}</td><td>${s.missed}</td><td><span class="stats-chip ${s.accuracy>=60?'good':s.accuracy<35&&s.voted?'warn':''}">${s.accuracy}%</span></td><td>${s.coverage}%</td></tr>`).join('');
 
   const settledBets=ALL.filter(m=>betPlaced(m.id)&&results[m.id]).map(m=>{
     const maj=getMajority(votes[m.id]||[],sc,m.id);
@@ -1100,7 +1107,6 @@ function renderResultats(){
   return `${filters}<div class="slabel"><span class="slabel-text">Saisie des scores</span><span class="slabel-line"></span><span class="slabel-count">${matches.length} matchs</span></div>${mRows}<div class="slabel"><span class="slabel-text">Classements groupes</span><span class="slabel-line"></span><span class="slabel-count">Pts / Diff / BP / J</span></div><div class="group-grid">${groupHtml}</div><div class="slabel"><span class="slabel-text">Phase éliminatoire</span><span class="slabel-line"></span></div>${thirdLine}${renderKnockout(kval.fixtures)}<div style="height:18px"></div>`;
 }
 
-window.setMe=function(p){me=(me===p?null:p);if(me)localStorage.setItem("cdm26_me",me);else localStorage.removeItem("cdm26_me");render();};
 window.setMe=function(p){me=(me===p?null:p);if(me)localStorage.setItem("cdm26_me",me);else localStorage.removeItem("cdm26_me");applyPronostiqueurTheme(me);render();};
 window.setPronostiqueurColor=function(name,value){if(!/^#[0-9a-fA-F]{6}$/.test(String(value||"")))return;customColorMap[name]=value;localStorage.setItem("cdm26_custom_colors",JSON.stringify(customColorMap));if(me===name)applyPronostiqueurTheme(me);render();};
 window.resetPronostiqueurColor=function(name){delete customColorMap[name];localStorage.setItem("cdm26_custom_colors",JSON.stringify(customColorMap));if(me===name)applyPronostiqueurTheme(me);render();};
