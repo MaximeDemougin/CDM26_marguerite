@@ -662,10 +662,12 @@ const MKO=[
   {id:103,date:"18/07",h:"19:00",t:"3ème place",e1:"Perdant M101",e2:"Perdant M102"},
   {id:104,date:"19/07",h:"21:00",t:"FINALE",e1:"V.M101",e2:"V.M102"}
 ];
-const ALL=[...MG,...MKO];const MEDALS=["🥇","🥈","🥉","4ᵉ"];
+const ALL=[...MG,...MKO];const MEDALS=["🥇","🥈","🥉","🍺"];
+const METADATA_MATCH_ID=ALL[0].id;
 const TIE_BREAK_PARTICIPANT="__TIE_BREAK__";
 const BET_PLACED_PARTICIPANT="__BET_PLACED__";
 const COTE_PARTICIPANT_PREFIX="__COTE__:";
+const COLOR_PARTICIPANT_PREFIX="__COLOR__:";
 
 let votes={},results={},tab="matchs",filterPhase="Groupes",filterGroupe="Tous";
 let filterSearch="",filterTeam="Toutes";
@@ -740,16 +742,26 @@ async function loadAll(){
     await ensureMatchsRows();
     const [pr,ma]=await Promise.all([db.from("pronostics").select("*"),db.from("matchs").select("id,resultat,score_dom,score_ext")]);
     if(pr.error)throw pr.error;if(ma.error)throw ma.error;
+    const localColors={...customColorMap};
+    const remoteColorMap={};
     votes={};tieChoiceMap={};coteMap={};placedBetMap={};
     pr.data.forEach(row=>{
       if(row.participant===TIE_BREAK_PARTICIPANT){if(row.choix)tieChoiceMap[row.match_id]=row.choix;return;}
       if(row.participant===BET_PLACED_PARTICIPANT){if(row.choix==="1")placedBetMap[row.match_id]=true;return;}
       if(typeof row.participant==="string"&&row.participant.startsWith(COTE_PARTICIPANT_PREFIX)){const v=row.participant.slice(COTE_PARTICIPANT_PREFIX.length);if(v)coteMap[row.match_id]=v;return;}
+      if(typeof row.participant==="string"&&row.participant.startsWith(COLOR_PARTICIPANT_PREFIX)){const name=row.participant.slice(COLOR_PARTICIPANT_PREFIX.length);if(PARTICIPANTS.includes(name)&&/^#[0-9a-fA-F]{6}$/.test(String(row.choix||"")))remoteColorMap[name]=row.choix;return;}
       const i=PARTICIPANTS.indexOf(row.participant);if(i<0)return;if(!votes[row.match_id])votes[row.match_id]=[null,null,null,null];votes[row.match_id][i]=row.choix;
     });
+    const colorsToBackfill=Object.entries(localColors).filter(([name,color])=>PARTICIPANTS.includes(name)&&/^#[0-9a-fA-F]{6}$/.test(String(color||""))&&!remoteColorMap[name]);
+    if(colorsToBackfill.length){
+      await Promise.all(colorsToBackfill.map(([name,color])=>savePronostiqueurColorDb(name,color)));
+      colorsToBackfill.forEach(([name,color])=>{remoteColorMap[name]=color;});
+    }
+    customColorMap=remoteColorMap;
     localStorage.setItem("cdm26_tie_choices",JSON.stringify(tieChoiceMap));
     localStorage.setItem("cdm26_cotes",JSON.stringify(coteMap));
     localStorage.setItem("cdm26_paris_places",JSON.stringify(placedBetMap));
+    localStorage.setItem("cdm26_custom_colors",JSON.stringify(customColorMap));
     results={};scoreMap={};
     ma.data.forEach(row=>{const s1=row.score_dom==null?"":String(row.score_dom),s2=row.score_ext==null?"":String(row.score_ext);scoreMap[row.id]={s1,s2};results[row.id]=winnerFromScore(s1,s2)||row.resultat||null;});
     setSync("ok");showBanner(null);
@@ -910,7 +922,7 @@ function renderStatsDashboard(sc){
   const avgAccuracy=stats.length?Math.round(stats.reduce((sum,s)=>sum+s.accuracy,0)/stats.length):0;
   const scoreBars=stats.map((s,i)=>`<div class="bar-row" style="${pronostiqueurStatStyle(s.name)}"><div><div class="bar-name player">${MEDALS[i]||'•'} ${s.name}</div><div class="bar-meta">${s.correct} bons sur ${s.voted||0} saisis</div></div><div class="bar-rail"><div class="bar-fill player" style="width:${maxPoints?Math.max(8,s.points/maxPoints*100):0}%"></div></div><div class="bar-val">${s.points} pts</div></div>`).join('');
   const accuracyBars=stats.map(s=>`<div class="bar-row" style="${pronostiqueurStatStyle(s.name)}"><div><div class="bar-name player">${s.name}</div><div class="bar-meta">Couverture ${s.coverage}%</div></div><div class="bar-rail"><div class="bar-fill alt player" style="width:${Math.max(s.accuracy>0?8:0,s.accuracy)}%"></div></div><div class="bar-val">${s.accuracy}%</div></div>`).join('');
-  const tableRows=stats.map((s,i)=>`<tr><td class="stats-rank">${i+1}</td><td><div class="stats-player player" style="${pronostiqueurStatStyle(s.name)}"><span class="stats-dot player"></span><span>${s.name}</span></div></td><td>${s.points}</td><td>${s.voted}</td><td>${s.correct}</td><td>${s.wrong}</td><td>${s.missed}</td><td><span class="stats-chip ${s.accuracy>=60?'good':s.accuracy<35&&s.voted?'warn':''}">${s.accuracy}%</span></td><td>${s.coverage}%</td></tr>`).join('');
+  const tableRows=stats.map((s,i)=>`<tr><td class="stats-rank">${MEDALS[i]||i+1}</td><td><div class="stats-player player" style="${pronostiqueurStatStyle(s.name)}"><span class="stats-dot player"></span><span>${s.name}</span></div></td><td>${s.points}</td><td>${s.voted}</td><td>${s.correct}</td><td>${s.wrong}</td><td>${s.missed}</td><td><span class="stats-chip ${s.accuracy>=60?'good':s.accuracy<35&&s.voted?'warn':''}">${s.accuracy}%</span></td><td>${s.coverage}%</td></tr>`).join('');
   const rules=[["⚽","Mise","1 € par personne et par match — 4 € collectifs"],["🗳️","Vote majoritaire","Le pronostic le plus choisi est retenu avant chaque match"],["⚖️","Égalité","En cas d'ex-æquo, le meilleur taux de réussite tranche"],["💰","Gains","Le vrai bilan ne tient compte que des paris placés"],["🍻","Apéro","Le dernier du classement offre l'apéro à Niort"]].map(([i,t,d])=>`<div class="rule"><span class="rule-ico">${i}</span><div><div class="rule-t">${t}</div><div class="rule-d">${d}</div></div></div>`).join('');
   return `<div class="slabel"><span class="slabel-text">Vue d'ensemble</span><span class="slabel-line"></span><span class="slabel-count">${total}/${ALL.length} joués</span></div><div class="stats-hero"><div class="stats-panel"><div class="stats-title">Tempo du tournoi</div><div class="hero-score"><div class="hero-big">${total}<small>matchs</small></div><div class="hero-sub">${playedPct}% de la compétition a été jouée. ${leader.name} mène actuellement avec ${leader.points} point${leader.points>1?'s':''}.</div></div></div><div class="stats-panel"><div class="stats-title">Signaux clés</div><div class="hero-grid"><div class="hero-kpi"><div class="hero-kpi-val">${playedPct}%</div><div class="hero-kpi-lbl">Progression</div><div class="hero-kpi-sub">part des matchs clôturés</div></div><div class="hero-kpi"><div class="hero-kpi-val">${bestAccuracy}%</div><div class="hero-kpi-lbl">Meilleure précision</div><div class="hero-kpi-sub">pic individuel actuel</div></div><div class="hero-kpi"><div class="hero-kpi-val ${betAll.settled<0?'neg':betAll.settled>0?'pos':''}">${betAll.settled.toFixed(2)} €</div><div class="hero-kpi-lbl">Bilan paris</div><div class="hero-kpi-sub">${betAll.count} pari${betAll.count>1?'s':''} placé${betAll.count>1?'s':''}</div></div></div></div></div><div class="stats-bars"><div class="bar-card"><div class="stats-title">Baromètre points</div>${scoreBars}</div><div class="bar-card"><div class="stats-title">Baromètre précision</div>${accuracyBars}</div></div><div class="stats-table-wrap"><div class="stats-table-head"><div class="stats-table-title">Tableau de performance</div><div class="stats-table-note">Précision moyenne : ${avgAccuracy}%</div></div><div class="stats-table-scroll"><table class="stats-table"><thead><tr><th>#</th><th>Participant</th><th>Pts</th><th>Saisis</th><th>Bons</th><th>Faux</th><th>Sans vote</th><th>Précision</th><th>Couverture</th></tr></thead><tbody>${tableRows}</tbody></table></div></div><div class="slabel"><span class="slabel-text">Règles</span><span class="slabel-line"></span></div>${rules}<div style="height:16px"></div>`;
 }
@@ -935,7 +947,7 @@ function renderStatsRich(sc){
   const avgAccuracy=stats.length?Math.round(stats.reduce((sum,s)=>sum+s.accuracy,0)/stats.length):0;
   const scoreBars=stats.map((s,i)=>`<div class="bar-row" style="${pronostiqueurStatStyle(s.name)}"><div><div class="bar-name player">${MEDALS[i]||'•'} ${s.name}</div><div class="bar-meta">${s.correct} bons sur ${s.voted||0} saisis</div></div><div class="bar-rail"><div class="bar-fill player" style="width:${maxPoints?Math.max(8,s.points/maxPoints*100):0}%"></div></div><div class="bar-val">${s.points} pts</div></div>`).join('');
   const accuracyBars=stats.map(s=>`<div class="bar-row" style="${pronostiqueurStatStyle(s.name)}"><div><div class="bar-name player">${s.name}</div><div class="bar-meta">Couverture ${s.coverage}%</div></div><div class="bar-rail"><div class="bar-fill alt player" style="width:${Math.max(s.accuracy>0?8:0,s.accuracy)}%"></div></div><div class="bar-val">${s.accuracy}%</div></div>`).join('');
-  const tableRows=stats.map((s,i)=>`<tr><td class="stats-rank">${i+1}</td><td><div class="stats-player player" style="${pronostiqueurStatStyle(s.name)}"><span class="stats-dot player"></span><span>${s.name}</span></div></td><td>${s.points}</td><td>${s.voted}</td><td>${s.correct}</td><td>${s.wrong}</td><td>${s.missed}</td><td><span class="stats-chip ${s.accuracy>=60?'good':s.accuracy<35&&s.voted?'warn':''}">${s.accuracy}%</span></td><td>${s.coverage}%</td></tr>`).join('');
+  const tableRows=stats.map((s,i)=>`<tr><td class="stats-rank">${MEDALS[i]||i+1}</td><td><div class="stats-player player" style="${pronostiqueurStatStyle(s.name)}"><span class="stats-dot player"></span><span>${s.name}</span></div></td><td>${s.points}</td><td>${s.voted}</td><td>${s.correct}</td><td>${s.wrong}</td><td>${s.missed}</td><td><span class="stats-chip ${s.accuracy>=60?'good':s.accuracy<35&&s.voted?'warn':''}">${s.accuracy}%</span></td><td>${s.coverage}%</td></tr>`).join('');
 
   const settledBets=ALL.filter(m=>betPlaced(m.id)&&results[m.id]).map(m=>{
     const maj=getMajority(votes[m.id]||[],sc,m.id);
@@ -1015,6 +1027,17 @@ async function saveCoteDb(id,cote){
   if(!cote)return;
   const {error:insErr}=await db.from("pronostics").insert({match_id:id,participant:`${COTE_PARTICIPANT_PREFIX}${cote}`,choix:"N"});
   if(insErr)throw insErr;
+}
+async function savePronostiqueurColorDb(name,color){
+  if(!PARTICIPANTS.includes(name))throw new Error("Pronostiqueur inconnu");
+  const participant=`${COLOR_PARTICIPANT_PREFIX}${name}`;
+  if(!color){
+    const {error}=await db.from("pronostics").delete().match({match_id:METADATA_MATCH_ID,participant});
+    if(error)throw error;
+    return;
+  }
+  const {error}=await db.from("pronostics").upsert({match_id:METADATA_MATCH_ID,participant,choix:color});
+  if(error)throw error;
 }
 function groupTables(){
   const groups={};
@@ -1108,8 +1131,8 @@ function renderResultats(){
 }
 
 window.setMe=function(p){me=(me===p?null:p);if(me)localStorage.setItem("cdm26_me",me);else localStorage.removeItem("cdm26_me");applyPronostiqueurTheme(me);render();};
-window.setPronostiqueurColor=function(name,value){if(!/^#[0-9a-fA-F]{6}$/.test(String(value||"")))return;customColorMap[name]=value;localStorage.setItem("cdm26_custom_colors",JSON.stringify(customColorMap));if(me===name)applyPronostiqueurTheme(me);render();};
-window.resetPronostiqueurColor=function(name){delete customColorMap[name];localStorage.setItem("cdm26_custom_colors",JSON.stringify(customColorMap));if(me===name)applyPronostiqueurTheme(me);render();};
+window.setPronostiqueurColor=function(name,value){if(!/^#[0-9a-fA-F]{6}$/.test(String(value||"")))return;customColorMap[name]=value;localStorage.setItem("cdm26_custom_colors",JSON.stringify(customColorMap));if(me===name)applyPronostiqueurTheme(me);render();setSync("busy");savePronostiqueurColorDb(name,value).then(()=>{setSync("ok");showBanner(null);}).catch(e=>{setSync("off");showBanner("Échec de l'enregistrement de la couleur — base injoignable.");console.error(e);});};
+window.resetPronostiqueurColor=function(name){delete customColorMap[name];localStorage.setItem("cdm26_custom_colors",JSON.stringify(customColorMap));if(me===name)applyPronostiqueurTheme(me);render();setSync("busy");savePronostiqueurColorDb(name,null).then(()=>{setSync("ok");showBanner(null);}).catch(e=>{setSync("off");showBanner("Échec de l'enregistrement de la couleur — base injoignable.");console.error(e);});};
 // Repliage : on ne redessine QUE le contenu, en préservant la position de scroll
 function renderMatchsOnly(){const sc=computeScores();const c=document.getElementById("content");const y=c.scrollTop;c.innerHTML=renderMatchs(sc);c.scrollTop=y;}
 window.toggleDay=function(lbl){openDays[lbl]=!openDays[lbl];renderMatchsOnly();};
