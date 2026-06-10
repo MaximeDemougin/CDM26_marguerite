@@ -11,8 +11,9 @@
   --paper:#eef4fb;--card:#ffffff;--ink:#0f1d31;--dim:#4d627d;--faint:#72849d;
   --line:#c8d6e6;--line2:#b4c6d8;--accent:#e11f3f;--accent-soft:#ffdfe5;
   --fr:#0f56c7;--ok:#167f52;--ko:#b91d32;
+  --bg1:rgba(15,86,199,.20);--bg2:rgba(225,31,63,.22);--bg3:rgba(22,127,82,.10);--bg4:#e7eff9;
 }
-body{font-family:'Inter',sans-serif;background:radial-gradient(circle at top left,rgba(15,86,199,.20),transparent 27%),radial-gradient(circle at top right,rgba(225,31,63,.22),transparent 25%),radial-gradient(circle at bottom center,rgba(22,127,82,.10),transparent 34%),linear-gradient(180deg,#f8fbff 0%,var(--paper) 34%,#e7eff9 100%);color:var(--ink);min-height:100vh;font-feature-settings:"tnum"}
+body{font-family:'Inter',sans-serif;background:radial-gradient(circle at top left,var(--bg1),transparent 27%),radial-gradient(circle at top right,var(--bg2),transparent 25%),radial-gradient(circle at bottom center,var(--bg3),transparent 34%),linear-gradient(180deg,#f8fbff 0%,var(--paper) 34%,var(--bg4) 100%);color:var(--ink);min-height:100vh;font-feature-settings:"tnum"}
 ::-webkit-scrollbar{width:0;height:0}
 .app{width:100%;max-width:min(100%,1180px);margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:linear-gradient(180deg,rgba(255,255,255,.82),rgba(255,255,255,.98));position:relative;box-shadow:0 18px 48px rgba(15,29,49,.10)}
 .app.wide{max-width:min(100%,1800px)}
@@ -669,6 +670,23 @@ let autoCollapsed={};    // journées déjà repliées automatiquement (une seul
 
 function setSync(s){const d=document.getElementById("sync-dot"),t=document.getElementById("sync-txt");d.className="sync-dot"+(s==="off"?" off":s==="busy"?" busy":"");t.textContent=s==="off"?"hors ligne":s==="busy"?"sync…":"synchronisé";}
 function showBanner(m){const b=document.getElementById("banner");if(m){b.textContent=m;b.classList.add("show");}else b.classList.remove("show");}
+function applyPronostiqueurTheme(name){
+  const themes={
+    Thomas:{accent:"#ff7a6b",soft:"#ffe7e2",bg1:"rgba(255,122,107,.24)",bg2:"rgba(255,192,167,.22)",bg3:"rgba(255,171,145,.12)",bg4:"#fff2ef",fr:"#ff5f87"},
+    Maxime:{accent:"#14b8a6",soft:"#ddfbf6",bg1:"rgba(20,184,166,.24)",bg2:"rgba(57,230,191,.18)",bg3:"rgba(15,118,110,.10)",bg4:"#edfdf9",fr:"#0f766e"},
+    Morgan:{accent:"#f4c430",soft:"#fff6cf",bg1:"rgba(244,196,48,.24)",bg2:"rgba(255,225,112,.18)",bg3:"rgba(205,160,18,.10)",bg4:"#fffaf0",fr:"#c78a00"},
+    Yohann:{accent:"#e11f3f",soft:"#ffdfe5",bg1:"rgba(225,31,63,.24)",bg2:"rgba(255,128,137,.18)",bg3:"rgba(145,20,40,.10)",bg4:"#fff3f5",fr:"#0f56c7"}
+  };
+  const theme=themes[name]||themes.Yohann;
+  const root=document.documentElement.style;
+  root.setProperty("--accent",theme.accent);
+  root.setProperty("--accent-soft",theme.soft);
+  root.setProperty("--fr",theme.fr);
+  root.setProperty("--bg1",theme.bg1);
+  root.setProperty("--bg2",theme.bg2);
+  root.setProperty("--bg3",theme.bg3);
+  root.setProperty("--bg4",theme.bg4);
+}
 
 function toISODate(d){const [jj,mm]=d.split("/");return `2026-${mm.padStart(2,"0")}-${jj.padStart(2,"0")}`;}
 function toMatchRow(m){return {id:m.id,date_match:toISODate(m.date),heure_match:`${m.h}:00`,phase:m.g?"Groupes":m.t,groupe:m.g||null,equipe_dom:m.e1,equipe_ext:m.e2,france:!!m.fr,score_dom:null,score_ext:null};}
@@ -716,6 +734,7 @@ function getMajority(mv,sc,id){const w=majorityCandidates(mv);if(!w.length)retur
 
 function centerCompetitionBracket(){const b=document.querySelector('.bracket-wrap');if(!b)return;b.scrollLeft=Math.max(0,Math.round((b.scrollWidth-b.clientWidth)/2));}
 function render(){renderWho();const sc=computeScores();renderBoard(sc);renderContent(sc);if(tab==="competition")requestAnimationFrame(centerCompetitionBracket);}
+function renderWho(){const who=document.getElementById("who"),subtitle=document.getElementById("who-subtitle");if(tab!=="matchs"){who.innerHTML="";who.style.display="none";if(subtitle)subtitle.style.display="none";return;}who.style.display="flex";if(subtitle)subtitle.style.display="block";who.innerHTML=PARTICIPANTS.map(p=>`<button class="who-btn ${me===p?'on':''}" onclick="setMe('${p}')">${p}</button>`).join('');}
 function renderWho(){const who=document.getElementById("who"),subtitle=document.getElementById("who-subtitle");if(tab!=="matchs"){who.innerHTML="";who.style.display="none";if(subtitle)subtitle.style.display="none";return;}who.style.display="flex";if(subtitle)subtitle.style.display="block";who.innerHTML=PARTICIPANTS.map(p=>`<button class="who-btn ${me===p?'on':''}" onclick="setMe('${p}')">${p}</button>`).join('');}
 function renderBoard(sc){const board=document.getElementById("board");if(tab!=="matchs"){board.innerHTML="";board.style.display="none";return;}board.style.display="grid";const sorted=[...PARTICIPANTS].sort((a,b)=>(sc[b]||0)-(sc[a]||0));const total=Object.values(results).filter(Boolean).length;board.innerHTML=sorted.map((p,i)=>`<div class="board-cell ${i===0&&(sc[p]||0)>0?'lead':''}"><div class="b-rank">${MEDALS[i]}</div><div class="b-name">${p}</div><div class="b-score">${sc[p]||0}</div><div class="b-pct">${total>0?Math.round(((sc[p]||0)/total)*100)+'%':'—'}</div></div>`).join('');}
 function renderPageHead(title,sub){return `<div class="page-head"><div class="page-head-title">${title}</div>${sub?`<div class="page-head-sub">${sub}</div>`:''}</div>`;}
@@ -1058,6 +1077,7 @@ function renderResultats(){
 }
 
 window.setMe=function(p){me=(me===p?null:p);if(me)localStorage.setItem("cdm26_me",me);else localStorage.removeItem("cdm26_me");render();};
+window.setMe=function(p){me=(me===p?null:p);if(me)localStorage.setItem("cdm26_me",me);else localStorage.removeItem("cdm26_me");applyPronostiqueurTheme(me);render();};
 // Repliage : on ne redessine QUE le contenu, en préservant la position de scroll
 function renderMatchsOnly(){const sc=computeScores();const c=document.getElementById("content");const y=c.scrollTop;c.innerHTML=renderMatchs(sc);c.scrollTop=y;}
 window.toggleDay=function(lbl){openDays[lbl]=!openDays[lbl];renderMatchsOnly();};
@@ -1201,6 +1221,7 @@ async function softRefresh(){
 
 async function refresh(){
   await loadAll();
+  applyPronostiqueurTheme(me);
   if(!collapseInit){
     collapseInit=true;
     // On regroupe tous les matchs (groupes + finales) par jour, dans l'ordre chrono
@@ -1228,6 +1249,8 @@ function subscribeRealtime(){
     .subscribe();
 }
 
+
+applyPronostiqueurTheme(me);
 refresh();
 subscribeRealtime();
 setInterval(refresh,20000); // filet de sécurité si le temps réel se coupe
