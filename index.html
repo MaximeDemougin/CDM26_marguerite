@@ -633,6 +633,8 @@ const MKO=[
 ];
 const ALL=[...MG,...MKO];const MEDALS=["🥇","🥈","🥉","4ᵉ"];
 const TIE_BREAK_PARTICIPANT="__TIE_BREAK__";
+const BET_PLACED_PARTICIPANT="__BET_PLACED__";
+const COTE_PARTICIPANT_PREFIX="__COTE__:";
 
 let votes={},results={},tab="matchs",filterPhase="Groupes",filterGroupe="Tous";
 let filterSearch="",filterTeam="Toutes";
@@ -683,12 +685,16 @@ async function loadAll(){
     await ensureMatchsRows();
     const [pr,ma]=await Promise.all([db.from("pronostics").select("*"),db.from("matchs").select("id,resultat,score_dom,score_ext")]);
     if(pr.error)throw pr.error;if(ma.error)throw ma.error;
-    votes={};tieChoiceMap={};
+    votes={};tieChoiceMap={};coteMap={};placedBetMap={};
     pr.data.forEach(row=>{
       if(row.participant===TIE_BREAK_PARTICIPANT){if(row.choix)tieChoiceMap[row.match_id]=row.choix;return;}
+      if(row.participant===BET_PLACED_PARTICIPANT){if(row.choix==="1")placedBetMap[row.match_id]=true;return;}
+      if(typeof row.participant==="string"&&row.participant.startsWith(COTE_PARTICIPANT_PREFIX)){const v=row.participant.slice(COTE_PARTICIPANT_PREFIX.length);if(v)coteMap[row.match_id]=v;return;}
       const i=PARTICIPANTS.indexOf(row.participant);if(i<0)return;if(!votes[row.match_id])votes[row.match_id]=[null,null,null,null];votes[row.match_id][i]=row.choix;
     });
     localStorage.setItem("cdm26_tie_choices",JSON.stringify(tieChoiceMap));
+    localStorage.setItem("cdm26_cotes",JSON.stringify(coteMap));
+    localStorage.setItem("cdm26_paris_places",JSON.stringify(placedBetMap));
     results={};scoreMap={};
     ma.data.forEach(row=>{const s1=row.score_dom==null?"":String(row.score_dom),s2=row.score_ext==null?"":String(row.score_ext);scoreMap[row.id]={s1,s2};results[row.id]=winnerFromScore(s1,s2)||row.resultat||null;});
     setSync("ok");showBanner(null);
@@ -721,7 +727,15 @@ function renderContent(sc){
 }
 function renderMatchs(sc){
   const phases=["Groupes","1/16","1/8","Quart","Demi","FINALE"];
-  let matches=filterPhase==="Groupes"?(filterGroupe==="Tous"?MG:filterGroupe==="France"?MG.filter(m=>m.fr):MG.filter(m=>m.g===filterGroupe)):MKO.filter(m=>m.t===filterPhase);
+  let matches;
+  if(filterPhase==="Groupes"){
+    matches=filterGroupe==="Tous"?MG:filterGroupe==="France"?MG.filter(m=>m.fr):MG.filter(m=>m.g===filterGroupe);
+  }else{
+    const kval=buildKnockoutProjection(groupTables());
+    matches=kval.fixtures
+      .filter(m=>m.round===filterPhase)
+      .map(m=>({id:m.id,date:m.date,h:m.h,t:m.round,e1:m.e1,e2:m.e2,fr:false}));
+  }
   const groups=["Tous","France",...[...new Set(MG.map(m=>m.g))].sort()];
   const isRealTeam=name=>!(
     name.startsWith("1er Gr.")||
@@ -933,6 +947,22 @@ async function saveTieChoiceDb(id,choice){
   const {error}=await db.from("pronostics").upsert({match_id:id,participant:TIE_BREAK_PARTICIPANT,choix:choice});
   if(error)throw error;
 }
+async function saveBetPlacedDb(id,placed){
+  if(!placed){
+    const {error}=await db.from("pronostics").delete().match({match_id:id,participant:BET_PLACED_PARTICIPANT});
+    if(error)throw error;
+    return;
+  }
+  const {error}=await db.from("pronostics").upsert({match_id:id,participant:BET_PLACED_PARTICIPANT,choix:"1"});
+  if(error)throw error;
+}
+async function saveCoteDb(id,cote){
+  const {error:delErr}=await db.from("pronostics").delete().like("participant",`${COTE_PARTICIPANT_PREFIX}%`).eq("match_id",id);
+  if(delErr)throw delErr;
+  if(!cote)return;
+  const {error:insErr}=await db.from("pronostics").insert({match_id:id,participant:`${COTE_PARTICIPANT_PREFIX}${cote}`,choix:"N"});
+  if(insErr)throw insErr;
+}
 function groupTables(){
   const groups={};
   MG.forEach(m=>{if(!groups[m.g])groups[m.g]={};if(!groups[m.g][m.e1])groups[m.g][m.e1]={team:m.e1,pts:0,j:0,gf:0,ga:0,d:0};if(!groups[m.g][m.e2])groups[m.g][m.e2]={team:m.e2,pts:0,j:0,gf:0,ga:0,d:0};
@@ -1064,6 +1094,8 @@ window.setCoteDraft=function(id,val,el){
   if(el&&el.value!==cleaned)el.value=cleaned;
   if(tab==="matchs")renderMatchsOnly();
   else render();
+  setSync("busy");
+  saveCoteDb(id,cleaned).then(()=>{setSync("ok");showBanner(null);}).catch(e=>{setSync("off");showBanner("Échec de l'enregistrement — base injoignable.");console.error(e);});
 };
 window.resetMatchAdmin=async function(id){
   if(scoreSaveTimers[id])clearTimeout(scoreSaveTimers[id]);
@@ -1076,12 +1108,16 @@ window.resetMatchAdmin=async function(id){
   render();
   setSync("busy");
   try{
-    const [{error:scoreErr},{error:tieErr}]=await Promise.all([
+    const [{error:scoreErr},{error:tieErr},{error:betErr},{error:coteErr}]=await Promise.all([
       db.from("matchs").update({score_dom:null,score_ext:null}).eq("id",id),
-      db.from("pronostics").delete().match({match_id:id,participant:TIE_BREAK_PARTICIPANT})
+      db.from("pronostics").delete().match({match_id:id,participant:TIE_BREAK_PARTICIPANT}),
+      db.from("pronostics").delete().match({match_id:id,participant:BET_PLACED_PARTICIPANT}),
+      db.from("pronostics").delete().like("participant",`${COTE_PARTICIPANT_PREFIX}%`).eq("match_id",id)
     ]);
     if(scoreErr)throw scoreErr;
     if(tieErr)throw tieErr;
+    if(betErr)throw betErr;
+    if(coteErr)throw coteErr;
     setSync("ok");showBanner(null);
   }catch(e){setSync("off");showBanner("Échec de la réinitialisation — base injoignable.");console.error(e);} 
 };
@@ -1091,6 +1127,8 @@ window.toggleBetPlaced=function(id){
   localStorage.setItem("cdm26_paris_places",JSON.stringify(placedBetMap));
   if(tab==="matchs")renderMatchsOnly();
   else render();
+  setSync("busy");
+  saveBetPlacedDb(id,!!placedBetMap[id]).then(()=>{setSync("ok");showBanner(null);}).catch(e=>{setSync("off");showBanner("Échec de l'enregistrement — base injoignable.");console.error(e);});
 };
 window.saveScore=async function(id){
   const s=scoreOf(id);
