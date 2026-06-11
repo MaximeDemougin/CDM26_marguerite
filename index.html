@@ -771,14 +771,28 @@ async function loadAll(){
     const localColors={...customColorMap};
     const localSignatures={...contractSignatures};
     const remoteColorMap={};
-    const remoteSignatureMap={};
+    const remoteSignatureState={};
     votes={};tieChoiceMap={};coteMap={};placedBetMap={};
     pr.data.forEach(row=>{
       if(row.participant===TIE_BREAK_PARTICIPANT){if(row.choix)tieChoiceMap[row.match_id]=row.choix;return;}
       if(row.participant===BET_PLACED_PARTICIPANT){if(row.choix==="1")placedBetMap[row.match_id]=true;return;}
       if(typeof row.participant==="string"&&row.participant.startsWith(COTE_PARTICIPANT_PREFIX)){const v=row.participant.slice(COTE_PARTICIPANT_PREFIX.length);if(v)coteMap[row.match_id]=v;return;}
       if(typeof row.participant==="string"&&row.participant.startsWith(COLOR_PARTICIPANT_PREFIX)){const name=row.participant.slice(COLOR_PARTICIPANT_PREFIX.length);if(PARTICIPANTS.includes(name)&&/^#[0-9a-fA-F]{6}$/.test(String(row.choix||"")))remoteColorMap[name]=row.choix;return;}
-      if(typeof row.participant==="string"&&row.participant.startsWith(SIGNATURE_PARTICIPANT_PREFIX)){const name=row.participant.slice(SIGNATURE_PARTICIPANT_PREFIX.length);if(!PARTICIPANTS.includes(name))return;try{const parsed=JSON.parse(String(row.choix||"{}"));const value=String(parsed.value||"").trim();if(!value)return;remoteSignatureMap[name]={value:value.slice(0,80),at:parsed.at?String(parsed.at):null};}catch{}return;}
+      if(typeof row.participant==="string"&&row.participant.startsWith(SIGNATURE_PARTICIPANT_PREFIX)){
+        const rawName=row.participant.slice(SIGNATURE_PARTICIPANT_PREFIX.length);
+        const name=rawName.split(":")[0];
+        if(!PARTICIPANTS.includes(name))return;
+        try{
+          const parsed=JSON.parse(String(row.choix||"{}"));
+          const value=String(parsed.value||"").trim().slice(0,80);
+          const cleared=!!parsed.cleared;
+          const ts=parsed.ts||row.created_at||"";
+          const tms=Date.parse(String(ts))||0;
+          const prev=remoteSignatureState[name];
+          if(!prev||tms>=prev.tms)remoteSignatureState[name]={value,at:parsed.at?String(parsed.at):null,cleared,tms};
+        }catch{}
+        return;
+      }
       const i=PARTICIPANTS.indexOf(row.participant);if(i<0)return;if(!votes[row.match_id])votes[row.match_id]=[null,null,null,null];votes[row.match_id][i]=row.choix;
     });
     const colorsToBackfill=Object.entries(localColors).filter(([name,color])=>PARTICIPANTS.includes(name)&&/^#[0-9a-fA-F]{6}$/.test(String(color||""))&&!remoteColorMap[name]);
@@ -786,6 +800,8 @@ async function loadAll(){
       await Promise.all(colorsToBackfill.map(([name,color])=>savePronostiqueurColorDb(name,color)));
       colorsToBackfill.forEach(([name,color])=>{remoteColorMap[name]=color;});
     }
+    const remoteSignatureMap={};
+    Object.entries(remoteSignatureState).forEach(([name,s])=>{if(!s.cleared&&String(s.value||"").trim())remoteSignatureMap[name]={value:String(s.value).slice(0,80),at:s.at||null};});
     const signaturesToBackfill=Object.entries(localSignatures).filter(([name,data])=>PARTICIPANTS.includes(name)&&String((data||{}).value||"").trim()&&!remoteSignatureMap[name]);
     if(signaturesToBackfill.length){
       await Promise.all(signaturesToBackfill.map(([name,data])=>saveContractSignatureDb(name,data)));
@@ -1182,15 +1198,17 @@ async function savePronostiqueurColorDb(name,color){
 }
 async function saveContractSignatureDb(name,data){
   if(!PARTICIPANTS.includes(name))throw new Error("Signataire inconnu");
-  const participant=`${SIGNATURE_PARTICIPANT_PREFIX}${name}`;
+  const participant=`${SIGNATURE_PARTICIPANT_PREFIX}${name}:${Date.now().toString(36)}${Math.random().toString(36).slice(2,6)}`;
   const value=String((data||{}).value||"").trim();
+  const ts=new Date().toISOString();
   if(!value){
-    const {error}=await db.from("pronostics").delete().match({match_id:METADATA_MATCH_ID,participant});
+    const tombstone=JSON.stringify({value:"",at:null,cleared:true,ts});
+    const {error}=await db.from("pronostics").insert({match_id:METADATA_MATCH_ID,participant,choix:tombstone});
     if(error)throw error;
     return;
   }
-  const payload=JSON.stringify({value:value.slice(0,80),at:(data||{}).at?String(data.at):null});
-  const {error}=await db.from("pronostics").upsert({match_id:METADATA_MATCH_ID,participant,choix:payload});
+  const payload=JSON.stringify({value:value.slice(0,80),at:(data||{}).at?String(data.at):null,cleared:false,ts});
+  const {error}=await db.from("pronostics").insert({match_id:METADATA_MATCH_ID,participant,choix:payload});
   if(error)throw error;
 }
 function groupTables(){
@@ -1304,7 +1322,7 @@ window.clearContractSignature=async function(name){
   if(!PARTICIPANTS.includes(name))return;
   delete contractSignatures[name];
   localStorage.setItem("cdm26_contract_signatures",JSON.stringify(contractSignatures));
-  if(tab==="regles")render();
+  render();
   setSync("busy");
   try{await saveContractSignatureDb(name,null);setSync("ok");showBanner(null);}catch(e){setSync("off");showBanner("Échec de l'enregistrement de la signature — base injoignable.");console.error(e);} 
 };
