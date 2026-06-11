@@ -831,7 +831,7 @@ function renderContent(sc){
   document.getElementById("content").innerHTML=renderPageHead(page.title,page.sub)+page.body;
 }
 function renderRegles(){
-  const signLine=(name,fullName)=>{const data=contractSignatures[name]||{};const val=String(data.value||"");const safeVal=val.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");const stamp=data.at?`<div class="contract-sign-stamp">Signé le ${data.at}</div>`:"";if(data.at&&val.trim())return `<div class="contract-sign-line"><div class="contract-sign-name">${fullName}</div><div class="contract-signature-value">${safeVal}</div>${stamp}</div>`;return `<div class="contract-sign-line"><div class="contract-sign-name">${fullName}</div><input class="contract-sign-input" type="text" value="${safeVal}" placeholder="Signature" oninput="updateContractSignatureDraft('${name}',this.value)"><div class="contract-sign-actions"><button class="contract-sign-btn primary" onclick="signContract('${name}')">Signer</button><button class="contract-sign-btn" onclick="clearContractSignature('${name}')">Effacer</button>${me===name?`<button class='contract-sign-btn' onclick="signContractAsMe()">Signer en tant que moi</button>`:''}</div>${stamp}</div>`;};
+  const signLine=(name,fullName)=>{const data=contractSignatures[name]||{};const val=String(data.value||"");const safeVal=val.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");const stamp=data.at?`<div class="contract-sign-stamp">Signé le ${data.at}</div>`:"";if(data.at&&val.trim())return `<div class="contract-sign-line"><div class="contract-sign-name">${fullName}</div><div class="contract-signature-value">${safeVal}</div><div class="contract-sign-actions"><button class="contract-sign-btn" onclick="clearContractSignature('${name}')">Annuler signature</button></div>${stamp}</div>`;return `<div class="contract-sign-line"><div class="contract-sign-name">${fullName}</div><input class="contract-sign-input" type="text" value="${safeVal}" placeholder="Signature" oninput="updateContractSignatureDraft('${name}',this.value)"><div class="contract-sign-actions"><button class="contract-sign-btn primary" onclick="signContract('${name}')">Signer</button><button class="contract-sign-btn" onclick="clearContractSignature('${name}')">Effacer</button>${me===name?`<button class='contract-sign-btn' onclick="signContractAsMe()">Signer en tant que moi</button>`:''}</div>${stamp}</div>`;};
   return `<div class="contract-wrap">
     <div class="contract-card">
       <div class="contract-title">Contrat de Participation – Paris Sportifs Coupe du Monde</div>
@@ -869,13 +869,14 @@ function renderRegles(){
         <li>Avant chaque match, chaque participant renseigne son pronostic dans un fichier Excel partagé.</li>
         <li>Le pronostic retenu est celui <span class="contract-strong">majoritairement choisi</span> par les participants.</li>
         <li>En cas d'égalité (ex æquo), la décision revient au participant ayant obtenu <span class="contract-strong">le meilleur taux de réussite</span> jusqu'au moment du match.</li>
+        <li>En cas de nouvelle égalité, le pronostic retenu est <span class="contract-strong">le favori des 2 possibilités</span>.</li>
       </ul>
     </div>
 
     <div class="contract-card">
       <div class="contract-title">5. Suivi des performances</div>
       <ul class="contract-list">
-        <li>Un suivi des pronostics et des résultats est tenu dans le fichier Excel.</li>
+        <li>Le suivi des pronostics et des résultats se fait dans cette app.</li>
         <li>Les performances individuelles sont mesurées en fonction du nombre de bons pronostics réalisés.</li>
       </ul>
     </div>
@@ -891,6 +892,7 @@ function renderRegles(){
         <li>Donner son pronostic honnêtement avant chaque match.</li>
         <li>Respecter les décisions collectives.</li>
         <li>Participer financièrement à chaque pari.</li>
+        <li>En cas de manquement d'un votant sur un match (sans vote), il doit payer (3 €) le pari aux autres.</li>
       </ul>
     </div>
 
