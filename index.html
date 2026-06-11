@@ -18,7 +18,7 @@
   --bg1:rgba(15,86,199,.20);--bg2:rgba(225,31,63,.22);--bg3:rgba(22,127,82,.10);--bg4:#e7eff9;
 }
 body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -10%,rgba(13,79,194,.16),transparent 32%),radial-gradient(circle at 92% -8%,rgba(215,24,58,.14),transparent 34%),linear-gradient(180deg,#f7fafe 0%,#eaf2fb 100%);color:var(--ink);min-height:100vh;font-feature-settings:"tnum"}
-body::before,body::after{content:"";position:fixed;top:-6%;bottom:-6%;width:clamp(60px,16vw,300px);pointer-events:none;z-index:0;animation:sideBreathe 11s ease-in-out infinite alternate}
+body::before,body::after{content:"";position:fixed;top:-6%;bottom:-6%;width:50vw;pointer-events:none;z-index:0;animation:sideBreathe 11s ease-in-out infinite alternate}
 body::after{animation-delay:-5.5s}
 @keyframes sideBreathe{from{opacity:.72;transform:translateY(-1.5%) scale(1)}to{opacity:1;transform:translateY(1.5%) scale(1.04)}}
 @media (prefers-reduced-motion:reduce){body::before,body::after{animation:none}}
@@ -132,7 +132,7 @@ body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--b
 @keyframes pendingBottomSolid{0%,100%{opacity:.68}50%{opacity:1}}
 @keyframes pendingBadgeBreath{0%,100%{transform:scale(1);opacity:.92;box-shadow:0 2px 8px color-mix(in oklab,var(--bet-warn) 18%, transparent)}50%{transform:scale(1.045);opacity:1;box-shadow:0 5px 14px color-mix(in oklab,var(--bet-warn) 30%, transparent)}}
 /* Carte repliée : ligne compacte cliquable */
-.card-top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #1f3755;background:#314a67}
+.card-top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #1f3755;background:linear-gradient(135deg,#35526f 0%,#243a55 100%)}
 .c-top-left{display:inline-flex;align-items:center;gap:10px;justify-self:start;min-width:0}
 .card.collapsed .card-top{border-bottom:none}
 .card.collapsed .teams{padding:10px 12px}
@@ -145,20 +145,20 @@ body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--b
 .mini-dot.partial{background:#7f96b3}
 .mini-dot.empty{background:var(--line2)}
 .collapsible{overflow:hidden;transition:none}
-.c-num{font-size:10px;color:#dce8f7;font-weight:800;letter-spacing:.3px}
-.c-when{font-size:11px;color:#f3f8ff;font-weight:700}
+.c-num{display:inline-flex;align-items:center;justify-content:center;height:20px;padding:0 8px;border-radius:999px;font-size:9px;color:#eef5ff;font-weight:800;letter-spacing:.3px;background:rgba(255,255,255,.15);box-shadow:inset 0 0 0 1px rgba(255,255,255,.34)}
+.c-when{font-size:11px;color:#f3f8ff;font-weight:800}
 .c-state{font-size:9px;font-weight:800;letter-spacing:.7px;padding:3px 8px;border-radius:999px;text-transform:uppercase;margin:0;border:1px solid color-mix(in oklab,var(--line2) 92%, #8ea9c7);background:#f0f5fc;color:var(--dim);white-space:nowrap;justify-self:center}
 .c-state.pending{border-color:color-mix(in oklab,var(--bet-warn) 54%, var(--line2));background:var(--bet-warn-soft);color:var(--bet-warn-deep);animation:pendingBadgeBreath 2.6s ease-in-out infinite;box-shadow:none}
 .c-state.won{border-color:color-mix(in oklab,var(--bet-on) 62%, var(--line2));background:var(--bet-on-soft);color:var(--bet-on-deep)}
 .c-state.lost{border-color:color-mix(in oklab,var(--ko) 48%, var(--line2));background:color-mix(in oklab,var(--ko) 9%, white);color:var(--ko)}
-.c-tag{margin-left:auto;font-size:9px;font-weight:700;letter-spacing:.7px;padding:2px 7px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.34);color:#eef5ff;border-radius:16px;text-transform:uppercase}
-.c-tag.frtag{background:rgba(13,79,194,.30);border-color:rgba(168,205,255,.85);color:#eef6ff}
+.c-tag{margin-left:auto;font-size:9px;font-weight:700;letter-spacing:.7px;padding:3px 8px;background:rgba(255,255,255,.13);border:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.32);color:#eef5ff;border-radius:999px;text-transform:uppercase}
+.c-tag.frtag{background:linear-gradient(135deg,rgba(82,131,222,.5),rgba(215,24,58,.34));box-shadow:inset 0 0 0 1px rgba(173,205,250,.65);color:#f2f7ff}
 .c-top-tags{margin-left:0;display:inline-flex;align-items:center;gap:5px;justify-self:end}
 .c-top-tags .c-tag{margin-left:0}
 
-.card.bet-pending .card-top{background:#4f76a6;border-bottom-color:#365a85}
-.card.bet-won .card-top{background:#1f885f;border-bottom-color:#166747}
-.card.bet-lost .card-top{background:#b3172f;border-bottom-color:#861123}
+.card.bet-pending .card-top{background:linear-gradient(135deg,#557da9 0%,#41618c 100%);border-bottom-color:#365a85}
+.card.bet-won .card-top{background:linear-gradient(135deg,#27955f 0%,#187a4e 100%);border-bottom-color:#166747}
+.card.bet-lost .card-top{background:linear-gradient(135deg,#c02440 0%,#9d1430 100%);border-bottom-color:#861123}
 .teams{display:flex;align-items:center;padding:14px 13px}
 .team{flex:1;display:flex;align-items:center;gap:8px}
 .team.r{flex-direction:row-reverse;text-align:right}
@@ -168,27 +168,31 @@ body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--b
 .tname{font-size:13px;font-weight:600;line-height:1.15}
 .vs{font-size:9px;color:var(--faint);padding:0 12px;font-weight:600;letter-spacing:.8px}
 .votes{padding:6px 12px 12px;border-top:1px solid color-mix(in oklab,var(--line) 78%, white)}
-.votes-title{font-size:9px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--faint);margin:2px 0 6px;padding-left:1px}
-.vrow{display:grid;grid-template-columns:96px minmax(0,1fr) 96px;align-items:center;column-gap:10px;padding:4px 0;border-radius:10px;position:relative}
-.vrow.me-row::before{content:"";position:absolute;left:-8px;top:7px;bottom:7px;width:3px;border-radius:999px;background:var(--pv, var(--accent));opacity:.9;z-index:0}
+.votes-title{display:flex;align-items:center;gap:8px;font-size:9px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--faint);margin:2px 0 6px;padding-left:1px}
+.vlock{display:inline-flex;align-items:center;gap:4px;font-size:8px;font-weight:800;letter-spacing:.5px;padding:2px 8px;border-radius:999px;background:#fff6e4;color:#8a5a00;box-shadow:inset 0 0 0 1px #ecd9ac}
+.vrow{display:grid;grid-template-columns:118px minmax(0,1fr) 118px;align-items:center;column-gap:10px;padding:4px 0;border-radius:10px;position:relative}
+.vrow.me-row{background:color-mix(in oklab,var(--pv,var(--fr)) 7%,transparent);margin:2px -8px;padding:6px 8px}
+.vrow.me-row::before{content:"";position:absolute;left:0;top:9px;bottom:9px;width:3px;border-radius:999px;background:var(--pv, var(--accent));opacity:.9;z-index:0}
+.vrow.can-edit .vopts{background:#fff;border-color:color-mix(in oklab,var(--pv,var(--fr)) 42%,#c9d7e6);box-shadow:0 1px 5px rgba(19,41,66,.09)}
+.vyou{display:inline-flex;align-items:center;font-size:7px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;padding:2px 6px;border-radius:999px;background:var(--pv,var(--fr));color:#fff;flex-shrink:0}
 .vrow>*{position:relative;z-index:1}
 .vname{font-size:11px;font-weight:600;width:auto;color:var(--dim);display:flex;align-items:center;gap:7px;min-width:0}
-.vname>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vname .vname-txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .vname.me{color:var(--ink);font-weight:800;letter-spacing:.1px}
 .vavatar{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;letter-spacing:.2px;text-transform:uppercase;background:color-mix(in oklab,var(--pv,var(--fr)) 15%,white);color:color-mix(in oklab,var(--pv,var(--fr)) 80%,#10233f);box-shadow:0 0 0 1.5px color-mix(in oklab,var(--pv,var(--fr)) 38%,transparent)}
 .vname.me .vavatar{background:var(--pv,var(--fr));color:#fff;box-shadow:0 0 0 2px color-mix(in oklab,var(--pv,var(--fr)) 28%,transparent)}
-.vopts{display:flex;gap:0;width:min(100%,560px);justify-self:center;border:1.5px solid #9ab0c8;border-radius:999px;overflow:hidden;background:#fff;box-shadow:0 1px 3px rgba(19,41,66,.07)}
-.vbtn{flex:1;min-height:var(--vote-h);padding:0 7px;border:none;background:transparent;color:#42597a;font-size:10px;font-weight:700;cursor:pointer;transition:background .18s,color .18s,box-shadow .18s;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:4px}
-.vbtn+.vbtn{border-left:1px solid color-mix(in oklab,#9ab0c8 50%,transparent)}
+.vopts{display:flex;gap:3px;width:min(100%,560px);justify-self:center;border:1px solid #c9d7e6;border-radius:999px;background:#eef3f9;padding:3px;box-shadow:inset 0 1px 2px rgba(19,41,66,.05)}
+.vbtn{flex:1;min-height:var(--vote-h);padding:0 7px;border:none;border-radius:999px;background:transparent;color:#5a7191;font-size:10px;font-weight:700;cursor:pointer;transition:background .18s,color .18s,box-shadow .18s;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:4px}
 .vopts .vbtn:nth-child(2){flex:.62}
-.vbtn:hover:not(:disabled):not(.on){background:#f1f5fa;color:#243d5c}
-.vrow .vbtn.on{background:linear-gradient(180deg,#4c688f 0%,#3a5174 100%);color:#f4f8ff;box-shadow:inset 0 1px 0 rgba(255,255,255,.22)}
-.vrow .vbtn.on:hover:not(:disabled){background:linear-gradient(180deg,#54719a 0%,#41597e 100%)}
-.vrow .vbtn.on.result-ok{background:linear-gradient(180deg,#2aab80 0%,#17916a 100%);color:#ffffff;box-shadow:inset 0 1px 0 rgba(255,255,255,.26)}
-.vrow .vbtn.on.result-ko{background:linear-gradient(180deg,#cb495f 0%,#b3304a 100%);color:#ffe9ed;box-shadow:inset 0 1px 0 rgba(255,255,255,.20)}
+.vbtn:hover:not(:disabled):not(.on){background:#ffffff;color:#243d5c;box-shadow:0 1px 3px rgba(19,41,66,.10)}
+.vrow .vbtn.on{background:#fff;color:color-mix(in oklab,var(--pv,var(--fr)) 85%,#0d1f38);box-shadow:inset 0 0 0 2px color-mix(in oklab,var(--pv,var(--fr)) 72%,transparent),0 1px 3px rgba(19,41,66,.08);font-weight:800}
+.vrow.me-row .vbtn.on:not(.result-ok):not(.result-ko){background:color-mix(in oklab,var(--pv,var(--fr)) 10%,white);box-shadow:inset 0 0 0 2px var(--pv,var(--fr)),0 2px 6px color-mix(in oklab,var(--pv,var(--fr)) 25%,transparent)}
+.vrow .vbtn.on.result-ok{background:color-mix(in oklab,var(--bet-on) 14%,white);color:#0e5c41;box-shadow:inset 0 0 0 2px color-mix(in oklab,var(--bet-on) 65%,transparent)}
+.vrow .vbtn.on.result-ko{background:color-mix(in oklab,var(--ko) 10%,white);color:#8f1f33;box-shadow:inset 0 0 0 2px color-mix(in oklab,var(--ko) 55%,transparent)}
 .vbtn:disabled{cursor:default}
-.vrow .vbtn.betlocked.pending-off{background:#f8fbff;color:#8398b1}
-.vrow.me-row .vbtn.on:not(.result-ok):not(.result-ko){box-shadow:inset 0 0 0 2px rgba(255,255,255,.5),inset 0 1px 0 rgba(255,255,255,.28)}
+.vrow .vbtn.betlocked{cursor:not-allowed}
+.vrow .vbtn.betlocked.pending-off{color:#9cafc6}
+.card.locked .vopts{background:#edf0f4;border-color:#d3dce6}
 .retenu{display:flex;flex-direction:column;align-items:stretch;gap:14px;margin-top:16px;padding-top:16px;border-top:1px solid color-mix(in oklab,var(--line) 78%, white)}
 .retenu-main{display:flex;align-items:center;gap:14px;justify-content:center;min-width:0;flex-wrap:wrap}
 .retenu-tools{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
@@ -276,7 +280,7 @@ body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--b
   .team{min-width:0}
   .tname{font-size:13px}
   .vs{padding:0 6px}
-  .vrow{grid-template-columns:88px minmax(0,1fr) 88px}
+  .vrow{grid-template-columns:104px minmax(0,1fr) 104px}
   .vname{width:auto}
   .vopts{width:100%}
   .retenu{gap:10px}
@@ -313,7 +317,6 @@ body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--b
   .vs{width:100%;text-align:center;padding:2px 0}
   .vbtn{font-size:10px;padding:6px 6px}
   .vrow{grid-template-columns:1fr;row-gap:5px}
-  .vrow.me-row::before{left:-6px}
   .m-score,.odds-box,.bet-toggle,.reset-toggle,.gain-pill{width:100%;min-width:0;justify-content:center}
   .retenu-row{width:100%}
   .retenu-row.scoreline{flex-direction:column;align-items:stretch}
@@ -953,15 +956,8 @@ function hexToRgb(hex){const clean=String(hex||"").trim().replace("#","");if(!/^
 function rgba(hex,alpha){const rgb=hexToRgb(hex);return rgb?`rgba(${rgb.r},${rgb.g},${rgb.b},${alpha})`:null;}
 function themeForPronostiqueur(name){const base=PRONOSTIQUEUR_THEMES[name]||PRONOSTIQUEUR_THEMES.Yohann;const custom=customColorMap[name];if(!custom)return base;return {...base,accent:custom,soft:`color-mix(in srgb, ${custom} 16%, white)`,bg1:rgba(custom,.24)||base.bg1,bg2:rgba(custom,.18)||base.bg2,bg3:rgba(custom,.10)||base.bg3,bg4:`color-mix(in srgb, ${custom} 8%, white)`,fr:`color-mix(in srgb, ${custom} 78%, black)`};}
 function applyPronostiqueurTheme(name){
-  const theme=themeForPronostiqueur(name);
-  const root=document.documentElement.style;
-  root.setProperty("--accent",theme.accent);
-  root.setProperty("--accent-soft",theme.soft);
-  root.setProperty("--fr",theme.fr);
-  root.setProperty("--bg1",theme.bg1);
-  root.setProperty("--bg2",theme.bg2);
-  root.setProperty("--bg3",theme.bg3);
-  root.setProperty("--bg4",theme.bg4);
+  /* DA globale fixe bleu/rouge : le thème du joueur ne teinte plus l'app entière.
+     Les couleurs joueur restent locales via --pv / --ps. */
 }
 function pronostiqueurVoteStyle(name){const theme=themeForPronostiqueur(name);return `--pv:${theme.accent};--pv-soft:${theme.soft};`;}
 function pronostiqueurStatStyle(name){const theme=themeForPronostiqueur(name);return `--ps:${theme.accent};--ps-soft:${theme.soft};`;}
@@ -1238,7 +1234,7 @@ function matchCard(m,sc){
     const resultClass=real&&pick?(pick===real?"result-ok":"result-ko"):"";
     const pendingOff=placed&&!real?"pending-off":"";
     const btnClass=opt=>`vbtn ${stateClass} ${pick===opt?`on ${resultClass}`:pendingOff}`.trim();
-    return `<div class="vrow ${isMe?'me-row':''}" style="${pronostiqueurVoteStyle(p)}"><span class="vname ${isMe?'me':''}"><span class="vavatar">${p.slice(0,2)}</span><span>${p}</span></span><div class="vopts"><button class="${btnClass('1')}" ${dis} onclick="vote(${m.id},${i},'1')">${s1h}</button><button class="${btnClass('N')}" ${dis} onclick="vote(${m.id},${i},'N')">Nul</button><button class="${btnClass('2')}" ${dis} onclick="vote(${m.id},${i},'2')">${s2h}</button></div></div>`;
+    return `<div class="vrow ${isMe?'me-row':''} ${canEdit?'can-edit':''}" style="${pronostiqueurVoteStyle(p)}"><span class="vname ${isMe?'me':''}"><span class="vavatar">${p.slice(0,2)}</span><span class="vname-txt">${p}</span>${isMe?`<span class="vyou">${canEdit?'à toi':'toi'}</span>`:''}</span><div class="vopts"><button class="${btnClass('1')}" ${dis} onclick="vote(${m.id},${i},'1')">${s1h}</button><button class="${btnClass('N')}" ${dis} onclick="vote(${m.id},${i},'N')">Nul</button><button class="${btnClass('2')}" ${dis} onclick="vote(${m.id},${i},'2')">${s2h}</button></div></div>`;
   }).join('');
   const badges=real?PARTICIPANTS.map((p,i)=>mv[i]?`<span class="badge ${mv[i]===real?'ok':'ko'}">${mv[i]===real?'✓':'✗'} ${p}</span>`:'').join(''):'';
   const coteRaw=coteOf(m.id);
@@ -1252,7 +1248,7 @@ function matchCard(m,sc){
   const resetEditor=`<button class="reset-toggle" onclick="resetMatchAdmin(${m.id})">Réinitialiser</button>`;
   const tieChooser=hasTie?`<div class="tie-chooser">${tieOptions.map(v=>`<button class="tie-btn ${maj===v?'on':''}" onclick="setTieDecision(${m.id},'${v}')">${choiceLabel(v)}</button>`).join('')}</div>`:"";
   const retainedText=majL?`<span class="rval">${majL}</span>`:hasTie?`<span class="rpending">égalité : choisis l'avis final</span>`:'<span class="rpending">en attente</span>';
-  return `<div id="match-${m.id}" class="card ${m.fr?'fr':''} ${filled?'filled':''} ${placed?'locked':''} ${betState?`bet-${betState.cls}`:''}" style="${pronostiqueurVoteStyle(me)}">${topBar}<div class="teams"><div class="team">${i1}<span class="tname">${m.e1}</span></div><div class="vs">VS</div><div class="team r"><span class="tname">${m.e2}</span>${i2}</div></div><div class="votes"><div class="votes-title">Choix des pronostics</div>${rows}<div class="retenu"><div class="retenu-main"><span class="rlabel">Retenu :</span>${retainedText}${tieChooser}${coteEditor}${betEditor}${resetEditor}</div><div class="retenu-tools"><div class="retenu-row scoreline">${scoreEditor}${gainEditor}</div></div>${real&&badges?`<div class="badges">${badges}</div>`:''}</div></div></div>`;
+  return `<div id="match-${m.id}" class="card ${m.fr?'fr':''} ${filled?'filled':''} ${placed?'locked':''} ${betState?`bet-${betState.cls}`:''}" style="${pronostiqueurVoteStyle(me)}">${topBar}<div class="teams"><div class="team">${i1}<span class="tname">${m.e1}</span></div><div class="vs">VS</div><div class="team r"><span class="tname">${m.e2}</span>${i2}</div></div><div class="votes"><div class="votes-title">Choix des pronostics${placed&&!real?`<span class="vlock">🔒 Pari placé · pronos verrouillés</span>`:''}</div>${rows}<div class="retenu"><div class="retenu-main"><span class="rlabel">Retenu :</span>${retainedText}${tieChooser}${coteEditor}${betEditor}${resetEditor}</div><div class="retenu-tools"><div class="retenu-row scoreline">${scoreEditor}${gainEditor}</div></div>${real&&badges?`<div class="badges">${badges}</div>`:''}</div></div></div>`;
 }
 function renderClassement(sc){
   const sorted=[...PARTICIPANTS].sort((a,b)=>(sc[b]||0)-(sc[a]||0));
