@@ -10,6 +10,7 @@
 :root{
   --paper:#eef4fb;--card:#ffffff;--ink:#0f1d31;--dim:#4d627d;--faint:#72849d;
   --line:#c8d6e6;--line2:#b4c6d8;--accent:#e11f3f;--accent-soft:#ffdfe5;
+  --accent-fixed:#e11f3f;--accent-soft-fixed:#ffdfe5;
   --fr:#0f56c7;--ok:#167f52;--ko:#b91d32;
   --bg1:rgba(15,86,199,.20);--bg2:rgba(225,31,63,.22);--bg3:rgba(22,127,82,.10);--bg4:#e7eff9;
 }
@@ -140,12 +141,12 @@ body{font-family:'Inter',sans-serif;background:radial-gradient(circle at top lef
 .retenu-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .retenu-row.scoreline{justify-content:center}
 .rlabel{font-size:9px;font-weight:600;letter-spacing:1px;color:var(--faint);text-transform:uppercase}
-.rval{font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-soft);padding:4px 11px;border-radius:6px}
+.rval{font-size:12px;font-weight:600;color:var(--ok);background:color-mix(in oklab,var(--ok) 14%, white);padding:4px 11px;border-radius:6px}
 .rpending{font-size:11px;color:var(--faint);font-style:italic}
 .tie-chooser{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .tie-btn{border:1px solid var(--line2);background:var(--paper);color:var(--dim);font:inherit;font-size:11px;font-weight:600;border-radius:999px;padding:6px 10px;cursor:pointer;transition:all .15s}
 .tie-btn:hover{border-color:var(--ink);color:var(--ink)}
-.tie-btn.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.tie-btn.on{border-color:var(--ok);background:color-mix(in oklab,var(--ok) 14%, white);color:var(--ok)}
 .rsel{margin-left:auto;background:var(--paper);border:1px solid var(--line2);color:var(--ink);font-size:11px;font-weight:500;padding:6px 9px;cursor:pointer;font-family:inherit;border-radius:6px}
 .rsel:focus{outline:none;border-color:var(--accent)}
 .m-score{display:flex;align-items:center;gap:6px;border:1px solid var(--line2);background:var(--paper);border-radius:8px;padding:4px 6px}
@@ -954,12 +955,18 @@ function renderStatsRich(sc){
     const gain=gainForMatch(m.id,maj,results[m.id]);
     return {m,maj,gain:gain==null?0:gain};
   });
+  const pendingBets=ALL.filter(m=>betPlaced(m.id)&&!results[m.id]).map(m=>{
+    const maj=getMajority(votes[m.id]||[],sc,m.id);
+    const potential=gainForMatch(m.id,maj,null);
+    const cote=Number(String(coteOf(m.id)).replace(",","."));
+    return {m,maj,potential,cote:Number.isFinite(cote)&&cote>0?cote:null};
+  });
   let cumulative=0;
   const financePoints=settledBets.map((entry,index)=>{
     cumulative+=entry.gain;
     return {...entry,index:index+1,total:cumulative};
   });
-  const pendingCount=ALL.filter(m=>betPlaced(m.id)&&!results[m.id]).length;
+  const pendingCount=pendingBets.length;
   const curveSeries=financePoints.length?financePoints.map(p=>p.total):[0];
   const eventSeries=financePoints.length?financePoints.map(p=>p.gain):[0];
   const minCurve=Math.min(0,...curveSeries,...eventSeries);
@@ -974,7 +981,9 @@ function renderStatsRich(sc){
   const areaPath=financePoints.length?`${linePath} L ${scaleX(financePoints.length-1,financePoints.length).toFixed(1)} ${scaleY(0).toFixed(1)} L ${scaleX(0,financePoints.length).toFixed(1)} ${scaleY(0).toFixed(1)} Z`:'';
   const eventPath=financePoints.length?financePoints.map((p,i)=>`${i===0?'M':'L'} ${scaleX(i,financePoints.length).toFixed(1)} ${scaleY(p.gain).toFixed(1)}`).join(' '):`M ${padX} ${scaleY(0).toFixed(1)} L ${chartW-padX} ${scaleY(0).toFixed(1)}`;
   const zeroY=scaleY(0).toFixed(1);
-  const financeRows=financePoints.slice(-6).reverse().map(p=>`<div class="finance-row"><div><div class="finance-match">M${String(p.m.id).padStart(2,'0')} · ${p.m.e1} vs ${p.m.e2}</div><div class="finance-meta">${p.m.date} · ${p.maj?`ret. ${p.maj}`:'ret. —'}</div></div><span class="finance-pill ${p.gain>0?'win':'loss'}">${p.gain>0?'gagné':'perdu'}</span><span class="finance-amt ${p.gain>0?'pos':'neg'}">${p.gain.toFixed(2)} €</span></div>`).join('')||`<div class="finance-row"><div><div class="finance-match">Aucun pari réglé</div><div class="finance-meta">Active “Pari placé” sur les matchs joués</div></div><span class="finance-pill pending">en attente</span><span class="finance-amt">—</span></div>`;
+  const pendingRows=pendingBets.slice().reverse().map(p=>`<div class="finance-row"><div><div class="finance-match">M${String(p.m.id).padStart(2,'0')} · ${p.m.e1} vs ${p.m.e2}</div><div class="finance-meta">${p.m.date} · ${p.maj?`ret. ${p.maj}`:'ret. —'} · cote ${p.cote?p.cote.toFixed(2):'—'}</div></div><span class="finance-pill pending">en attente</span><span class="finance-amt ${p.potential!=null?'pos':''}">${p.potential!=null?`pot. ${p.potential.toFixed(2)} €`:'pot. —'}</span></div>`).join('');
+  const settledRows=financePoints.slice(-6).reverse().map(p=>`<div class="finance-row"><div><div class="finance-match">M${String(p.m.id).padStart(2,'0')} · ${p.m.e1} vs ${p.m.e2}</div><div class="finance-meta">${p.m.date} · ${p.maj?`ret. ${p.maj}`:'ret. —'}</div></div><span class="finance-pill ${p.gain>0?'win':'loss'}">${p.gain>0?'gagné':'perdu'}</span><span class="finance-amt ${p.gain>0?'pos':'neg'}">${p.gain.toFixed(2)} €</span></div>`).join('');
+  const financeRows=(pendingRows+settledRows)||`<div class="finance-row"><div><div class="finance-match">Aucun pari placé</div><div class="finance-meta">Active “Pari placé” sur les matchs concernés</div></div><span class="finance-pill pending">en attente</span><span class="finance-amt">—</span></div>`;
 
   const rules=[["⚽","Mise","1 € par personne et par match — 4 € collectifs"],["🗳️","Vote majoritaire","Le pronostic le plus choisi est retenu avant chaque match"],["📈","Courbes","Les courbes financières suivent uniquement les paris placés et réglés"],["💰","Bilan","Gain gagnant = 4 x cote ; perte = -4 €"],["🍻","Apéro","Le dernier du classement offre l'apéro à Niort"]].map(([i,t,d])=>`<div class="rule"><span class="rule-ico">${i}</span><div><div class="rule-t">${t}</div><div class="rule-d">${d}</div></div></div>`).join('');
 
