@@ -70,8 +70,8 @@ body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -
 .chip.on{background:linear-gradient(135deg,color-mix(in oklab,var(--pv, var(--fr)) 86%, #0d3f8f) 0%,color-mix(in oklab,var(--pv, var(--accent)) 70%, #103a74) 100%);border-color:color-mix(in oklab,var(--pv, var(--fr)) 72%, #0a2d5d);color:#f5f9ff;box-shadow:0 10px 20px color-mix(in oklab,var(--pv, var(--fr)) 32%, transparent)}
 .scroller.sub .chip{padding:5px 12px;font-size:10px}
 @keyframes chipPulse{0%{background-position:0% 50%}100%{background-position:100% 50%}}
-.slabel{display:flex;align-items:center;gap:11px;padding:18px 24px 10px}
-.slabel-text{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink);white-space:nowrap}
+.slabel{display:flex;align-items:center;gap:11px;padding:18px 20px 10px}
+.slabel-text{font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink);white-space:nowrap}
 .slabel-line{flex:1;height:1px;background:color-mix(in oklab,var(--line2) 58%, transparent)}
 .slabel-count{font-size:10px;color:var(--faint);font-weight:600}
 /* En-tête de journée (collapsible) */
@@ -80,7 +80,7 @@ body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -
 .day.open{border-radius:10px 10px 0 0;margin-bottom:0;box-shadow:0 10px 22px rgba(19,41,66,.12),0 0 0 1px rgba(255,255,255,.74) inset}
 .day-chev{font-size:11px;color:var(--faint);transition:transform .2s;flex-shrink:0}
 .day.open .day-chev{transform:rotate(90deg)}
-.day-name{font-size:13px;font-weight:700;color:var(--ink);letter-spacing:-.2px}
+.day-name{font-size:12px;font-weight:700;color:var(--ink);letter-spacing:-.2px}
 .day-meta{margin-left:auto;display:flex;align-items:center;gap:8px}
 .day-prog{font-size:10px;color:var(--faint);font-weight:600}
 .day-pill{font-size:10px;color:var(--dim);font-weight:600;background:var(--paper);border:1px solid var(--line2);padding:2px 8px;border-radius:20px}
@@ -295,7 +295,7 @@ body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -
   .who-btn{padding:5px 9px;font-size:10px}
   .board-cell{padding:12px 6px}
   .b-score{font-size:22px}
-  .day-name{font-size:12px}
+  .day-name{font-size:11px}
   .day-pill,.day-prog{font-size:9px}
   .card-top{padding:8px 10px;gap:8px}
   .teams{flex-wrap:wrap;justify-content:space-between}
@@ -376,7 +376,7 @@ body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -
 .bar-val{text-align:right;font-size:12px;font-weight:700;color:var(--ink)}
 .stats-table-wrap{margin:0 18px 12px;border:none;background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 14px 30px rgba(15,29,49,.16),0 0 0 1px rgba(255,255,255,.78) inset}
 .stats-table-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px}
-.stats-table-title{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink)}
+.stats-table-title{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink)}
 .stats-table-note{font-size:11px;color:var(--dim)}
 .stats-table-scroll{overflow:auto}
 .stats-table{width:100%;border-collapse:collapse;min-width:760px}
@@ -447,7 +447,7 @@ body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -
 .rule-d{font-size:12px;color:var(--dim);line-height:1.4}
 .contract-wrap{padding:0 18px 18px;display:grid;gap:10px}
 .contract-card{border:2px solid var(--line2);background:var(--card);border-radius:12px;padding:14px 16px}
-.contract-title{font-size:14px;font-weight:800;letter-spacing:.2px;color:var(--ink);margin-bottom:6px}
+.contract-title{font-size:12px;font-weight:800;letter-spacing:.2px;color:var(--ink);margin-bottom:6px}
 .contract-text{font-size:13px;line-height:1.55;color:var(--dim)}
 .contract-list{margin:8px 0 0 18px;padding:0;display:grid;gap:5px}
 .contract-list li{font-size:13px;line-height:1.45;color:var(--dim)}
@@ -515,7 +515,7 @@ body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -
 .past-phase-head{font-size:12px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;color:var(--ink);padding:0 2px}
 .past-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,420px));justify-content:center;gap:14px}
 .past-day{display:grid;gap:8px;align-content:start}
-.past-day-title{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--dim);padding:2px 2px 0}
+.past-day-title{font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--dim);padding:2px 2px 0}
 .past-group{border:none;background:#ffffff;border-radius:12px;padding:10px 12px;box-shadow:0 10px 22px rgba(15,29,49,.13),0 0 0 1px rgba(255,255,255,.74) inset}
 .past-group-title{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
 .past-rows{display:grid}
@@ -626,6 +626,42 @@ body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -
 .br-center .br-side-col.r3 .br-match::after{right:-24px}
 .banner{margin:12px 18px 0;padding:11px 14px;border:2px solid var(--line2);border-radius:8px;background:#fbf6e9;color:#7a6420;font-size:11px;font-weight:500;display:none}
 .banner.show{display:block}
+
+/* ── Animations hover page Compétition ── */
+.gcard{transition:transform .22s cubic-bezier(.16,1,.3,1),box-shadow .22s cubic-bezier(.16,1,.3,1)}
+.gcard:hover{transform:translateY(-3px) scale(1.012);box-shadow:0 20px 40px rgba(15,29,49,.18),0 0 0 1.5px rgba(255,255,255,.82) inset,0 0 0 2px color-mix(in oklab,var(--fr) 18%, transparent)}
+.gcard:hover .ghead{background:color-mix(in oklab,var(--fr) 10%, transparent);color:var(--fr)}
+.ghead{transition:background .22s,color .22s}
+.grow{transition:background .16s,transform .16s;border-radius:6px}
+.grow:hover{background:color-mix(in oklab,var(--fr) 7%, transparent);transform:translateX(3px)}
+.grow:hover .gteam{color:var(--fr)}
+.gteam{transition:color .16s}
+.br-match{transition:transform .22s cubic-bezier(.16,1,.3,1),box-shadow .22s cubic-bezier(.16,1,.3,1);cursor:pointer}
+.br-match:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 16px 34px rgba(15,29,49,.22),0 0 0 2px color-mix(in oklab,var(--fr) 24%, transparent),0 0 0 1px rgba(255,255,255,.82) inset;z-index:10;position:relative}
+.br-team{transition:background .16s,color .16s}
+.br-match:hover .br-team:not(.win){background:color-mix(in oklab,var(--fr) 5%, white)}
+.br-match:hover .br-team.win{background:color-mix(in oklab,var(--ok) 22%, white)}
+.past-group{transition:transform .2s cubic-bezier(.16,1,.3,1),box-shadow .2s cubic-bezier(.16,1,.3,1)}
+.past-group:hover{transform:translateY(-2px);box-shadow:0 16px 32px rgba(15,29,49,.16),0 0 0 1px rgba(255,255,255,.78) inset}
+.ko-line{transition:transform .2s,box-shadow .2s}
+.ko-line:hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(15,29,49,.16),0 0 0 1px rgba(255,255,255,.78) inset}
+@keyframes groupCardAppear{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.gcard{animation:groupCardAppear .32s cubic-bezier(.16,1,.3,1) both}
+.gcard:nth-child(2){animation-delay:.05s}
+.gcard:nth-child(3){animation-delay:.10s}
+.gcard:nth-child(4){animation-delay:.15s}
+.gcard:nth-child(5){animation-delay:.20s}
+.gcard:nth-child(6){animation-delay:.25s}
+.gcard:nth-child(7){animation-delay:.30s}
+.gcard:nth-child(8){animation-delay:.35s}
+/* ── Sections collapsibles Compétition ── */
+.comp-section{margin:0}
+.comp-section-head{display:flex;align-items:center;gap:11px;padding:18px 20px 10px;list-style:none;cursor:pointer;user-select:none}
+.comp-section-head::-webkit-details-marker{display:none}
+.comp-section-head:hover .slabel-text{color:var(--fr);transition:color .16s}
+.comp-chev{font-size:13px;color:var(--faint);transition:transform .22s cubic-bezier(.16,1,.3,1);flex-shrink:0;margin-left:2px}
+.comp-section[open] .comp-chev{transform:rotate(90deg)}
+.comp-section:not([open]) .comp-section-head{padding-bottom:14px}
 .nav{display:flex;background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(245,249,253,.96));backdrop-filter:blur(16px);border:2px solid color-mix(in oklab,var(--line2) 72%, #8ea9c7);box-shadow:0 -10px 26px rgba(19,34,56,.10),0 10px 24px rgba(19,34,56,.10);position:fixed;bottom:10px;left:50%;transform:translateX(-50%);width:calc(100% - 20px);max-width:560px;z-index:100;border-radius:20px}
 .app.wide .nav{max-width:1800px}
 .nbtn{flex:1;padding:12px 4px 14px;background:none;border:none;color:var(--faint);cursor:pointer;transition:color .18s,transform .18s,background .18s,box-shadow .18s;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;font-family:inherit;border-radius:14px;outline:none}
@@ -1230,7 +1266,7 @@ function renderCompetition(){
   }).join('');
   const playedBlock=calendarHtml||`<div class="ko-line">Aucun match disponible.</div>`;
   const finishedCount=calendarMatches.filter(x=>x.done).length;
-  return `<div class="slabel"><span class="slabel-text">Classement phase de groupes</span><span class="slabel-line"></span><span class="slabel-count">Pts / Diff / BP / J</span></div><div class="group-grid">${gHtml}</div><div class="slabel"><span class="slabel-text">Phase éliminatoire</span><span class="slabel-line"></span></div>${thirdLine}${renderKnockout(kval.fixtures)}<div class="slabel"><span class="slabel-text">Calendrier des matchs</span><span class="slabel-line"></span><span class="slabel-count">${finishedCount}/${ALL.length} joués</span></div><div class="past-phases">${playedBlock}</div><div style="height:16px"></div>`;
+  return `<details class="comp-section" open><summary class="comp-section-head"><span class="slabel-text">Classement phase de groupes</span><span class="slabel-line"></span><span class="slabel-count">Pts / Diff / BP / J</span><span class="comp-chev">›</span></summary><div class="group-grid">${gHtml}</div>${thirdLine}</details><details class="comp-section" open><summary class="comp-section-head"><span class="slabel-text">Phase éliminatoire</span><span class="slabel-line"></span><span class="comp-chev">›</span></summary>${renderKnockout(kval.fixtures)}</details><details class="comp-section" open><summary class="comp-section-head"><span class="slabel-text">Calendrier des matchs</span><span class="slabel-line"></span><span class="slabel-count">${finishedCount}/${ALL.length} joués</span><span class="comp-chev">›</span></summary><div class="past-phases">${playedBlock}</div></details><div style="height:16px"></div>`;
 }
 function renderStats(sc){const total=Object.values(results).filter(Boolean).length;const max=Math.max(...Object.values(sc),0);const sorted=[...PARTICIPANTS].sort((a,b)=>(sc[b]||0)-(sc[a]||0));const detail=PARTICIPANTS.map((p,pi)=>{const voted=ALL.filter(m=>results[m.id]&&(votes[m.id]||[])[pi]).length;const correct=ALL.filter(m=>{const r=results[m.id];return r&&(votes[m.id]||[])[pi]===r;}).length;const missed=ALL.filter(m=>results[m.id]&&!(votes[m.id]||[])[pi]).length;return `<div class="rcard"><div class="rtop"><span class="rname">${p}</span><span class="rscore" style="font-size:24px">${sc[p]||0}<span class="runit">pts</span></span></div><div class="rbars"><div class="brow"><span class="blabel">Saisis</span><div class="btrack"><div class="bfill neutral" style="width:${total>0?(voted/total*100):0}%"></div></div><span class="bval">${voted}/${total}</span></div><div class="brow"><span class="blabel">Corrects</span><div class="btrack"><div class="bfill" style="width:${voted>0?(correct/voted*100):0}%"></div></div><span class="bval">${correct}</span></div><div class="brow"><span class="blabel">Manqués</span><div class="btrack"><div class="bfill neutral" style="width:${total>0?(missed/total*100):0}%"></div></div><span class="bval">${missed}</span></div></div></div>`;}).join('');const rules=[["⚽","Mise","1 € par personne et par match — 4 € collectifs"],["🗳️","Vote majoritaire","Le pronostic le plus choisi est retenu avant chaque match"],["⚖️","Égalité","En cas d'ex-æquo, le meilleur taux de réussite tranche"],["💰","Gains","Répartis équitablement entre les quatre participants"],["🍻","Apéro","Le dernier du classement offre l'apéro à Niort"]].map(([i,t,d])=>`<div class="rule"><span class="rule-ico">${i}</span><div><div class="rule-t">${t}</div><div class="rule-d">${d}</div></div></div>`).join('');return `<div class="slabel"><span class="slabel-text">Vue d'ensemble</span><span class="slabel-line"></span></div><div class="grid"><div class="scard"><div class="slbl">Matchs joués</div><div class="sval a">${total}</div><div class="ssub">sur 104 au total</div></div><div class="scard"><div class="slbl">Mise engagée</div><div class="sval">${total*4} €</div><div class="ssub">1 € × 4 × ${total}</div></div><div class="scard"><div class="slbl">En tête</div><div class="sval">${max}</div><div class="ssub">${sorted[0]}</div></div><div class="scard"><div class="slbl">Restants</div><div class="sval">${104-total}</div><div class="ssub">${(104-total)*4} € à jouer</div></div></div><div class="slabel"><span class="slabel-text">Par joueur</span><span class="slabel-line"></span></div>${detail}<div class="slabel"><span class="slabel-text">Règles</span><span class="slabel-line"></span></div>${rules}<div style="height:16px"></div>`;}
 
@@ -1466,7 +1502,7 @@ function renderKnockout(fixtures){
   const right=sideFromSemi(102);
   const r3=fixtures.filter(x=>x.round==="3ème place");
   const rf=fixtures.filter(x=>x.round==="FINALE");
-  const card=x=>{const has=x.s1!==""&&x.s2!=="";const a=Number(x.s1),b=Number(x.s2);const w=has&&a!==b?(a>b?"1":"2"):null;return `<div class="br-match"><div class="br-mhead"><span>M${x.id}</span><span>${x.date} · ${x.h}</span></div><div class="br-team ${w==="1"?"win":""}">${labelTeamWithFlag(x.e1)}<span class="br-goals">${has?x.s1:""}</span></div><div class="br-team ${w==="2"?"win":""}">${labelTeamWithFlag(x.e2)}<span class="br-goals">${has?x.s2:""}</span></div></div>`;};
+  const card=x=>{const has=x.s1!==""&&x.s2!=="";const a=Number(x.s1),b=Number(x.s2);const w=has&&a!==b?(a>b?"1":"2"):null;return `<div class="br-match" onclick="goToMatch(${x.id})"><div class="br-mhead"><span>M${x.id}</span><span>${x.date} · ${x.h}</span></div><div class="br-team ${w==="1"?"win":""}">${labelTeamWithFlag(x.e1)}<span class="br-goals">${has?x.s1:""}</span></div><div class="br-team ${w==="2"?"win":""}">${labelTeamWithFlag(x.e2)}<span class="br-goals">${has?x.s2:""}</span></div></div>`;};
   const col=(title,list,cls)=>`<div class="br-side-col ${cls}"><div class="br-col-title">${title}</div><div class="br-list">${list.length?list.map(card).join(''):"<div class='ko-line'>En attente</div>"}</div></div>`;
   return `<div class="bracket-wrap"><div class="br-main"><div class="br-side left">${col("1/16",left.r16,"r16")}${col("1/8",left.r8,"r8")}${col("Quarts",left.qf,"rqf")}${col("Demi",left.semi,"rsf")}</div><div class="br-center">${col("Finale",rf,"rf")}${col("3e place",r3,"r3")}</div><div class="br-side right">${col("Demi",right.semi,"rsf")}${col("Quarts",right.qf,"rqf")}${col("1/8",right.r8,"r8")}${col("1/16",right.r16,"r16")}</div></div></div>`;
 }
