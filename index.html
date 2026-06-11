@@ -96,7 +96,7 @@ body{font-family:'Manrope',sans-serif;background:linear-gradient(180deg,#f7fafe 
 .datereset{background:linear-gradient(180deg,#ffffff 0%,#f4f8fd 100%);border:1px solid color-mix(in oklab,var(--line2) 86%, white);color:var(--dim);font-size:12px;font-weight:600;padding:8px 11px;cursor:pointer;font-family:inherit;border-radius:8px;flex-shrink:0;transition:all .15s;box-shadow:0 8px 16px rgba(15,29,49,.08)}
 .datereset:hover{border-color:color-mix(in oklab,var(--ink) 40%, var(--line2));color:var(--ink);transform:translateY(-1px)}
 .day-body{overflow:hidden}
-.card{--ctrl-h:34px;--ctrl-radius:8px;--ctrl-fs:11px;margin:0 18px 14px;border:1px solid color-mix(in oklab,var(--line2) 88%, white);background:#fff;border-radius:10px;overflow:hidden;transition:border-color .18s,transform .18s;box-shadow:none}
+.card{--ctrl-h:34px;--ctrl-radius:8px;--ctrl-fs:11px;margin:0 18px 16px;border:1px solid color-mix(in oklab,var(--line2) 88%, white);background:#fff;border-radius:10px;overflow:hidden;transition:border-color .18s,transform .18s;box-shadow:none}
 .card:hover{transform:translateY(-1px)}
 .card.filled{border-color:color-mix(in oklab,var(--ok) 28%, var(--line2))}
 .card.locked{border-color:color-mix(in oklab,var(--line2) 68%, #9fb0c4)}
@@ -140,7 +140,7 @@ body{font-family:'Manrope',sans-serif;background:linear-gradient(180deg,#f7fafe 
 .c-tag.frtag{background:var(--card);border-color:var(--fr);color:var(--fr)}
 .c-top-tags{margin-left:0;display:inline-flex;align-items:center;gap:5px;justify-self:end}
 .c-top-tags .c-tag{margin-left:0}
-.teams{display:flex;align-items:center;padding:13px 12px}
+.teams{display:flex;align-items:center;padding:14px 13px}
 .team{flex:1;display:flex;align-items:center;gap:8px}
 .team.r{flex-direction:row-reverse;text-align:right}
 .flag{width:20px;height:20px;object-fit:contain;flex-shrink:0}
@@ -148,13 +148,13 @@ body{font-family:'Manrope',sans-serif;background:linear-gradient(180deg,#f7fafe 
 .with-flag{display:inline-flex;align-items:center;gap:4px}
 .tname{font-size:13px;font-weight:600;line-height:1.15}
 .vs{font-size:9px;color:var(--faint);padding:0 12px;font-weight:600;letter-spacing:.8px}
-.votes{padding:6px 12px 12px;border-top:1px solid color-mix(in oklab,var(--line) 78%, white)}
-.vrow{display:flex;align-items:center;gap:10px;padding:5px 0;border-radius:10px;position:relative}
+.votes{padding:8px 12px 14px;border-top:1px solid color-mix(in oklab,var(--line) 78%, white)}
+.vrow{display:flex;align-items:center;gap:11px;padding:6px 0;border-radius:10px;position:relative}
 .vrow.me-row::before{content:"";position:absolute;left:-8px;top:7px;bottom:7px;width:3px;border-radius:999px;background:var(--accent);opacity:.9;z-index:0}
 .vrow>*{position:relative;z-index:1}
 .vname{font-size:11px;font-weight:600;width:62px;flex-shrink:0;color:var(--dim)}
 .vname.me{color:var(--ink);font-weight:800;letter-spacing:.1px}
-.vopts{display:flex;gap:6px;flex:1}
+.vopts{display:flex;gap:7px;flex:1}
 .vbtn{flex:1;min-height:var(--ctrl-h);padding:0 8px;border:1px solid #d8e0eb;background:#fbfdff;color:#617289;font-size:var(--ctrl-fs);font-weight:600;cursor:pointer;transition:all .18s ease;font-family:inherit;border-radius:var(--ctrl-radius);display:flex;align-items:center;justify-content:center;gap:4px;box-shadow:none}
 .vbtn:hover:not(:disabled){border-color:color-mix(in oklab,var(--ink) 42%, #d5dde8);color:var(--ink);transform:translateY(-1px)}
 .vrow .vbtn.on{background:#e8eef7;border-color:#7f93af;color:#2b3d53;box-shadow:none}
@@ -170,33 +170,35 @@ body{font-family:'Manrope',sans-serif;background:linear-gradient(180deg,#f7fafe 
 .vrow .vbtn.betlocked.on.result-ok{background:color-mix(in oklab,var(--bet-on) 12%, white);border-color:color-mix(in oklab,var(--bet-on) 56%, #3d7f63);color:#215e45;box-shadow:none}
 .vrow .vbtn.betlocked.on.result-ko{background:color-mix(in oklab,var(--ko) 10%, white);border-color:color-mix(in oklab,var(--ko) 54%, #9a4c59);color:#8c2f3f;box-shadow:none}
 .vrow.me-row .vbtn.on:not(.result-ok):not(.result-ko){background:color-mix(in oklab,var(--pv, var(--ink)) 28%, white);border-color:color-mix(in oklab,var(--pv, var(--ink)) 78%, #1f2d40);color:color-mix(in oklab,var(--pv, var(--ink)) 88%, #162131);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 1px 0 rgba(15,29,49,.10)}
-.retenu{display:flex;flex-direction:column;align-items:stretch;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid color-mix(in oklab,var(--line) 78%, white)}
-.retenu-main{display:flex;align-items:center;gap:12px;justify-content:center;min-width:0;flex-wrap:wrap}
-.retenu-tools{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
-.retenu-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.retenu{display:flex;flex-direction:column;align-items:stretch;gap:14px;margin-top:16px;padding-top:16px;border-top:1px solid color-mix(in oklab,var(--line) 78%, white)}
+.retenu-main{display:flex;align-items:center;gap:14px;justify-content:center;min-width:0;flex-wrap:wrap}
+.retenu-tools{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+.retenu-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .retenu-row.scoreline{justify-content:center}
 .rlabel{font-size:9px;font-weight:600;letter-spacing:.9px;color:var(--faint);text-transform:uppercase}
 .rval{min-height:var(--ctrl-h);font-size:var(--ctrl-fs);font-weight:600;color:var(--ok);background:color-mix(in oklab,var(--ok) 14%, white);padding:0 11px;border-radius:var(--ctrl-radius);display:inline-flex;align-items:center}
 .rpending{font-size:var(--ctrl-fs);color:var(--faint);font-style:italic}
+.retenu-main .rlabel{min-width:54px;text-align:right}
+.retenu-main .rval,.retenu-main .rpending{min-width:132px;justify-content:center}
 .tie-chooser{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .tie-btn{min-height:var(--ctrl-h);border:1px solid color-mix(in oklab,var(--line2) 86%, white);background:#fff;color:var(--dim);font:inherit;font-size:var(--ctrl-fs);font-weight:600;border-radius:999px;padding:0 10px;cursor:pointer;transition:all .15s;box-shadow:none}
 .tie-btn:hover{border-color:color-mix(in oklab,var(--ink) 40%, var(--line2));color:var(--ink);transform:translateY(-1px)}
 .tie-btn.on{border-color:var(--ok);background:color-mix(in oklab,var(--ok) 14%, white);color:var(--ok)}
 .rsel{margin-left:auto;background:linear-gradient(180deg,#ffffff 0%,#f3f7fc 100%);border:1px solid color-mix(in oklab,var(--line2) 86%, white);color:var(--ink);font-size:11px;font-weight:500;padding:6px 9px;cursor:pointer;font-family:inherit;border-radius:6px;box-shadow:0 7px 14px rgba(15,29,49,.08)}
 .rsel:focus{outline:none;border-color:var(--accent)}
-.m-score{display:flex;align-items:center;gap:6px;min-height:var(--ctrl-h);border:1px solid var(--line2);background:var(--paper);border-radius:var(--ctrl-radius);padding:3px 6px}
+.m-score{display:flex;align-items:center;gap:6px;min-height:var(--ctrl-h);min-width:132px;justify-content:center;border:1px solid var(--line2);background:var(--paper);border-radius:var(--ctrl-radius);padding:3px 6px}
 .m-score.filled{border-color:var(--ok);box-shadow:0 0 0 2px color-mix(in oklab,var(--ok) 25%, transparent)}
 .m-score .score-in{width:42px;padding:4px 3px;font-size:var(--ctrl-fs);text-align:center;height:28px}
 .m-score .score-vs{font-size:8px}
-.odds-box{display:flex;align-items:center;gap:6px;min-height:var(--ctrl-h);border:1px solid var(--line2);background:var(--paper);border-radius:var(--ctrl-radius);padding:3px 6px}
+.odds-box{display:flex;align-items:center;gap:6px;min-height:var(--ctrl-h);min-width:132px;justify-content:center;border:1px solid var(--line2);background:var(--paper);border-radius:var(--ctrl-radius);padding:3px 6px}
 .odds-in{width:54px;padding:3px;border:1px solid var(--line2);border-radius:6px;background:var(--card);color:var(--ink);font:inherit;font-size:var(--ctrl-fs);text-align:center;height:26px}
 .odds-in:focus{outline:none;border-color:var(--accent)}
-.bet-toggle{min-height:var(--ctrl-h);border:1px solid color-mix(in oklab,var(--bet-warn) 62%, var(--line2));background:#fff;color:var(--bet-warn-deep);font:inherit;font-size:var(--ctrl-fs);font-weight:700;border-radius:999px;padding:0 11px;cursor:pointer;transition:all .15s;box-shadow:none}
-.bet-toggle:hover{border-color:var(--bet-warn);color:var(--bet-warn-deep);box-shadow:0 0 0 2px color-mix(in oklab,var(--bet-warn) 24%, transparent)}
+.bet-toggle{min-height:var(--ctrl-h);min-width:132px;justify-content:center;border:1px solid #e3b35a;background:#fff3dc;color:#8a5a11;font:inherit;font-size:var(--ctrl-fs);font-weight:700;border-radius:999px;padding:0 11px;cursor:pointer;transition:all .15s;box-shadow:none;display:inline-flex;align-items:center}
+.bet-toggle:hover{border-color:#cf9734;background:#ffefcf;color:#6f460c;box-shadow:0 0 0 2px rgba(227,179,90,.22)}
 .bet-toggle.on{border-color:var(--bet-on);background:color-mix(in oklab,var(--bet-on) 14%, white);color:var(--bet-on-deep);box-shadow:none}
-.reset-toggle{min-height:var(--ctrl-h);border:1px solid #e7c9ce;background:#fff;color:var(--ko);font:inherit;font-size:var(--ctrl-fs);font-weight:700;border-radius:999px;padding:0 11px;cursor:pointer;transition:all .15s;box-shadow:none}
+.reset-toggle{min-height:var(--ctrl-h);min-width:132px;justify-content:center;border:1px solid #e7c9ce;background:#fff;color:var(--ko);font:inherit;font-size:var(--ctrl-fs);font-weight:700;border-radius:999px;padding:0 11px;cursor:pointer;transition:all .15s;box-shadow:none;display:inline-flex;align-items:center}
 .reset-toggle:hover{border-color:var(--ko);background:linear-gradient(180deg,#fff6f6 0%,#ffecee 100%);transform:translateY(-1px)}
-.gain-pill{min-height:var(--ctrl-h);font-size:var(--ctrl-fs);font-weight:600;border-radius:20px;padding:0 11px;border:1px solid var(--line2);background:var(--paper);color:var(--dim);display:inline-flex;align-items:center}
+.gain-pill{min-height:var(--ctrl-h);min-width:132px;justify-content:center;font-size:var(--ctrl-fs);font-weight:600;border-radius:20px;padding:0 11px;border:1px solid var(--line2);background:var(--paper);color:var(--dim);display:inline-flex;align-items:center}
 .gain-pill.win{border-color:var(--ok);color:var(--ok);background:color-mix(in oklab,var(--ok) 12%, white)}
 .gain-pill.loss{border-color:var(--ko);color:var(--ko);background:color-mix(in oklab,var(--ko) 10%, white)}
 .gain-pill.sim{opacity:.8}
@@ -289,7 +291,7 @@ body{font-family:'Manrope',sans-serif;background:linear-gradient(180deg,#f7fafe 
   .team,.team.r{flex:1 1 calc(50% - 26px)}
   .vs{width:100%;text-align:center;padding:2px 0}
   .vbtn{font-size:10px;padding:6px 6px}
-  .m-score,.odds-box,.bet-toggle,.gain-pill{width:100%;justify-content:center}
+  .m-score,.odds-box,.bet-toggle,.reset-toggle,.gain-pill{width:100%;min-width:0;justify-content:center}
   .retenu-row{width:100%}
   .retenu-row.scoreline{flex-direction:column;align-items:stretch}
   .score-row .score-in{width:100%}
