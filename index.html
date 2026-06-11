@@ -519,7 +519,7 @@ body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -
 .past-group{border:none;background:#ffffff;border-radius:12px;padding:10px 12px;box-shadow:0 10px 22px rgba(15,29,49,.13),0 0 0 1px rgba(255,255,255,.74) inset}
 .past-group-title{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
 .past-rows{display:grid}
-.past-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto minmax(0,1fr) auto;align-items:center;gap:8px;padding:7px 0;width:100%;border:none;background:none;font:inherit;text-align:left;cursor:pointer;border-radius:8px;transition:background .15s,transform .15s}
+.past-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto minmax(0,1fr) auto auto;align-items:center;gap:8px;padding:7px 0;width:100%;border:none;background:none;font:inherit;text-align:left;cursor:pointer;border-radius:8px;transition:background .15s,transform .15s}
 .past-row+.past-row{box-shadow:inset 0 1px 0 color-mix(in oklab,var(--line2) 45%, transparent)}
 .past-row:hover{background:color-mix(in oklab,var(--paper) 62%, white);transform:translateY(-1px)}
 .past-row:focus-visible{outline:none;box-shadow:0 0 0 2px color-mix(in oklab,var(--fr) 24%, transparent),inset 0 1px 0 color-mix(in oklab,var(--line2) 45%, transparent)}
@@ -528,6 +528,10 @@ body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -
 .past-phase{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--dim);padding:2px 7px;border-radius:999px;background:color-mix(in oklab,var(--paper) 80%, white)}
 .past-when{font-size:10px;font-weight:700;color:var(--faint)}
 .past-status{font-size:9px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:color-mix(in oklab,var(--paper) 82%, white);color:var(--dim)}
+.past-bet{font-size:9px;font-weight:800;letter-spacing:.5px;padding:2px 7px;border-radius:999px;background:#eef5ff;color:#345475;white-space:nowrap}
+.past-bet.pending{background:#fff3dc;color:#8a5a11}
+.past-bet.win{background:color-mix(in oklab,var(--bet-on) 16%, white);color:var(--bet-on-deep)}
+.past-bet.loss{background:color-mix(in oklab,var(--ko) 14%, white);color:var(--ko)}
 .past-team{font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;min-width:0}
 .past-team.r{justify-content:flex-end;text-align:right}
 .past-team.win{color:var(--ok)}
@@ -538,12 +542,13 @@ body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -
 @media (max-width:760px){
   .past-phases{gap:14px;padding:0 14px 12px}
   .past-results{grid-template-columns:1fr;gap:10px}
-  .past-row{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"time home status" "dots dots dots" "away away score";gap:6px 8px}
+  .past-row{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"time home status" "away away score" "bet bet bet";gap:6px 8px}
   .past-row .past-when{grid-area:time}
   .past-row .past-team:first-of-type{grid-area:home}
   .past-row .past-team.r{grid-area:away;justify-content:flex-start;text-align:left}
   .past-row .past-score{grid-area:score;justify-self:end}
   .past-row .past-status{grid-area:status;justify-self:end}
+  .past-row .past-bet{grid-area:bet;justify-self:start}
   .past-row .past-id{display:none}
 }
 
@@ -1151,6 +1156,7 @@ function renderClassement(sc){
   return `<div class="slabel"><span class="slabel-text">Classement pronos</span><span class="slabel-line"></span><span class="slabel-count">${total} joués</span></div>${pCards}${total>0?`<div class="apero"><span class="apero-ico">🍻</span><div class="apero-txt"><b>Clause Apéro —</b> à ce stade, <span class="apero-name" style="color:${themeForPronostiqueur(last).accent}">${last}</span> offre l'apéro à la fin du tournoi.</div></div>`:''}<div style="height:16px"></div>`;
 }
 function renderCompetition(){
+  const sc=computeScores();
   const tables=groupTables();
   const kval=buildKnockoutProjection(tables);
   const phaseOrder=["Phase de groupes","1/16","1/8","Quart","Demi","3ème place","Finale"];
@@ -1202,7 +1208,11 @@ function renderCompetition(){
         const hasWinner=done&&Number.isFinite(a)&&Number.isFinite(b)&&a!==b;
         const statusLabel=done?"Terminé":"À jouer";
         const scoreLabel=done?`${s.s1}-${s.s2}`:"—";
-        return `<button class="past-row ${done?"":"pending"}" onclick="goToMatch(${fm.id})"><span class="past-when">${fm.h}</span><span class="past-team ${hasWinner&&a>b?"win":""}">${flagImg(fm.e1,"flag-sm")}<span>${fm.e1}</span></span><span class="past-score">${scoreLabel}</span><span class="past-team r ${hasWinner&&b>a?"win":""}">${flagImg(fm.e2,"flag-sm")}<span>${fm.e2}</span></span><span class="past-status">${statusLabel}</span></button>`;
+          const placed=betPlaced(fm.id);
+          const maj=getMajority(votes[fm.id]||[],sc,fm.id);
+          const netGain=placed?gainForMatch(fm.id,maj,done?results[fm.id]:null):null;
+          const betBadge=!placed?"":(!done?"<span class=\"past-bet pending\">Parié · en jeu</span>":(netGain==null?"<span class=\"past-bet\">Parié</span>":`<span class=\"past-bet ${netGain>=0?"win":"loss"}\">${netGain>=0?"+":""}${netGain.toFixed(2)} €</span>`));
+          return `<button class="past-row ${done?"":"pending"}" onclick="goToMatch(${fm.id})"><span class="past-when">${fm.h}</span><span class="past-team ${hasWinner&&a>b?"win":""}">${flagImg(fm.e1,"flag-sm")}<span>${fm.e1}</span></span><span class="past-score">${scoreLabel}</span><span class="past-team r ${hasWinner&&b>a?"win":""}">${flagImg(fm.e2,"flag-sm")}<span>${fm.e2}</span></span><span class="past-status">${statusLabel}</span>${betBadge}</button>`;
         }).join('');
         return `<div class="past-group"><div class="past-group-title">${groupLabel}</div><div class="past-rows">${rows}</div></div>`;
       }).join('');
