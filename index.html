@@ -890,7 +890,7 @@ function getMajority(mv,sc,id){const w=majorityCandidates(mv);if(!w.length)retur
 function centerCompetitionBracket(){const b=document.querySelector('.bracket-wrap');if(!b)return;b.scrollLeft=Math.max(0,Math.round((b.scrollWidth-b.clientWidth)/2));}
 function render(){renderWho();const sc=computeScores();renderBoard(sc);renderContent(sc);if(tab==="competition")requestAnimationFrame(centerCompetitionBracket);}
 function renderWho(){const who=document.getElementById("who"),subtitle=document.getElementById("who-subtitle");if(tab!=="matchs"){who.innerHTML="";who.style.display="none";if(subtitle)subtitle.style.display="none";return;}who.style.display="block";if(subtitle)subtitle.style.display="block";const currentColor=me?(customColorMap[me]||themeForPronostiqueur(me).accent):null;const picker=me?`<div class="who-tools"><details class="who-menu"><summary class="who-menu-btn"><span class="who-menu-dot" style="background:${currentColor}"></span>Couleurs</summary><div class="who-menu-pop"><label class="who-color">Couleur de ${me}<input type="color" value="${currentColor}" onchange="setPronostiqueurColor('${me}',this.value)"></label><button class="who-reset" onclick="resetPronostiqueurColor('${me}')">Reinitialiser</button></div></details></div>`:'';who.innerHTML=`<div class="who">${PARTICIPANTS.map(p=>`<button class="who-btn ${me===p?'on':''}" style="${pronostiqueurVoteStyle(p)}" onclick="setMe('${p}')">${p}</button>`).join('')}</div>${picker}`;}
-function renderBoard(sc){const board=document.getElementById("board");if(tab!=="matchs"){board.innerHTML="";board.style.display="none";return;}board.style.display="grid";const sorted=[...PARTICIPANTS].sort((a,b)=>(sc[b]||0)-(sc[a]||0));const total=Object.values(results).filter(Boolean).length;board.innerHTML=sorted.map((p,i)=>`<div class="board-cell ${i===0&&(sc[p]||0)>0?'lead':''}"><div class="b-rank">${MEDALS[i]}</div><div class="b-name">${p}</div><div class="b-score">${sc[p]||0}</div><div class="b-pct">${total>0?Math.round(((sc[p]||0)/total)*100)+'%':'—'}</div></div>`).join('');}
+function renderBoard(sc){const board=document.getElementById("board");board.innerHTML="";board.style.display="none";}
 function renderPageHead(title,sub){return `<div class="page-head"><div class="page-head-title">${title}</div>${sub?`<div class="page-head-sub">${sub}</div>`:''}</div>`;}
 function renderContent(sc){
   const total=Object.values(results).filter(Boolean).length;
@@ -1041,10 +1041,10 @@ function renderMatchs(sc){
   // Regroupement par jour
   const days=[];const byDay={};
   matches.forEach(m=>{const lbl=dayLabel(m.date);if(!byDay[lbl]){byDay[lbl]=[];days.push(lbl);}byDay[lbl].push(m);});
-  const summary=betSummary(matches,sc);
-
-  html+=`<div class="slabel"><span class="slabel-text">${filterPhase==="Groupes"?(filterGroupe==="Tous"?"Par journée":filterGroupe==="France"?"La France":"Groupe "+filterGroupe):filterPhase}</span><span class="slabel-line"></span><span class="slabel-count">${matches.length} matchs</span></div>`;
-  html+=`<div class="bet-summary"><div class="bet-box"><div class="slbl">Paris placés</div><div class="sval">${summary.count}</div><div class="ssub">Matchs réellement pariés</div></div><div class="bet-box"><div class="slbl">En jeu</div><div class="sval">${summary.pendingStake.toFixed(2)} €</div><div class="ssub">Mises ouvertes</div></div><div class="bet-box"><div class="slbl">Bilan réglé</div><div class="sval ${summary.settled<0?'neg':summary.settled>0?'pos':''}">${summary.settled.toFixed(2)} €</div><div class="ssub">Sur les paris placés</div></div></div>`;
+  const sectionLabel=filterPhase==="Groupes"?(filterGroupe==="Tous"?"Par journée":filterGroupe==="France"?"La France":"Groupe "+filterGroupe):filterPhase;
+  if(sectionLabel!=="Par journée"){
+    html+=`<div class="slabel"><span class="slabel-text">${sectionLabel}</span><span class="slabel-line"></span><span class="slabel-count">${matches.length} matchs</span></div>`;
+  }
 
   days.forEach(lbl=>{
     const dayMatches=byDay[lbl];
