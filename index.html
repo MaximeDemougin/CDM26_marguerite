@@ -276,7 +276,7 @@ body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -
   .score-team{min-width:calc(50% - 24px)}
   .score-row .score-in{width:calc(50% - 20px)}
   .group-grid{grid-template-columns:1fr}
-  .grow{grid-template-columns:18px 1fr 22px 22px 22px 22px;padding:8px 10px;gap:4px}
+  .grow{grid-template-columns:20px 1fr 24px 24px 24px 24px;padding:8px 12px;gap:6px}
   .bracket-wrap{padding:8px 12px 12px}
   .stats-table{min-width:640px}
   .retenu-main{justify-content:flex-start}
@@ -310,14 +310,14 @@ body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -
   .stats-table{min-width:560px}
 }
 .rcard{margin:0 18px 12px;border:none;background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 14px 30px rgba(15,29,49,.16),0 0 0 1px rgba(255,255,255,.78) inset}
-.rcard.gold{box-shadow:0 16px 34px color-mix(in oklab,var(--accent) 20%, rgba(15,29,49,.18)),0 0 0 1px rgba(255,255,255,.82) inset}
+.rcard.gold{box-shadow:0 16px 34px color-mix(in oklab,var(--ps,var(--fr)) 20%, rgba(15,29,49,.18)),0 0 0 1px rgba(255,255,255,.82) inset}
 .rtop{display:flex;align-items:center;gap:13px;padding:15px 16px}
 .rmedal{font-size:22px;width:28px;text-align:center}
 .rmedal.txt{font-size:15px;font-weight:700;color:var(--faint)}
 .rname{font-size:16px;font-weight:600}
 .rname.player{color:var(--ps, var(--ink))}
 .rscore{margin-left:auto;font-size:30px;font-weight:700;line-height:1;letter-spacing:-1px}
-.rcard.gold .rscore{color:var(--accent)}
+.rcard.gold .rscore{color:var(--ps,var(--fr))}
 .runit{font-size:10px;color:var(--faint);font-weight:500;margin-left:3px}
 .rbars{padding:14px 16px;display:flex;flex-direction:column;gap:11px}
 .brow{display:flex;align-items:center;gap:11px}
@@ -479,10 +479,10 @@ body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -
 .score-in:focus{outline:none;border-color:var(--accent)}
 .score-in::-webkit-outer-spin-button,.score-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .score-vs{font-size:10px;color:var(--faint);font-weight:700;letter-spacing:1px}
-.group-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px}
-.gcard{border:none;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 12px 28px rgba(15,29,49,.14),0 0 0 1px rgba(255,255,255,.74) inset}
-.ghead{padding:10px 12px;box-shadow:inset 0 -1px 0 color-mix(in oklab,var(--line2) 55%, transparent);font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase}
-.grow{display:grid;grid-template-columns:20px 1fr 26px 26px 26px 26px;gap:6px;align-items:center;padding:8px 12px;box-shadow:inset 0 1px 0 color-mix(in oklab,var(--line2) 50%, transparent)}
+.group-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:0 18px}
+.gcard{border:none;background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 12px 28px rgba(15,29,49,.14),0 0 0 1px rgba(255,255,255,.74) inset}
+.ghead{padding:11px 16px;box-shadow:inset 0 -1px 0 color-mix(in oklab,var(--line2) 55%, transparent);font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase}
+.grow{display:grid;grid-template-columns:22px 1fr 28px 28px 28px 28px;gap:8px;align-items:center;padding:8px 16px;box-shadow:inset 0 1px 0 color-mix(in oklab,var(--line2) 50%, transparent)}
 .grow:first-of-type{border-top:none}
 .gpos{font-size:10px;color:var(--faint);font-weight:700}
 .gteam{font-size:11px;font-weight:600;display:flex;align-items:center;gap:6px;min-width:0}
@@ -627,6 +627,40 @@ body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -
 .banner{margin:12px 18px 0;padding:11px 14px;border:2px solid var(--line2);border-radius:8px;background:#fbf6e9;color:#7a6420;font-size:11px;font-weight:500;display:none}
 .banner.show{display:block}
 
+/* ── Hovers Matchs ── */
+.card{transition:transform .2s cubic-bezier(.16,1,.3,1),box-shadow .2s cubic-bezier(.16,1,.3,1)}
+.card:hover{transform:translateY(-2px);box-shadow:0 16px 32px rgba(19,41,66,.16),0 0 0 1px rgba(255,255,255,.80) inset}
+.card.bet-pending:hover,.card.bet-won:hover,.card.bet-lost:hover{transform:translateY(-2px)}
+.day{transition:transform .2s cubic-bezier(.16,1,.3,1),box-shadow .2s cubic-bezier(.16,1,.3,1),border-color .15s}
+.day:hover{transform:translateY(-1px);border-color:inherit;box-shadow:0 14px 28px rgba(19,41,66,.18),0 0 0 1px rgba(255,255,255,.80) inset}
+/* ── Hovers Classement ── */
+.rcard{position:relative;transition:transform .22s cubic-bezier(.16,1,.3,1),box-shadow .22s cubic-bezier(.16,1,.3,1)}
+.rcard:hover{transform:translateY(-3px);box-shadow:0 0 0 2px color-mix(in oklab,var(--ps,var(--fr)) 38%,transparent),0 6px 14px rgba(15,29,49,.10),0 0 0 1px rgba(255,255,255,.84) inset}
+.rcard.gold:hover{box-shadow:0 0 0 2px color-mix(in oklab,var(--ps,var(--fr)) 50%,transparent),0 6px 14px rgba(15,29,49,.10),0 0 0 1px rgba(255,255,255,.86) inset}
+.apero{transition:transform .2s cubic-bezier(.16,1,.3,1),box-shadow .2s cubic-bezier(.16,1,.3,1)}
+.apero:hover{transform:translateY(-2px);box-shadow:0 18px 36px rgba(15,29,49,.18),0 0 0 1px rgba(255,255,255,.82) inset}
+.bet-box{transition:transform .2s cubic-bezier(.16,1,.3,1),box-shadow .2s cubic-bezier(.16,1,.3,1)}
+.bet-box:hover{transform:translateY(-2px);box-shadow:0 16px 32px rgba(19,41,66,.16),0 0 0 1px rgba(255,255,255,.80) inset}
+/* ── Hovers Stats ── */
+.scard{transition:transform .2s cubic-bezier(.16,1,.3,1),box-shadow .2s cubic-bezier(.16,1,.3,1),border-color .2s}
+.scard:hover{transform:translateY(-2px);border-color:color-mix(in oklab,var(--fr) 38%,var(--line2));box-shadow:0 12px 26px rgba(15,29,49,.12),0 0 0 2px color-mix(in oklab,var(--fr) 14%,transparent)}
+.hero-kpi{transition:transform .2s cubic-bezier(.16,1,.3,1),box-shadow .2s cubic-bezier(.16,1,.3,1)}
+.hero-kpi:hover{transform:translateY(-2px);box-shadow:0 16px 32px rgba(19,41,66,.18),0 0 0 1px rgba(255,255,255,.82) inset}
+.stats-panel{transition:transform .22s cubic-bezier(.16,1,.3,1),box-shadow .22s cubic-bezier(.16,1,.3,1)}
+.stats-panel:hover{transform:translateY(-3px);box-shadow:0 22px 42px rgba(15,29,49,.20),0 0 0 1px rgba(255,255,255,.84) inset}
+.bar-card{transition:transform .22s cubic-bezier(.16,1,.3,1),box-shadow .22s cubic-bezier(.16,1,.3,1)}
+.bar-card:hover{transform:translateY(-2px);box-shadow:0 18px 36px rgba(15,29,49,.18),0 0 0 1px rgba(255,255,255,.82) inset}
+.curve-card{transition:transform .22s cubic-bezier(.16,1,.3,1),box-shadow .22s cubic-bezier(.16,1,.3,1)}
+.curve-card:hover{transform:translateY(-2px);box-shadow:0 18px 36px rgba(15,29,49,.18),0 0 0 1px rgba(255,255,255,.82) inset}
+.stats-table-wrap{transition:transform .22s cubic-bezier(.16,1,.3,1),box-shadow .22s cubic-bezier(.16,1,.3,1)}
+.stats-table-wrap:hover{transform:translateY(-2px);box-shadow:0 20px 40px rgba(15,29,49,.20),0 0 0 1px rgba(255,255,255,.82) inset}
+.finance-row{transition:transform .18s cubic-bezier(.16,1,.3,1),background .18s}
+.finance-row:hover{transform:translateX(3px);background:color-mix(in oklab,var(--fr) 5%,white)}
+.stats-table tbody tr td{transition:background .16s,box-shadow .16s}
+.stats-table tbody tr:hover td{background:color-mix(in oklab,var(--fr) 7%,white) !important}
+.stats-table tbody tr:hover td:first-child{box-shadow:inset 3px 0 0 var(--fr)}
+.bar-row{transition:background .16s,border-radius .16s}
+.bar-row:hover{background:color-mix(in oklab,var(--fr) 5%,transparent);border-radius:8px}
 /* ── Animations hover page Compétition ── */
 .gcard{transition:transform .22s cubic-bezier(.16,1,.3,1),box-shadow .22s cubic-bezier(.16,1,.3,1)}
 .gcard:hover{transform:translateY(-3px) scale(1.012);box-shadow:0 20px 40px rgba(15,29,49,.18),0 0 0 1.5px rgba(255,255,255,.82) inset,0 0 0 2px color-mix(in oklab,var(--fr) 18%, transparent)}
@@ -635,7 +669,18 @@ body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -
 .grow{transition:background .16s,transform .16s;border-radius:6px}
 .grow:hover{background:color-mix(in oklab,var(--fr) 7%, transparent);transform:translateX(3px)}
 .grow:hover .gteam{color:var(--fr)}
-.gteam{transition:color .16s}
+.gteam{transition:color .16s;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+/* Qualification infographic */
+.grow-q{background:color-mix(in oklab,var(--ok) 8%, transparent);box-shadow:inset 0 1px 0 color-mix(in oklab,var(--line2) 50%,transparent),inset 3px 0 0 var(--ok)}
+.grow-q .gpos{color:var(--ok);font-weight:800}
+.grow-3{box-shadow:inset 0 1px 0 color-mix(in oklab,var(--line2) 50%,transparent),inset 3px 0 0 color-mix(in oklab,#c07800 40%,transparent)}
+.grow-3q{background:color-mix(in oklab,#c07800 8%, transparent);box-shadow:inset 0 1px 0 color-mix(in oklab,var(--line2) 50%,transparent),inset 3px 0 0 #c07800}
+.grow-3q .gpos{color:#8a5e00;font-weight:800}
+.grow-out{opacity:.42}
+.gq-divider{height:1px;margin:2px 8px;background:linear-gradient(90deg,var(--line2) 0%,transparent 100%)}
+.gq-badge{font-size:7px;font-weight:800;padding:1px 5px;border-radius:999px;letter-spacing:.4px;flex-shrink:0}
+.gq-ok{background:color-mix(in oklab,var(--ok) 16%,white);color:var(--ok)}
+.gq-maybe{background:color-mix(in oklab,#c07800 16%,white);color:#7a5000}
 .br-match{transition:transform .22s cubic-bezier(.16,1,.3,1),box-shadow .22s cubic-bezier(.16,1,.3,1);cursor:pointer}
 .br-match:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 16px 34px rgba(15,29,49,.22),0 0 0 2px color-mix(in oklab,var(--fr) 24%, transparent),0 0 0 1px rgba(255,255,255,.82) inset;z-index:10;position:relative}
 .br-team{transition:background .16s,color .16s}
@@ -646,14 +691,14 @@ body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -
 .ko-line{transition:transform .2s,box-shadow .2s}
 .ko-line:hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(15,29,49,.16),0 0 0 1px rgba(255,255,255,.78) inset}
 @keyframes groupCardAppear{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.gcard{animation:groupCardAppear .32s cubic-bezier(.16,1,.3,1) both}
-.gcard:nth-child(2){animation-delay:.05s}
-.gcard:nth-child(3){animation-delay:.10s}
-.gcard:nth-child(4){animation-delay:.15s}
-.gcard:nth-child(5){animation-delay:.20s}
-.gcard:nth-child(6){animation-delay:.25s}
-.gcard:nth-child(7){animation-delay:.30s}
-.gcard:nth-child(8){animation-delay:.35s}
+.gcard-anim{animation:groupCardAppear .32s cubic-bezier(.16,1,.3,1) both}
+.gcard-anim:nth-child(2){animation-delay:.05s}
+.gcard-anim:nth-child(3){animation-delay:.10s}
+.gcard-anim:nth-child(4){animation-delay:.15s}
+.gcard-anim:nth-child(5){animation-delay:.20s}
+.gcard-anim:nth-child(6){animation-delay:.25s}
+.gcard-anim:nth-child(7){animation-delay:.30s}
+.gcard-anim:nth-child(8){animation-delay:.35s}
 /* ── Sections collapsibles Compétition ── */
 .comp-section{margin:0}
 .comp-section-head{display:flex;align-items:center;gap:11px;padding:18px 20px 10px;list-style:none;cursor:pointer;user-select:none}
@@ -831,6 +876,7 @@ const COLOR_PARTICIPANT_PREFIX="__COLOR__:";
 const SIGNATURE_PARTICIPANT_PREFIX="__SIGN__:";
 
 let votes={},results={},tab="matchs",filterPhase="Groupes",filterGroupe="Tous";
+let compAnimDone=false;
 let filterSearch="",filterTeam="Toutes";
 let me=localStorage.getItem("cdm26_me")||null;
 let scoreMap={};
@@ -991,10 +1037,9 @@ function renderRegles(){
       <div class="contract-title">Contrat de Participation – Paris Sportifs Coupe du Monde</div>
       <div class="contract-text">Fait à Niort, le 10/06/2026</div>
     </div>
-
     <div class="contract-card">
       <div class="contract-title">1. Parties prenantes</div>
-      <div class="contract-text">Le présent contrat est conclu entre les participants suivants (ci-après “les participants”) :</div>
+      <div class="contract-text">Le présent contrat est conclu entre les participants suivants (ci-après "les participants") :</div>
       <ul class="contract-list">
         <li>Participant 1 : Maxime DEMOUGIN</li>
         <li>Participant 2 : Morgan BERNARD</li>
@@ -1002,12 +1047,10 @@ function renderRegles(){
         <li>Participant 4 : Thomas LARCHER</li>
       </ul>
     </div>
-
     <div class="contract-card">
       <div class="contract-title">2. Objet</div>
       <div class="contract-text">Les participants conviennent de s'associer dans le cadre de paris sportifs portant sur les matchs de la Coupe du Monde.</div>
     </div>
-
     <div class="contract-card">
       <div class="contract-title">3. Modalités de participation</div>
       <ul class="contract-list">
@@ -1016,7 +1059,6 @@ function renderRegles(){
         <li>Les mises sont regroupées pour effectuer un pari commun.</li>
       </ul>
     </div>
-
     <div class="contract-card">
       <div class="contract-title">4. Méthode de prise de décision</div>
       <ul class="contract-list">
@@ -1026,7 +1068,6 @@ function renderRegles(){
         <li>En cas de nouvelle égalité, le pronostic retenu est <span class="contract-strong">le favori des 2 possibilités</span>.</li>
       </ul>
     </div>
-
     <div class="contract-card">
       <div class="contract-title">5. Suivi des performances</div>
       <ul class="contract-list">
@@ -1034,12 +1075,10 @@ function renderRegles(){
         <li>Les performances individuelles sont mesurées en fonction du nombre de bons pronostics réalisés.</li>
       </ul>
     </div>
-
     <div class="contract-card">
       <div class="contract-title">6. Répartition des gains</div>
       <div class="contract-text">Les gains éventuels sont répartis <span class="contract-strong">équitablement entre les participants</span>, sauf accord contraire explicite.</div>
     </div>
-
     <div class="contract-card">
       <div class="contract-title">7. Engagement et transparence</div>
       <ul class="contract-list">
@@ -1049,25 +1088,21 @@ function renderRegles(){
         <li>En cas de manquement d'un votant sur un match (sans vote), il doit payer (3 €) le pari aux autres.</li>
       </ul>
     </div>
-
     <div class="contract-card">
-      <div class="contract-title">8. Clause “Apéro”</div>
+      <div class="contract-title">8. Clause "Apéro"</div>
       <ul class="contract-list">
         <li>À l'issue de la compétition, le participant ayant obtenu le <span class="contract-strong">plus faible nombre de bons pronostics</span> devra offrir un apéritif aux autres participants.</li>
         <li>Les modalités de cet apéritif (date, lieu, budget raisonnable) seront définies collectivement.</li>
       </ul>
     </div>
-
     <div class="contract-card">
       <div class="contract-title">9. Durée</div>
       <div class="contract-text">Le présent contrat prend effet à compter de sa signature jusqu'à la fin de la Coupe du Monde et la clôture des comptes (gains/pertes).</div>
     </div>
-
     <div class="contract-card">
       <div class="contract-title">10. Esprit du contrat</div>
       <div class="contract-text">Le présent accord repose sur un esprit de convivialité, de confiance et de bonne humeur. Aucun recours juridique ne sera engagé entre les participants en cas de litige.</div>
     </div>
-
     <div class="contract-card contract-sign-card ${allSigned?'complete':''}">
       <div class="contract-sign-head"><div class="contract-sign">Signatures</div>${allSigned?'<span class="contract-sign-badge">Contrat signé</span>':''}</div>
       <div class="contract-sign-grid">
@@ -1197,7 +1232,7 @@ function renderCompetition(){
   const tables=groupTables();
   const kval=buildKnockoutProjection(tables);
   const phaseOrder=["Phase de groupes","1/16","1/8","Quart","Demi","3ème place","Finale"];
-  const gHtml=Object.keys(tables).map(g=>`<div class="gcard"><div class="ghead">Groupe ${g}</div>${tables[g].map((t,i)=>`<div class="grow"><span class="gpos">${i+1}</span><span class="gteam">${flagImg(t.team,"flag-sm")}<span>${t.team}</span></span><span class="gnum">${t.pts}</span><span class="gnum">${t.d}</span><span class="gnum">${t.gf}</span><span class="gnum">${t.j}</span></div>`).join('')}</div>`).join('');
+  const gHtml=Object.keys(tables).map(g=>{const rows=tables[g].map((t,i)=>{const isQ=i<2;const is3rd=i===2;const is3rdQual=is3rd&&kval.bestThirdRanking.includes(t.team);const rowCls=isQ?"grow-q":is3rd?(is3rdQual?"grow-3 grow-3q":"grow-3"):"grow-out";const badge=isQ?`<span class="gq-badge gq-ok">Q</span>`:is3rdQual?`<span class="gq-badge gq-maybe">3e ✓</span>`:``;const divider=i===2?`<div class="gq-divider"></div>`:``;return `${divider}<div class="grow ${rowCls}"><span class="gpos">${i+1}</span><span class="gteam">${flagImg(t.team,"flag-sm")}<span>${t.team}</span>${badge}</span><span class="gnum">${t.pts}</span><span class="gnum">${t.d}</span><span class="gnum">${t.gf}</span><span class="gnum">${t.j}</span></div>`;}).join('');return `<div class="gcard${compAnimDone?'':' gcard-anim'}"><div class="ghead">Groupe ${g}</div>${rows}</div>`;}).join('');compAnimDone=true;
   const thirdLine=kval.bestThirdRanking.length?`<div class="ko-line"><b>3e meilleurs</b>${kval.bestThirdRanking.join(" · ")}</div>`:"";
   const fixtureById=Object.fromEntries(kval.fixtures.map(f=>[f.id,f]));
   const competitionPhaseLabel=fm=>fm.g?"Phase de groupes":((fm.round||fm.t)==="FINALE"?"Finale":(fm.round||fm.t||"Phase finale"));
@@ -1268,7 +1303,7 @@ function renderCompetition(){
   const finishedCount=calendarMatches.filter(x=>x.done).length;
   return `<details class="comp-section" open><summary class="comp-section-head"><span class="slabel-text">Classement phase de groupes</span><span class="slabel-line"></span><span class="slabel-count">Pts / Diff / BP / J</span><span class="comp-chev">›</span></summary><div class="group-grid">${gHtml}</div>${thirdLine}</details><details class="comp-section" open><summary class="comp-section-head"><span class="slabel-text">Phase éliminatoire</span><span class="slabel-line"></span><span class="comp-chev">›</span></summary>${renderKnockout(kval.fixtures)}</details><details class="comp-section" open><summary class="comp-section-head"><span class="slabel-text">Calendrier des matchs</span><span class="slabel-line"></span><span class="slabel-count">${finishedCount}/${ALL.length} joués</span><span class="comp-chev">›</span></summary><div class="past-phases">${playedBlock}</div></details><div style="height:16px"></div>`;
 }
-function renderStats(sc){const total=Object.values(results).filter(Boolean).length;const max=Math.max(...Object.values(sc),0);const sorted=[...PARTICIPANTS].sort((a,b)=>(sc[b]||0)-(sc[a]||0));const detail=PARTICIPANTS.map((p,pi)=>{const voted=ALL.filter(m=>results[m.id]&&(votes[m.id]||[])[pi]).length;const correct=ALL.filter(m=>{const r=results[m.id];return r&&(votes[m.id]||[])[pi]===r;}).length;const missed=ALL.filter(m=>results[m.id]&&!(votes[m.id]||[])[pi]).length;return `<div class="rcard"><div class="rtop"><span class="rname">${p}</span><span class="rscore" style="font-size:24px">${sc[p]||0}<span class="runit">pts</span></span></div><div class="rbars"><div class="brow"><span class="blabel">Saisis</span><div class="btrack"><div class="bfill neutral" style="width:${total>0?(voted/total*100):0}%"></div></div><span class="bval">${voted}/${total}</span></div><div class="brow"><span class="blabel">Corrects</span><div class="btrack"><div class="bfill" style="width:${voted>0?(correct/voted*100):0}%"></div></div><span class="bval">${correct}</span></div><div class="brow"><span class="blabel">Manqués</span><div class="btrack"><div class="bfill neutral" style="width:${total>0?(missed/total*100):0}%"></div></div><span class="bval">${missed}</span></div></div></div>`;}).join('');const rules=[["⚽","Mise","1 € par personne et par match — 4 € collectifs"],["🗳️","Vote majoritaire","Le pronostic le plus choisi est retenu avant chaque match"],["⚖️","Égalité","En cas d'ex-æquo, le meilleur taux de réussite tranche"],["💰","Gains","Répartis équitablement entre les quatre participants"],["🍻","Apéro","Le dernier du classement offre l'apéro à Niort"]].map(([i,t,d])=>`<div class="rule"><span class="rule-ico">${i}</span><div><div class="rule-t">${t}</div><div class="rule-d">${d}</div></div></div>`).join('');return `<div class="slabel"><span class="slabel-text">Vue d'ensemble</span><span class="slabel-line"></span></div><div class="grid"><div class="scard"><div class="slbl">Matchs joués</div><div class="sval a">${total}</div><div class="ssub">sur 104 au total</div></div><div class="scard"><div class="slbl">Mise engagée</div><div class="sval">${total*4} €</div><div class="ssub">1 € × 4 × ${total}</div></div><div class="scard"><div class="slbl">En tête</div><div class="sval">${max}</div><div class="ssub">${sorted[0]}</div></div><div class="scard"><div class="slbl">Restants</div><div class="sval">${104-total}</div><div class="ssub">${(104-total)*4} € à jouer</div></div></div><div class="slabel"><span class="slabel-text">Par joueur</span><span class="slabel-line"></span></div>${detail}<div class="slabel"><span class="slabel-text">Règles</span><span class="slabel-line"></span></div>${rules}<div style="height:16px"></div>`;}
+function renderStats(sc){const total=Object.values(results).filter(Boolean).length;const max=Math.max(...Object.values(sc),0);const sorted=[...PARTICIPANTS].sort((a,b)=>(sc[b]||0)-(sc[a]||0));const detail=PARTICIPANTS.map((p,pi)=>{const voted=ALL.filter(m=>results[m.id]&&(votes[m.id]||[])[pi]).length;const correct=ALL.filter(m=>{const r=results[m.id];return r&&(votes[m.id]||[])[pi]===r;}).length;const missed=ALL.filter(m=>results[m.id]&&!(votes[m.id]||[])[pi]).length;return `<div class="rcard"><div class="rtop"><span class="rname">${p}</span><span class="rscore" style="font-size:24px">${sc[p]||0}<span class="runit">pts</span></span></div><div class="rbars"><div class="brow"><span class="blabel">Saisis</span><div class="btrack"><div class="bfill neutral" style="width:${total>0?(voted/total*100):0}%"></div></div><span class="bval">${voted}/${total}</span></div><div class="brow"><span class="blabel">Corrects</span><div class="btrack"><div class="bfill" style="width:${voted>0?(correct/voted*100):0}%"></div></div><span class="bval">${correct}</span></div><div class="brow"><span class="blabel">Manqués</span><div class="btrack"><div class="bfill neutral" style="width:${total>0?(missed/total*100):0}%"></div></div><span class="bval">${missed}</span></div></div></div>`;}).join('');const rules=[["⚽","Mise","1 € par personne et par match — 4 € collectifs"],["🗳️","Vote majoritaire","Le pronostic le plus choisi est retenu avant chaque match"],["⚖️","Égalité","En cas d'ex-æquo, le meilleur taux de réussite tranche"],["💰","Gains","Répartis équitablement entre les quatre participants"],["🍻","Apéro","Le dernier du classement offre l'apéro à Niort"]].map(([i,t,d])=>`<div class="rule"><span class="rule-ico">${i}</span><div><div class="rule-t">${t}</div><div class="rule-d">${d}</div></div></div>`).join('');return `<div class="slabel"><span class="slabel-text">Vue d'ensemble</span><span class="slabel-line"></span></div><div class="grid"><div class="scard"><div class="slbl">Matchs joués</div><div class="sval a">${total}</div><div class="ssub">sur 104 au total</div></div><div class="scard"><div class="slbl">Mise engagée</div><div class="sval">${total*4} €</div><div class="ssub">1 € × 4 × ${total}</div></div><div class="scard"><div class="slbl">En tête</div><div class="sval">${max}</div><div class="ssub">${sorted[0]}</div></div><div class="scard"><div class="slbl">Restants</div><div class="sval">${104-total}</div><div class="ssub">${(104-total)*4} € à jouer</div></div></div><div class="slabel"><span class="slabel-text">Par joueur</span><span class="slabel-line"></span></div>${detail}<div style="height:16px"></div>`;}
 
 function renderStatsDashboard(sc){
   const total=Object.values(results).filter(Boolean).length;
@@ -1291,8 +1326,7 @@ function renderStatsDashboard(sc){
   const accuracyBars=stats.map(s=>`<div class="bar-row" style="${pronostiqueurStatStyle(s.name)}"><div><div class="bar-name player">${s.name}</div><div class="bar-meta">Couverture ${s.coverage}%</div></div><div class="bar-rail"><div class="bar-fill alt player" style="width:${Math.max(s.accuracy>0?8:0,s.accuracy)}%"></div></div><div class="bar-val">${s.accuracy}%</div></div>`).join('');
   const tableRows=stats.map((s,i)=>`<tr><td class="stats-rank">${MEDALS[i]||i+1}</td><td><div class="stats-player player" style="${pronostiqueurStatStyle(s.name)}"><span class="stats-dot player"></span><span>${s.name}</span></div></td><td>${s.points}</td><td>${s.voted}</td><td>${s.correct}</td><td>${s.wrong}</td><td>${s.missed}</td><td><span class="stats-chip ${s.accuracy>=60?'good':s.accuracy<35&&s.voted?'warn':''}">${s.accuracy}%</span></td><td>${s.coverage}%</td></tr>`).join('');
   const tempoProgressBar=`<div class="stats-progress"><div class="stats-progress-row"><span class="stats-progress-label">Progression tournoi</span><span class="stats-progress-val">${playedPct}%</span></div><div class="stats-progress-track"><div class="stats-progress-fill tempo" style="width:${playedPct}%"></div></div></div>`;
-  const rules=[["⚽","Mise","1 € par personne et par match — 4 € collectifs"],["🗳️","Vote majoritaire","Le pronostic le plus choisi est retenu avant chaque match"],["⚖️","Égalité","En cas d'ex-æquo, le meilleur taux de réussite tranche"],["💰","Gains","Le vrai bilan ne tient compte que des paris placés"],["🍻","Apéro","Le dernier du classement offre l'apéro à Niort"]].map(([i,t,d])=>`<div class="rule"><span class="rule-ico">${i}</span><div><div class="rule-t">${t}</div><div class="rule-d">${d}</div></div></div>`).join('');
-  return `<div class="slabel"><span class="slabel-text">Vue d'ensemble</span><span class="slabel-line"></span><span class="slabel-count">${total}/${ALL.length} joués</span></div><div class="stats-hero"><div class="stats-panel"><div class="stats-title">Tempo du tournoi</div><div class="hero-score"><div class="hero-big">${total}<small>matchs</small></div><div class="hero-sub">${playedPct}% de la compétition a été jouée. ${leader.name} mène actuellement avec ${leader.points} point${leader.points>1?'s':''}.</div></div>${tempoProgressBar}</div><div class="stats-panel"><div class="stats-title">Signaux clés</div><div class="hero-grid"><div class="hero-kpi"><div class="hero-kpi-val">${playedPct}%</div><div class="hero-kpi-lbl">Progression</div><div class="hero-kpi-sub">part des matchs clôturés</div></div><div class="hero-kpi"><div class="hero-kpi-val">${bestAccuracy}%</div><div class="hero-kpi-lbl">Meilleure précision</div><div class="hero-kpi-sub">pic individuel actuel</div></div><div class="hero-kpi"><div class="hero-kpi-val ${betAll.settled<0?'neg':betAll.settled>0?'pos':''}">${betAll.settled.toFixed(2)} €</div><div class="hero-kpi-lbl">Bilan paris</div><div class="hero-kpi-sub">${betAll.count} pari${betAll.count>1?'s':''} placé${betAll.count>1?'s':''}</div></div></div></div></div><div class="stats-bars"><div class="bar-card"><div class="stats-title">Baromètre points</div>${scoreBars}</div><div class="bar-card"><div class="stats-title">Baromètre précision</div>${accuracyBars}</div></div><div class="stats-table-wrap"><div class="stats-table-head"><div class="stats-table-title">Tableau de performance</div><div class="stats-table-note">Précision moyenne : ${avgAccuracy}%</div></div><div class="stats-table-scroll"><table class="stats-table"><thead><tr><th>#</th><th>Participant</th><th>Pts</th><th>Saisis</th><th>Bons</th><th>Faux</th><th>Sans vote</th><th>Précision</th><th>Couverture</th></tr></thead><tbody>${tableRows}</tbody></table></div></div><div class="slabel"><span class="slabel-text">Règles</span><span class="slabel-line"></span></div>${rules}<div style="height:16px"></div>`;
+  return `<div class="slabel"><span class="slabel-text">Vue d'ensemble</span><span class="slabel-line"></span><span class="slabel-count">${total}/${ALL.length} joués</span></div><div class="stats-hero"><div class="stats-panel"><div class="stats-title">Tempo du tournoi</div><div class="hero-score"><div class="hero-big">${total}<small>matchs</small></div><div class="hero-sub">${playedPct}% de la compétition a été jouée. ${leader.name} mène actuellement avec ${leader.points} point${leader.points>1?'s':''}.</div></div>${tempoProgressBar}</div><div class="stats-panel"><div class="stats-title">Signaux clés</div><div class="hero-grid"><div class="hero-kpi"><div class="hero-kpi-val">${playedPct}%</div><div class="hero-kpi-lbl">Progression</div><div class="hero-kpi-sub">part des matchs clôturés</div></div><div class="hero-kpi"><div class="hero-kpi-val">${bestAccuracy}%</div><div class="hero-kpi-lbl">Meilleure précision</div><div class="hero-kpi-sub">pic individuel actuel</div></div><div class="hero-kpi"><div class="hero-kpi-val ${betAll.settled<0?'neg':betAll.settled>0?'pos':''}">${betAll.settled.toFixed(2)} €</div><div class="hero-kpi-lbl">Bilan paris</div><div class="hero-kpi-sub">${betAll.count} pari${betAll.count>1?'s':''} placé${betAll.count>1?'s':''}</div></div></div></div></div><div class="stats-bars"><div class="bar-card"><div class="stats-title">Baromètre points</div>${scoreBars}</div><div class="bar-card"><div class="stats-title">Baromètre précision</div>${accuracyBars}</div></div><div class="stats-table-wrap"><div class="stats-table-head"><div class="stats-table-title">Tableau de performance</div><div class="stats-table-note">Précision moyenne : ${avgAccuracy}%</div></div><div class="stats-table-scroll"><table class="stats-table"><thead><tr><th>#</th><th>Participant</th><th>Pts</th><th>Saisis</th><th>Bons</th><th>Faux</th><th>Sans vote</th><th>Précision</th><th>Couverture</th></tr></thead><tbody>${tableRows}</tbody></table></div></div><div style="height:16px"></div>`;
 }
 
 function renderStatsRich(sc){
@@ -1353,9 +1387,8 @@ function renderStatsRich(sc){
   const financeRows=(pendingRows+settledRows)||`<div class="finance-row"><div><div class="finance-match">Aucun pari placé</div><div class="finance-meta">Active “Pari placé” sur les matchs concernés</div></div><span class="finance-pill pending">en attente</span><span class="finance-amt">—</span></div>`;
   const tempoProgressBar=`<div class="stats-progress"><div class="stats-progress-row"><span class="stats-progress-label">Progression tournoi</span><span class="stats-progress-val">${playedPct}%</span></div><div class="stats-progress-track"><div class="stats-progress-fill tempo" style="width:${playedPct}%"></div></div></div>`;
 
-  const rules=[["⚽","Mise","1 € par personne et par match — 4 € collectifs"],["🗳️","Vote majoritaire","Le pronostic le plus choisi est retenu avant chaque match"],["📈","Courbes","Les courbes financières suivent uniquement les paris placés et réglés"],["💰","Bilan","Gain gagnant = 4 x cote ; perte = -4 €"],["🍻","Apéro","Le dernier du classement offre l'apéro à Niort"]].map(([i,t,d])=>`<div class="rule"><span class="rule-ico">${i}</span><div><div class="rule-t">${t}</div><div class="rule-d">${d}</div></div></div>`).join('');
 
-  return `<div class="slabel"><span class="slabel-text">Vue d'ensemble</span><span class="slabel-line"></span><span class="slabel-count">${total}/${ALL.length} joués</span></div><div class="stats-hero"><div class="stats-panel"><div class="stats-title">Tempo du tournoi</div><div class="hero-score"><div class="hero-big">${total}<small>matchs</small></div><div class="hero-sub">${playedPct}% de la compétition a été jouée. ${leader.name} mène actuellement avec ${leader.points} point${leader.points>1?'s':''}.</div></div>${tempoProgressBar}</div><div class="stats-panel"><div class="stats-title">Signaux clés</div><div class="hero-grid"><div class="hero-kpi"><div class="hero-kpi-val">${playedPct}%</div><div class="hero-kpi-lbl">Progression</div><div class="hero-kpi-sub">part des matchs clôturés</div></div><div class="hero-kpi"><div class="hero-kpi-val">${bestAccuracy}%</div><div class="hero-kpi-lbl">Meilleure précision</div><div class="hero-kpi-sub">pic individuel actuel</div></div><div class="hero-kpi"><div class="hero-kpi-val ${betAll.settled<0?'neg':betAll.settled>0?'pos':''}">${betAll.settled.toFixed(2)} €</div><div class="hero-kpi-lbl">Bilan paris</div><div class="hero-kpi-sub">${betAll.count} pari${betAll.count>1?'s':''} placé${betAll.count>1?'s':''}</div></div></div></div></div><div class="finance-grid"><div class="curve-card"><div class="curve-head"><div><div class="curve-title">Courbe du bilan cumulé</div><div class="curve-sub">Évolution match après match des paris réellement placés</div></div><div class="curve-value ${betAll.settled<0?'neg':betAll.settled>0?'pos':''}">${betAll.settled.toFixed(2)} €</div></div><svg class="curve-svg" viewBox="0 0 ${chartW} ${chartH}" preserveAspectRatio="none"><g class="curve-grid"><line x1="0" y1="${(chartH*0.2).toFixed(1)}" x2="${chartW}" y2="${(chartH*0.2).toFixed(1)}"></line><line x1="0" y1="${(chartH*0.5).toFixed(1)}" x2="${chartW}" y2="${(chartH*0.5).toFixed(1)}"></line><line x1="0" y1="${(chartH*0.8).toFixed(1)}" x2="${chartW}" y2="${(chartH*0.8).toFixed(1)}"></line></g><line class="curve-axis" x1="0" y1="${zeroY}" x2="${chartW}" y2="${zeroY}"></line>${areaPath?`<path class="curve-area" d="${areaPath}"></path>`:''}<path class="curve-line" d="${linePath}"></path>${financePoints.map((p,i)=>`<circle class="curve-point" cx="${scaleX(i,financePoints.length).toFixed(1)}" cy="${scaleY(p.total).toFixed(1)}" r="4"></circle>`).join('')}</svg><div class="curve-labels"><span>Départ</span><span>${financePoints.length?`${financePoints.length} paris réglés`:'aucun pari réglé'}</span></div></div><div class="curve-card"><div class="curve-head"><div><div class="curve-title">Résultat par pari</div><div class="curve-sub">Variation instantanée sur chaque pari réglé</div></div><div class="curve-value ${pendingCount>0?'':betAll.pendingStake>0?'':''}">${pendingCount} en attente</div></div><svg class="curve-svg" viewBox="0 0 ${chartW} ${chartH}" preserveAspectRatio="none"><g class="curve-grid"><line x1="0" y1="${(chartH*0.2).toFixed(1)}" x2="${chartW}" y2="${(chartH*0.2).toFixed(1)}"></line><line x1="0" y1="${(chartH*0.5).toFixed(1)}" x2="${chartW}" y2="${(chartH*0.5).toFixed(1)}"></line><line x1="0" y1="${(chartH*0.8).toFixed(1)}" x2="${chartW}" y2="${(chartH*0.8).toFixed(1)}"></line></g><line class="curve-axis" x1="0" y1="${zeroY}" x2="${chartW}" y2="${zeroY}"></line><path class="curve-line alt" d="${eventPath}"></path>${financePoints.map((p,i)=>`<circle class="curve-point alt" cx="${scaleX(i,financePoints.length).toFixed(1)}" cy="${scaleY(p.gain).toFixed(1)}" r="4"></circle>`).join('')}</svg><div class="finance-list">${financeRows}</div></div></div><div class="stats-bars"><div class="bar-card"><div class="stats-title">Baromètre points</div>${scoreBars}</div><div class="bar-card"><div class="stats-title">Baromètre précision</div>${accuracyBars}</div></div><div class="stats-table-wrap"><div class="stats-table-head"><div class="stats-table-title">Tableau de performance</div><div class="stats-table-note">Précision moyenne : ${avgAccuracy}%</div></div><div class="stats-table-scroll"><table class="stats-table"><thead><tr><th>#</th><th>Participant</th><th>Pts</th><th>Saisis</th><th>Bons</th><th>Faux</th><th>Sans vote</th><th>Précision</th><th>Couverture</th></tr></thead><tbody>${tableRows}</tbody></table></div></div><div class="slabel"><span class="slabel-text">Règles</span><span class="slabel-line"></span></div>${rules}<div style="height:16px"></div>`;
+  return `<div class="slabel"><span class="slabel-text">Vue d'ensemble</span><span class="slabel-line"></span><span class="slabel-count">${total}/${ALL.length} joués</span></div><div class="stats-hero"><div class="stats-panel"><div class="stats-title">Tempo du tournoi</div><div class="hero-score"><div class="hero-big">${total}<small>matchs</small></div><div class="hero-sub">${playedPct}% de la compétition a été jouée. ${leader.name} mène actuellement avec ${leader.points} point${leader.points>1?'s':''}.</div></div>${tempoProgressBar}</div><div class="stats-panel"><div class="stats-title">Signaux clés</div><div class="hero-grid"><div class="hero-kpi"><div class="hero-kpi-val">${playedPct}%</div><div class="hero-kpi-lbl">Progression</div><div class="hero-kpi-sub">part des matchs clôturés</div></div><div class="hero-kpi"><div class="hero-kpi-val">${bestAccuracy}%</div><div class="hero-kpi-lbl">Meilleure précision</div><div class="hero-kpi-sub">pic individuel actuel</div></div><div class="hero-kpi"><div class="hero-kpi-val ${betAll.settled<0?'neg':betAll.settled>0?'pos':''}">${betAll.settled.toFixed(2)} €</div><div class="hero-kpi-lbl">Bilan paris</div><div class="hero-kpi-sub">${betAll.count} pari${betAll.count>1?'s':''} placé${betAll.count>1?'s':''}</div></div></div></div></div><div class="finance-grid"><div class="curve-card"><div class="curve-head"><div><div class="curve-title">Courbe du bilan cumulé</div><div class="curve-sub">Évolution match après match des paris réellement placés</div></div><div class="curve-value ${betAll.settled<0?'neg':betAll.settled>0?'pos':''}">${betAll.settled.toFixed(2)} €</div></div><svg class="curve-svg" viewBox="0 0 ${chartW} ${chartH}" preserveAspectRatio="none"><g class="curve-grid"><line x1="0" y1="${(chartH*0.2).toFixed(1)}" x2="${chartW}" y2="${(chartH*0.2).toFixed(1)}"></line><line x1="0" y1="${(chartH*0.5).toFixed(1)}" x2="${chartW}" y2="${(chartH*0.5).toFixed(1)}"></line><line x1="0" y1="${(chartH*0.8).toFixed(1)}" x2="${chartW}" y2="${(chartH*0.8).toFixed(1)}"></line></g><line class="curve-axis" x1="0" y1="${zeroY}" x2="${chartW}" y2="${zeroY}"></line>${areaPath?`<path class="curve-area" d="${areaPath}"></path>`:''}<path class="curve-line" d="${linePath}"></path>${financePoints.map((p,i)=>`<circle class="curve-point" cx="${scaleX(i,financePoints.length).toFixed(1)}" cy="${scaleY(p.total).toFixed(1)}" r="4"></circle>`).join('')}</svg><div class="curve-labels"><span>Départ</span><span>${financePoints.length?`${financePoints.length} paris réglés`:'aucun pari réglé'}</span></div></div><div class="curve-card"><div class="curve-head"><div><div class="curve-title">Résultat par pari</div><div class="curve-sub">Variation instantanée sur chaque pari réglé</div></div><div class="curve-value ${pendingCount>0?'':betAll.pendingStake>0?'':''}">${pendingCount} en attente</div></div><svg class="curve-svg" viewBox="0 0 ${chartW} ${chartH}" preserveAspectRatio="none"><g class="curve-grid"><line x1="0" y1="${(chartH*0.2).toFixed(1)}" x2="${chartW}" y2="${(chartH*0.2).toFixed(1)}"></line><line x1="0" y1="${(chartH*0.5).toFixed(1)}" x2="${chartW}" y2="${(chartH*0.5).toFixed(1)}"></line><line x1="0" y1="${(chartH*0.8).toFixed(1)}" x2="${chartW}" y2="${(chartH*0.8).toFixed(1)}"></line></g><line class="curve-axis" x1="0" y1="${zeroY}" x2="${chartW}" y2="${zeroY}"></line><path class="curve-line alt" d="${eventPath}"></path>${financePoints.map((p,i)=>`<circle class="curve-point alt" cx="${scaleX(i,financePoints.length).toFixed(1)}" cy="${scaleY(p.gain).toFixed(1)}" r="4"></circle>`).join('')}</svg><div class="finance-list">${financeRows}</div></div></div><div class="stats-bars"><div class="bar-card"><div class="stats-title">Baromètre points</div>${scoreBars}</div><div class="bar-card"><div class="stats-title">Baromètre précision</div>${accuracyBars}</div></div><div class="stats-table-wrap"><div class="stats-table-head"><div class="stats-table-title">Tableau de performance</div><div class="stats-table-note">Précision moyenne : ${avgAccuracy}%</div></div><div class="stats-table-scroll"><table class="stats-table"><thead><tr><th>#</th><th>Participant</th><th>Pts</th><th>Saisis</th><th>Bons</th><th>Faux</th><th>Sans vote</th><th>Précision</th><th>Couverture</th></tr></thead><tbody>${tableRows}</tbody></table></div></div><div style="height:16px"></div>`;
 }
 
 function scoreOf(id){return scoreMap[id]||{s1:"",s2:""};}
@@ -1365,8 +1398,8 @@ function winnerFromScore(s1,s2){if(s1===""||s2==="")return null;const a=Number(s
 function gainForMatch(id,maj,real){
   const cote=Number(String(coteOf(id)).replace(",","."));
   if(!Number.isFinite(cote)||cote<=0||!maj)return null;
-  if(!real)return 4*cote;
-  return maj===real?4*cote:-4;
+  if(!real)return 4*cote-4;
+  return maj===real?4*cote-4:-4;
 }
 function betSummary(matches,sc){
   return matches.reduce((acc,m)=>{
