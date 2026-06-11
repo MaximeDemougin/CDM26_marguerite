@@ -72,11 +72,12 @@ body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -
 @keyframes chipPulse{0%{background-position:0% 50%}100%{background-position:100% 50%}}
 .slabel{display:flex;align-items:center;gap:11px;padding:18px 24px 10px}
 .slabel-text{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink);white-space:nowrap}
-.slabel-line{flex:1;height:1px;background:var(--line2)}
+.slabel-line{flex:1;height:1px;background:color-mix(in oklab,var(--line2) 58%, transparent)}
 .slabel-count{font-size:10px;color:var(--faint);font-weight:600}
 /* En-tête de journée (collapsible) */
 .day{display:flex;align-items:center;gap:11px;width:calc(100% - 36px);margin:12px 18px 3px;padding:10px 14px;border:1px solid color-mix(in oklab,var(--line2) 90%, #8ea9c7);background:#fff;border-radius:10px;cursor:pointer;font-family:inherit;transition:border-color .15s}
 .day:hover{border-color:var(--ink)}
+.day.open{border-radius:10px 10px 0 0;margin-bottom:0;border-bottom-color:color-mix(in oklab,var(--line2) 70%, white)}
 .day-chev{font-size:11px;color:var(--faint);transition:transform .2s;flex-shrink:0}
 .day.open .day-chev{transform:rotate(90deg)}
 .day-name{font-size:13px;font-weight:700;color:var(--ink);letter-spacing:-.2px}
@@ -88,34 +89,36 @@ body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -
 .day-prog.done{color:var(--accent)}
 .datebar{display:flex;align-items:center;gap:9px;padding:12px 20px 2px}
 .datebar-lbl{font-size:11px;font-weight:600;color:var(--dim);white-space:nowrap}
-.datesel{flex:1;background:var(--card);border:2px solid var(--line2);color:var(--ink);font-size:12px;font-weight:500;padding:8px 10px;cursor:pointer;font-family:inherit;border-radius:8px}
-.datesel:focus{outline:none;border-color:var(--accent)}
+.datesel{flex:1;background:#ffffff;border:none;color:var(--ink);font-size:12px;font-weight:500;padding:10px 12px;cursor:pointer;font-family:inherit;border-radius:10px;box-shadow:0 8px 18px rgba(19,41,66,.10),0 0 0 1px rgba(255,255,255,.7) inset}
+.datesel:focus{outline:none;box-shadow:0 0 0 2px color-mix(in oklab,var(--fr) 26%, transparent),0 8px 18px rgba(19,41,66,.10)}
 .filterbar{display:grid;grid-template-columns:1.1fr .9fr;gap:9px;padding:10px 20px 2px}
-.searchbox,.teamsel{width:100%;background:var(--card);border:2px solid var(--line2);color:var(--ink);font-size:12px;font-weight:500;padding:9px 10px;font-family:inherit;border-radius:8px}
+.searchbox,.teamsel{width:100%;background:#ffffff;border:none;color:var(--ink);font-size:12px;font-weight:500;padding:10px 12px;font-family:inherit;border-radius:10px;box-shadow:0 8px 18px rgba(19,41,66,.10),0 0 0 1px rgba(255,255,255,.7) inset}
 .searchbox::placeholder{color:var(--faint)}
-.searchbox:focus,.teamsel:focus{outline:none;border-color:var(--accent)}
-.datereset{background:linear-gradient(180deg,#ffffff 0%,#f4f8fd 100%);border:1px solid color-mix(in oklab,var(--line2) 86%, white);color:var(--dim);font-size:12px;font-weight:600;padding:8px 11px;cursor:pointer;font-family:inherit;border-radius:8px;flex-shrink:0;transition:all .15s;box-shadow:0 8px 16px rgba(15,29,49,.08)}
-.datereset:hover{border-color:color-mix(in oklab,var(--ink) 40%, var(--line2));color:var(--ink);transform:translateY(-1px)}
-.day-body{overflow:hidden}
+.searchbox:focus,.teamsel:focus{outline:none;box-shadow:0 0 0 2px color-mix(in oklab,var(--fr) 26%, transparent),0 8px 18px rgba(19,41,66,.10)}
+.datereset{background:#ffffff;border:none;color:var(--dim);font-size:12px;font-weight:600;padding:10px 12px;cursor:pointer;font-family:inherit;border-radius:10px;flex-shrink:0;transition:all .15s;box-shadow:0 8px 18px rgba(19,41,66,.10),0 0 0 1px rgba(255,255,255,.7) inset}
+.datereset:hover{color:var(--ink);transform:translateY(-1px);box-shadow:0 12px 22px rgba(19,41,66,.14),0 0 0 1px rgba(255,255,255,.75) inset}
+.day-body{overflow:hidden;margin:0 18px 12px;padding:10px;border:1px solid color-mix(in oklab,var(--line2) 90%, #8ea9c7);border-top:none;border-radius:0 0 10px 10px;background:#fdfefe}
+.day-body .card{margin:0 0 10px}
+.day-body .card:last-child{margin-bottom:0}
 .card{--ctrl-h:34px;--vote-h:30px;--ctrl-radius:8px;--ctrl-fs:11px;margin:0 18px 16px;border:1px solid color-mix(in oklab,var(--line2) 92%, #8ca7c5);background:#fff;border-radius:10px;overflow:hidden;transition:border-color .18s,transform .18s;box-shadow:none}
 .card:hover{transform:translateY(-1px)}
 .card.filled{border-color:color-mix(in oklab,var(--ok) 28%, var(--line2))}
 .card.locked{border-color:color-mix(in oklab,var(--line2) 68%, #9fb0c4)}
 .card.locked .votes{border-top-color:color-mix(in oklab,var(--line2) 66%, var(--line))}
-.card.bet-pending{background:#fff;background-size:100% 100%;animation:livePulse 2.4s ease-in-out infinite;position:relative;box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--bet-warn) 26%, transparent)}
-.card.bet-pending::after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:3px;border-radius:999px;background:linear-gradient(90deg,color-mix(in oklab,var(--bet-warn) 18%, transparent) 0%,color-mix(in oklab,var(--bet-warn) 55%, transparent) 50%,color-mix(in oklab,var(--bet-warn) 18%, transparent) 100%);pointer-events:none;animation:pendingBottomShift 1.25s ease-in-out infinite}
+.card.bet-pending{background:#fff;background-size:100% 100%;animation:livePulse 2.4s ease-in-out infinite;position:relative;box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--bet-warn) 64%, #4f76a6)}
+.card.bet-pending::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;border-radius:0;background:color-mix(in oklab,var(--bet-warn) 82%, #3d658f);pointer-events:none;animation:pendingBottomSolid 1.25s ease-in-out infinite}
 .card.bet-pending .votes{border-top-color:color-mix(in oklab,var(--bet-warn) 24%, var(--line))}
 .card.bet-pending:hover{transform:translateY(-1px)}
-.card.bet-won{box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--bet-on) 24%, transparent)}
+.card.bet-won{box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--bet-on) 84%, #176246)}
 .card.bet-won .votes{border-top-color:color-mix(in oklab,var(--bet-on) 48%, var(--line))}
 .card.bet-won:hover{transform:translateY(-1px)}
-.card.bet-lost{box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--ko) 20%, transparent)}
+.card.bet-lost{box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--ko) 84%, #8d1326)}
 .card.bet-lost .votes{border-top-color:color-mix(in oklab,var(--ko) 44%, var(--line))}
 .card.bet-lost:hover{transform:translateY(-1px)}
 .card.fr{box-shadow:inset 3px 0 0 color-mix(in oklab,var(--fr) 82%, white),0 8px 18px rgba(15,29,49,.07)}
 @keyframes liveBorderShift{0%{background-position:0 0,0% 50%}100%{background-position:0 0,100% 50%}}
 @keyframes livePulse{0%,100%{box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--bet-warn) 20%, transparent)}50%{box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--bet-warn) 30%, transparent)}}
-@keyframes pendingBottomShift{0%,100%{transform:translateX(-4px);opacity:.62}50%{transform:translateX(4px);opacity:1}}
+@keyframes pendingBottomSolid{0%,100%{opacity:.68}50%{opacity:1}}
 @keyframes pendingBadgeBreath{0%,100%{transform:scale(1);opacity:.92;box-shadow:0 2px 8px color-mix(in oklab,var(--bet-warn) 18%, transparent)}50%{transform:scale(1.045);opacity:1;box-shadow:0 5px 14px color-mix(in oklab,var(--bet-warn) 30%, transparent)}}
 /* Carte repliée : ligne compacte cliquable */
 .card-top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #1f3755;background:#314a67}
@@ -164,17 +167,17 @@ body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -
 .vbtn{flex:1;min-height:var(--vote-h);padding:0 7px;border:1px solid #8ea6c0;background:#ffffff;color:#314a67;font-size:10px;font-weight:700;cursor:pointer;transition:all .18s ease;font-family:inherit;border-radius:var(--ctrl-radius);display:flex;align-items:center;justify-content:center;gap:4px;box-shadow:none}
 .vbtn:hover:not(:disabled){border-color:#5f7fa6;background:#f3f8ff;color:#18314f;transform:translateY(-1px)}
 .vrow .vbtn.on{background:#3b4f69;border-color:#2a3b51;color:#f7fbff;box-shadow:none}
-.vrow .vbtn.on.result-ok{background:color-mix(in oklab,var(--bet-on) 18%, white);border-color:color-mix(in oklab,var(--bet-on) 66%, #2f7357);color:#16583f;box-shadow:none}
-.vrow .vbtn.on.result-ko{background:color-mix(in oklab,var(--ko) 14%, white);border-color:color-mix(in oklab,var(--ko) 64%, #8f3f4f);color:#7e2435;box-shadow:none}
+.vrow .vbtn.on.result-ok{background:color-mix(in oklab,var(--bet-on) 48%, white);border-color:color-mix(in oklab,var(--bet-on) 76%, #1d5a43);color:#134d37;box-shadow:none}
+.vrow .vbtn.on.result-ko{background:color-mix(in oklab,var(--ko) 42%, white);border-color:color-mix(in oklab,var(--ko) 74%, #782032);color:#6f1f2f;box-shadow:none}
 .vbtn:disabled{cursor:default;opacity:.85}
 .vrow .vbtn.readonly.on{background:#3a4e67;border-color:#27384c;color:#edf4ff;opacity:.98;box-shadow:none}
-.vrow .vbtn.readonly.on.result-ok{background:color-mix(in oklab,var(--bet-on) 12%, white);border-color:color-mix(in oklab,var(--bet-on) 56%, #3d7f63);color:#215e45;box-shadow:none}
-.vrow .vbtn.readonly.on.result-ko{background:color-mix(in oklab,var(--ko) 10%, white);border-color:color-mix(in oklab,var(--ko) 54%, #9a4c59);color:#8c2f3f;box-shadow:none}
+.vrow .vbtn.readonly.on.result-ok{background:color-mix(in oklab,var(--bet-on) 42%, white);border-color:color-mix(in oklab,var(--bet-on) 70%, #226047);color:#17553d;box-shadow:none}
+.vrow .vbtn.readonly.on.result-ko{background:color-mix(in oklab,var(--ko) 38%, white);border-color:color-mix(in oklab,var(--ko) 68%, #87253a);color:#782436;box-shadow:none}
 .vrow .vbtn.betlocked{border-color:#9ab0c8;background:#ffffff;color:#3e5672;opacity:1}
 .vrow .vbtn.betlocked.pending-off{border-color:#afc0d3;background:#f8fbff;color:#7388a2;box-shadow:none}
 .vrow .vbtn.betlocked.on{background:#3a4f69;border-color:#27384c;color:#eef5ff;opacity:1;box-shadow:none}
-.vrow .vbtn.betlocked.on.result-ok{background:color-mix(in oklab,var(--bet-on) 12%, white);border-color:color-mix(in oklab,var(--bet-on) 56%, #3d7f63);color:#215e45;box-shadow:none}
-.vrow .vbtn.betlocked.on.result-ko{background:color-mix(in oklab,var(--ko) 10%, white);border-color:color-mix(in oklab,var(--ko) 54%, #9a4c59);color:#8c2f3f;box-shadow:none}
+.vrow .vbtn.betlocked.on.result-ok{background:color-mix(in oklab,var(--bet-on) 44%, white);border-color:color-mix(in oklab,var(--bet-on) 72%, #1f5f45);color:#16523b;box-shadow:none}
+.vrow .vbtn.betlocked.on.result-ko{background:color-mix(in oklab,var(--ko) 40%, white);border-color:color-mix(in oklab,var(--ko) 70%, #7f2135);color:#712132;box-shadow:none}
 .vrow.me-row .vbtn.on:not(.result-ok):not(.result-ko){background:#3b4f69;border:2px solid color-mix(in oklab,var(--pv, var(--ink)) 84%, #1f3350);color:#f7fbff;box-shadow:0 0 0 2px color-mix(in oklab,var(--pv, var(--ink)) 24%, transparent)}
 .retenu{display:flex;flex-direction:column;align-items:stretch;gap:14px;margin-top:16px;padding-top:16px;border-top:1px solid color-mix(in oklab,var(--line) 78%, white)}
 .retenu-main{display:flex;align-items:center;gap:14px;justify-content:center;min-width:0;flex-wrap:wrap}
@@ -212,8 +215,8 @@ body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -
 .badge{font-size:8px;font-weight:600;padding:2px 7px;border-radius:20px}
 .badge.ok{background:var(--accent-soft);color:var(--ok)}
 .badge.ko{background:#f6ecec;color:var(--ko)}
-.bet-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:12px 18px 2px}
-.bet-box{border:2px solid var(--line2);background:var(--card);border-radius:10px;padding:12px 14px}
+.bet-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:12px 18px 2px}
+.bet-box{border:none;background:#ffffff;border-radius:12px;padding:13px 15px;box-shadow:0 10px 22px rgba(19,41,66,.12),0 0 0 1px rgba(255,255,255,.72) inset}
 .bet-box .slbl{margin-bottom:6px}
 .bet-box .sval{font-size:22px;line-height:1}
 .bet-box .sval.neg{color:var(--ko)}
@@ -254,6 +257,8 @@ body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -
   .slabel-text{white-space:normal}
   .slabel-line{order:3;flex-basis:100%}
   .day{margin:12px 14px 4px;padding:10px 12px;flex-wrap:wrap}
+  .day.open{margin-bottom:0}
+  .day-body{margin:0 14px 10px;padding:8px}
   .day-meta{width:100%;margin-left:0;justify-content:space-between}
   .card,.rcard,.rule,.admin-card,.ko-line,.stats-table-wrap,.apero,.bracket-wrap{margin-left:14px;margin-right:14px}
   .group-grid,.grid,.stats-hero,.stats-bars,.finance-grid,.bet-summary{padding-left:14px;padding-right:14px}
