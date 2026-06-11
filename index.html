@@ -398,17 +398,20 @@ body{font-family:'Inter',sans-serif;background:radial-gradient(circle at top lef
 .contract-list li{font-size:13px;line-height:1.45;color:var(--dim)}
 .contract-strong{color:var(--ink);font-weight:700}
 .contract-sign{font-size:12px;color:var(--faint);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin:10px 0 8px}
+.contract-sign-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.contract-sign-badge{font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--ok);background:color-mix(in oklab,var(--ok) 12%, white);border:1px solid color-mix(in oklab,var(--ok) 38%, var(--line2));padding:4px 8px;border-radius:999px}
 .contract-sign-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.contract-sign-line{border:1px dashed var(--line2);border-radius:8px;padding:10px 12px;background:var(--paper);font-size:12px;color:var(--dim);min-height:42px;display:grid;gap:8px}
+.contract-sign-line{border:1px dashed var(--line2);border-radius:8px;padding:10px 12px;background:var(--paper);font-size:12px;color:var(--dim);min-height:120px;display:flex;flex-direction:column;gap:8px}
 .contract-sign-name{font-size:12px;font-weight:700;color:var(--ink)}
 .contract-sign-input{width:100%;border:1px solid var(--line2);background:var(--card);border-radius:8px;padding:8px 10px;font:500 12px/1.2 Inter,sans-serif;color:var(--ink)}
 .contract-sign-input:focus{outline:none;border-color:var(--accent)}
-.contract-sign-actions{display:flex;gap:7px;flex-wrap:wrap}
+.contract-sign-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end;margin-top:auto}
 .contract-sign-btn{border:1px solid var(--line2);background:var(--card);color:var(--dim);font:600 11px/1 Inter,sans-serif;border-radius:999px;padding:7px 10px;cursor:pointer;transition:all .15s}
 .contract-sign-btn:hover{border-color:var(--ink);color:var(--ink)}
 .contract-sign-btn.primary{border-color:var(--accent);color:var(--accent);background:color-mix(in oklab,var(--accent) 9%, white)}
 .contract-sign-stamp{font-size:11px;color:var(--faint)}
 .contract-signature-value{font-size:13px;font-weight:700;color:var(--ink)}
+.contract-sign-card.complete{border-color:var(--ok);box-shadow:0 0 0 1px color-mix(in oklab,var(--ok) 28%, transparent)}
 .admin-card{margin:0 18px 10px;border:1px solid var(--line2);background:var(--card);border-radius:10px;padding:12px 14px}
 .admin-card.filled{border-color:var(--ok);box-shadow:0 0 0 1px color-mix(in oklab,var(--ok) 30%, transparent)}
 .admin-head{display:flex;align-items:center;gap:8px;margin-bottom:9px}
@@ -769,7 +772,6 @@ async function loadAll(){
     const [pr,ma]=await Promise.all([db.from("pronostics").select("*"),db.from("matchs").select("id,resultat,score_dom,score_ext")]);
     if(pr.error)throw pr.error;if(ma.error)throw ma.error;
     const localColors={...customColorMap};
-    const localSignatures={...contractSignatures};
     const remoteColorMap={};
     const remoteSignatureState={};
     votes={};tieChoiceMap={};coteMap={};placedBetMap={};
@@ -780,14 +782,17 @@ async function loadAll(){
       if(typeof row.participant==="string"&&row.participant.startsWith(COLOR_PARTICIPANT_PREFIX)){const name=row.participant.slice(COLOR_PARTICIPANT_PREFIX.length);if(PARTICIPANTS.includes(name)&&/^#[0-9a-fA-F]{6}$/.test(String(row.choix||"")))remoteColorMap[name]=row.choix;return;}
       if(typeof row.participant==="string"&&row.participant.startsWith(SIGNATURE_PARTICIPANT_PREFIX)){
         const rawName=row.participant.slice(SIGNATURE_PARTICIPANT_PREFIX.length);
+        if(!rawName.includes(":"))return;
         const name=rawName.split(":")[0];
         if(!PARTICIPANTS.includes(name))return;
         try{
           const parsed=JSON.parse(String(row.choix||"{}"));
           const value=String(parsed.value||"").trim().slice(0,80);
           const cleared=!!parsed.cleared;
-          const ts=parsed.ts||row.created_at||"";
-          const tms=Date.parse(String(ts))||0;
+          const createdTms=Date.parse(String(row.created_at||""))||0;
+          const payloadTsRaw=parsed.ts;
+          const payloadTms=(typeof payloadTsRaw==="number"?payloadTsRaw:Number(payloadTsRaw))||Date.parse(String(payloadTsRaw||""))||0;
+          const tms=Math.max(createdTms,payloadTms);
           const prev=remoteSignatureState[name];
           if(!prev||tms>=prev.tms)remoteSignatureState[name]={value,at:parsed.at?String(parsed.at):null,cleared,tms};
         }catch{}
@@ -801,12 +806,10 @@ async function loadAll(){
       colorsToBackfill.forEach(([name,color])=>{remoteColorMap[name]=color;});
     }
     const remoteSignatureMap={};
-    Object.entries(remoteSignatureState).forEach(([name,s])=>{if(!s.cleared&&String(s.value||"").trim())remoteSignatureMap[name]={value:String(s.value).slice(0,80),at:s.at||null};});
-    const signaturesToBackfill=Object.entries(localSignatures).filter(([name,data])=>PARTICIPANTS.includes(name)&&String((data||{}).value||"").trim()&&!remoteSignatureMap[name]);
-    if(signaturesToBackfill.length){
-      await Promise.all(signaturesToBackfill.map(([name,data])=>saveContractSignatureDb(name,data)));
-      signaturesToBackfill.forEach(([name,data])=>{remoteSignatureMap[name]={value:String((data||{}).value||"").slice(0,80),at:(data||{}).at?String(data.at):null};});
-    }
+    Object.entries(remoteSignatureState).forEach(([name,s])=>{
+      if(!s.cleared&&String(s.value||"").trim())remoteSignatureMap[name]={value:String(s.value).slice(0,80),at:s.at||null};
+    });
+    // Do not backfill signatures from local storage: DB is the source of truth.
     customColorMap=remoteColorMap;
     contractSignatures=remoteSignatureMap;
     localStorage.setItem("cdm26_tie_choices",JSON.stringify(tieChoiceMap));
@@ -847,7 +850,8 @@ function renderContent(sc){
   document.getElementById("content").innerHTML=renderPageHead(page.title,page.sub)+page.body;
 }
 function renderRegles(){
-  const signLine=(name,fullName)=>{const data=contractSignatures[name]||{};const val=String(data.value||"");const safeVal=val.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");const stamp=data.at?`<div class="contract-sign-stamp">Signé le ${data.at}</div>`:"";if(data.at&&val.trim())return `<div class="contract-sign-line"><div class="contract-sign-name">${fullName}</div><div class="contract-signature-value">${safeVal}</div><div class="contract-sign-actions"><button class="contract-sign-btn" onclick="clearContractSignature('${name}')">Annuler signature</button></div>${stamp}</div>`;return `<div class="contract-sign-line"><div class="contract-sign-name">${fullName}</div><input class="contract-sign-input" type="text" value="${safeVal}" placeholder="Signature" oninput="updateContractSignatureDraft('${name}',this.value)"><div class="contract-sign-actions"><button class="contract-sign-btn primary" onclick="signContract('${name}')">Signer</button><button class="contract-sign-btn" onclick="clearContractSignature('${name}')">Effacer</button>${me===name?`<button class='contract-sign-btn' onclick="signContractAsMe()">Signer en tant que moi</button>`:''}</div>${stamp}</div>`;};
+  const signLine=(name,fullName)=>{const data=contractSignatures[name]||{};const val=String(data.value||"");const safeVal=val.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");const stamp=data.at?`<div class="contract-sign-stamp">Signé le ${data.at}</div>`:"";if(data.at&&val.trim())return `<div class="contract-sign-line"><div class="contract-sign-name">${fullName}</div><div class="contract-signature-value">${safeVal}</div>${stamp}<div class="contract-sign-actions"><button class="contract-sign-btn" onclick="clearContractSignature('${name}')">Annuler signature</button></div></div>`;return `<div class="contract-sign-line"><div class="contract-sign-name">${fullName}</div><input class="contract-sign-input" type="text" value="${safeVal}" placeholder="Signature" oninput="updateContractSignatureDraft('${name}',this.value)">${stamp}<div class="contract-sign-actions"><button class="contract-sign-btn primary" onclick="signContract('${name}')">Signer</button><button class="contract-sign-btn" onclick="clearContractSignature('${name}')">Effacer</button>${me===name?`<button class='contract-sign-btn' onclick="signContractAsMe()">Signer en tant que moi</button>`:''}</div></div>`;};
+  const allSigned=PARTICIPANTS.every(name=>{const d=contractSignatures[name]||{};return !!(d.at&&String(d.value||"").trim());});
   return `<div class="contract-wrap">
     <div class="contract-card">
       <div class="contract-title">Contrat de Participation – Paris Sportifs Coupe du Monde</div>
@@ -930,8 +934,8 @@ function renderRegles(){
       <div class="contract-text">Le présent accord repose sur un esprit de convivialité, de confiance et de bonne humeur. Aucun recours juridique ne sera engagé entre les participants en cas de litige.</div>
     </div>
 
-    <div class="contract-card">
-      <div class="contract-sign">Signatures</div>
+    <div class="contract-card contract-sign-card ${allSigned?'complete':''}">
+      <div class="contract-sign-head"><div class="contract-sign">Signatures</div>${allSigned?'<span class="contract-sign-badge">Contrat signé</span>':''}</div>
       <div class="contract-sign-grid">
         ${signLine("Maxime","Maxime DEMOUGIN")}
         ${signLine("Morgan","Morgan BERNARD")}
@@ -1200,7 +1204,7 @@ async function saveContractSignatureDb(name,data){
   if(!PARTICIPANTS.includes(name))throw new Error("Signataire inconnu");
   const participant=`${SIGNATURE_PARTICIPANT_PREFIX}${name}:${Date.now().toString(36)}${Math.random().toString(36).slice(2,6)}`;
   const value=String((data||{}).value||"").trim();
-  const ts=new Date().toISOString();
+  const ts=Date.now();
   if(!value){
     const tombstone=JSON.stringify({value:"",at:null,cleared:true,ts});
     const {error}=await db.from("pronostics").insert({match_id:METADATA_MATCH_ID,participant,choix:tombstone});
