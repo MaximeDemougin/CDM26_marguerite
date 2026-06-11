@@ -21,13 +21,13 @@ body{font-family:'Manrope',sans-serif;background:linear-gradient(180deg,#f7fafe 
 ::-webkit-scrollbar{width:0;height:0}
 .app{width:100%;max-width:min(100%,1180px);margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:#fdfefe;position:relative;border:1px solid color-mix(in oklab,var(--line2) 68%, white);border-radius:20px;overflow:hidden;box-shadow:0 8px 20px rgba(15,29,49,.06)}
 .app.wide{max-width:min(100%,1800px)}
-.header{padding:24px 24px 18px;border-bottom:1px solid color-mix(in oklab,var(--line2) 75%, white);position:sticky;top:0;z-index:100;background:#f9fcff;backdrop-filter:none}
-.h-row{display:flex;align-items:flex-start;justify-content:space-between}
-.eyebrow{font-size:10px;letter-spacing:3px;color:var(--faint);text-transform:uppercase;font-weight:600;margin-bottom:7px}
-.title{font-family:'Space Grotesk',sans-serif;font-size:23px;font-weight:700;letter-spacing:-.6px;line-height:1}
-.subtitle{font-size:12px;color:var(--dim);margin-top:7px;font-weight:400}
-.who{display:flex;gap:5px;margin-top:12px;flex-wrap:wrap}
-.who-tools{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.header{padding:18px 22px 14px;border-bottom:1px solid color-mix(in oklab,var(--line2) 78%, white);position:sticky;top:0;z-index:100;background:rgba(249,252,255,.92);backdrop-filter:blur(8px) saturate(120%)}
+.h-row{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.eyebrow{font-size:9px;letter-spacing:2.2px;color:var(--faint);text-transform:uppercase;font-weight:700;margin-bottom:6px}
+.title{font-family:'Space Grotesk',sans-serif;font-size:25px;font-weight:700;letter-spacing:-.5px;line-height:1}
+.subtitle{font-size:12px;color:var(--dim);margin-top:6px;font-weight:500}
+.who{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
+.who-tools{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
 .who-btn{padding:6px 12px;border:1px solid color-mix(in oklab,var(--pv, var(--line2)) 30%, var(--line2));border-radius:999px;background:#fff;color:color-mix(in oklab,var(--pv, var(--dim)) 52%, var(--dim));font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .16s}
 .who-btn:hover{border-color:color-mix(in oklab,var(--pv, var(--ink)) 62%, var(--line2));color:color-mix(in oklab,var(--pv, var(--ink)) 80%, #1a2a3e);transform:translateY(-1px)}
 .who-btn.on{background:color-mix(in oklab,var(--pv, var(--ink)) 16%, white);border-color:color-mix(in oklab,var(--pv, var(--ink)) 58%, var(--line2));color:color-mix(in oklab,var(--pv, var(--ink)) 84%, #142335)}
@@ -44,7 +44,7 @@ body{font-family:'Manrope',sans-serif;background:linear-gradient(180deg,#f7fafe 
 .who-color input[type="color"]::-webkit-color-swatch{border:none;border-radius:999px;box-shadow:0 0 0 2px rgba(15,29,49,.12)}
 .who-reset{padding:6px 10px;border:1px solid color-mix(in oklab,var(--line2) 86%, white);border-radius:999px;background:linear-gradient(180deg,#ffffff 0%,#f3f7fc 100%);color:var(--dim);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;box-shadow:0 6px 14px rgba(15,29,49,.07)}
 .who-reset:hover{border-color:color-mix(in oklab,var(--ink) 40%, var(--line2));color:var(--ink);transform:translateY(-1px)}
-.sync{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--faint);font-weight:500;white-space:nowrap}
+.sync{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--dim);font-weight:600;white-space:nowrap}
 .sync-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);transition:background .3s}
 .sync-dot.off{background:var(--ko)}
 .sync-dot.busy{background:#7f96b3;animation:bl .8s infinite}
@@ -117,7 +117,7 @@ body{font-family:'Manrope',sans-serif;background:linear-gradient(180deg,#f7fafe 
 @keyframes pendingBottomShift{0%,100%{transform:translateX(-4px);opacity:.62}50%{transform:translateX(4px);opacity:1}}
 @keyframes pendingBadgeBreath{0%,100%{transform:scale(1);opacity:.92;box-shadow:0 2px 8px color-mix(in oklab,var(--bet-warn) 18%, transparent)}50%{transform:scale(1.045);opacity:1;box-shadow:0 5px 14px color-mix(in oklab,var(--bet-warn) 30%, transparent)}}
 /* Carte repliée : ligne compacte cliquable */
-.card-top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid color-mix(in oklab,var(--line) 78%, white)}
+.card-top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid color-mix(in oklab,var(--line2) 72%, white);background:linear-gradient(180deg,#f9fcff 0%,#f3f8ff 100%)}
 .c-top-left{display:inline-flex;align-items:center;gap:10px;justify-self:start;min-width:0}
 .card.collapsed .card-top{border-bottom:none}
 .card.collapsed .teams{padding:10px 12px}
@@ -130,16 +130,20 @@ body{font-family:'Manrope',sans-serif;background:linear-gradient(180deg,#f7fafe 
 .mini-dot.partial{background:#7f96b3}
 .mini-dot.empty{background:var(--line2)}
 .collapsible{overflow:hidden;transition:none}
-.c-num{font-size:9px;color:var(--faint);font-weight:600}
-.c-when{font-size:10px;color:var(--dim);font-weight:500}
+.c-num{font-size:10px;color:var(--dim);font-weight:700;letter-spacing:.3px}
+.c-when{font-size:11px;color:var(--ink);font-weight:600}
 .c-state{font-size:9px;font-weight:800;letter-spacing:.7px;padding:3px 8px;border-radius:999px;text-transform:uppercase;margin:0;border:1px solid var(--line2);background:var(--paper);color:var(--dim);white-space:nowrap;justify-self:center}
 .c-state.pending{border-color:color-mix(in oklab,var(--bet-warn) 54%, var(--line2));background:var(--bet-warn-soft);color:var(--bet-warn-deep);animation:pendingBadgeBreath 2.6s ease-in-out infinite;box-shadow:none}
 .c-state.won{border-color:color-mix(in oklab,var(--bet-on) 62%, var(--line2));background:var(--bet-on-soft);color:var(--bet-on-deep)}
 .c-state.lost{border-color:color-mix(in oklab,var(--ko) 48%, var(--line2));background:color-mix(in oklab,var(--ko) 9%, white);color:var(--ko)}
-.c-tag{margin-left:auto;font-size:9px;font-weight:600;letter-spacing:.7px;padding:2px 7px;background:var(--paper);border:1px solid var(--line2);color:var(--dim);border-radius:16px;text-transform:uppercase}
+.c-tag{margin-left:auto;font-size:9px;font-weight:700;letter-spacing:.7px;padding:2px 7px;background:#fff;border:1px solid color-mix(in oklab,var(--line2) 82%, white);color:var(--dim);border-radius:16px;text-transform:uppercase}
 .c-tag.frtag{background:var(--card);border-color:var(--fr);color:var(--fr)}
 .c-top-tags{margin-left:0;display:inline-flex;align-items:center;gap:5px;justify-self:end}
 .c-top-tags .c-tag{margin-left:0}
+
+.card.bet-pending .card-top{background:linear-gradient(180deg,#f8fbff 0%,color-mix(in oklab,var(--bet-warn) 8%, white) 100%);border-bottom-color:color-mix(in oklab,var(--bet-warn) 30%, var(--line2))}
+.card.bet-won .card-top{background:linear-gradient(180deg,#f9fdfb 0%,color-mix(in oklab,var(--bet-on) 9%, white) 100%);border-bottom-color:color-mix(in oklab,var(--bet-on) 34%, var(--line2))}
+.card.bet-lost .card-top{background:linear-gradient(180deg,#fdf9fa 0%,color-mix(in oklab,var(--ko) 8%, white) 100%);border-bottom-color:color-mix(in oklab,var(--ko) 30%, var(--line2))}
 .teams{display:flex;align-items:center;padding:14px 13px}
 .team{flex:1;display:flex;align-items:center;gap:8px}
 .team.r{flex-direction:row-reverse;text-align:right}
@@ -215,7 +219,7 @@ body{font-family:'Manrope',sans-serif;background:linear-gradient(180deg,#f7fafe 
 .bet-box .sval.pos{color:var(--ok)}
 @media (max-width:1024px){
   .app{max-width:100%}
-  .header{padding:20px 18px 16px}
+  .header{padding:16px 16px 13px}
   .h-row{gap:12px;align-items:flex-start}
   .sync{white-space:normal;justify-content:flex-end;text-align:right}
   .board{grid-template-columns:repeat(4,minmax(0,1fr))}
@@ -228,7 +232,7 @@ body{font-family:'Manrope',sans-serif;background:linear-gradient(180deg,#f7fafe 
   .hero-score{flex-wrap:wrap;align-items:flex-start}
 }
 @media (max-width:760px){
-  .header{padding:18px 14px 14px}
+  .header{padding:15px 12px 12px}
   .h-row{flex-direction:column;align-items:flex-start}
   .sync{justify-content:flex-start;text-align:left}
   .bet-summary{grid-template-columns:1fr}
