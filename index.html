@@ -383,11 +383,31 @@ body{font-family:'Inter',sans-serif;background:radial-gradient(circle at top lef
   .hero-big{font-size:42px}
   .hero-sub{max-width:none}
   .curve-head,.stats-table-head{flex-direction:column;align-items:flex-start}
+  .contract-wrap{padding:0 14px 18px}
+  .contract-sign-grid{grid-template-columns:1fr}
 }
 .rule{margin:0 18px 9px;border:1px solid var(--line2);background:var(--card);padding:13px 16px;display:flex;gap:13px;align-items:flex-start;border-radius:10px}
 .rule-ico{font-size:17px;flex-shrink:0;opacity:.7}
 .rule-t{font-size:12px;font-weight:600;margin-bottom:3px}
 .rule-d{font-size:12px;color:var(--dim);line-height:1.4}
+.contract-wrap{padding:0 18px 18px;display:grid;gap:10px}
+.contract-card{border:1px solid var(--line2);background:var(--card);border-radius:12px;padding:14px 16px}
+.contract-title{font-size:14px;font-weight:800;letter-spacing:.2px;color:var(--ink);margin-bottom:6px}
+.contract-text{font-size:13px;line-height:1.55;color:var(--dim)}
+.contract-list{margin:8px 0 0 18px;padding:0;display:grid;gap:5px}
+.contract-list li{font-size:13px;line-height:1.45;color:var(--dim)}
+.contract-strong{color:var(--ink);font-weight:700}
+.contract-sign{font-size:12px;color:var(--faint);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin:10px 0 8px}
+.contract-sign-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.contract-sign-line{border:1px dashed var(--line2);border-radius:8px;padding:10px 12px;background:var(--paper);font-size:12px;color:var(--dim);min-height:42px;display:grid;gap:8px}
+.contract-sign-name{font-size:12px;font-weight:700;color:var(--ink)}
+.contract-sign-input{width:100%;border:1px solid var(--line2);background:var(--card);border-radius:8px;padding:8px 10px;font:500 12px/1.2 Inter,sans-serif;color:var(--ink)}
+.contract-sign-input:focus{outline:none;border-color:var(--accent)}
+.contract-sign-actions{display:flex;gap:7px;flex-wrap:wrap}
+.contract-sign-btn{border:1px solid var(--line2);background:var(--card);color:var(--dim);font:600 11px/1 Inter,sans-serif;border-radius:999px;padding:7px 10px;cursor:pointer;transition:all .15s}
+.contract-sign-btn:hover{border-color:var(--ink);color:var(--ink)}
+.contract-sign-btn.primary{border-color:var(--accent);color:var(--accent);background:color-mix(in oklab,var(--accent) 9%, white)}
+.contract-sign-stamp{font-size:11px;color:var(--faint)}
 .admin-card{margin:0 18px 10px;border:1px solid var(--line2);background:var(--card);border-radius:10px;padding:12px 14px}
 .admin-card.filled{border-color:var(--ok);box-shadow:0 0 0 1px color-mix(in oklab,var(--ok) 30%, transparent)}
 .admin-head{display:flex;align-items:center;gap:8px;margin-bottom:9px}
@@ -537,6 +557,7 @@ body{font-family:'Inter',sans-serif;background:radial-gradient(circle at top lef
     <button class="nbtn" id="nav-competition" onclick="setTab('competition')"><span class="nico">🏟️</span><span class="nlbl">Compétition</span></button>
     <button class="nbtn" id="nav-classement" onclick="setTab('classement')"><span class="nico">🏆</span><span class="nlbl">Classement</span></button>
     <button class="nbtn" id="nav-stats" onclick="setTab('stats')"><span class="nico">📊</span><span class="nlbl">Stats</span></button>
+    <button class="nbtn" id="nav-regles" onclick="setTab('regles')"><span class="nico">📜</span><span class="nlbl">Règles</span></button>
   </div>
 </div>
 
@@ -669,6 +690,7 @@ const TIE_BREAK_PARTICIPANT="__TIE_BREAK__";
 const BET_PLACED_PARTICIPANT="__BET_PLACED__";
 const COTE_PARTICIPANT_PREFIX="__COTE__:";
 const COLOR_PARTICIPANT_PREFIX="__COLOR__:";
+const SIGNATURE_PARTICIPANT_PREFIX="__SIGN__:";
 
 let votes={},results={},tab="matchs",filterPhase="Groupes",filterGroupe="Tous";
 let filterSearch="",filterTeam="Toutes";
@@ -678,12 +700,14 @@ let coteMap={};
 let placedBetMap={};
 let tieChoiceMap={};
 let customColorMap={};
+let contractSignatures={};
 let scoreSaveTimers={};
 let matchsSeeded=false;
 try{coteMap=JSON.parse(localStorage.getItem("cdm26_cotes")||"{}");}catch{coteMap={};}
 try{placedBetMap=JSON.parse(localStorage.getItem("cdm26_paris_places")||"{}");}catch{placedBetMap={};}
 try{tieChoiceMap=JSON.parse(localStorage.getItem("cdm26_tie_choices")||"{}");}catch{tieChoiceMap={};}
 try{customColorMap=JSON.parse(localStorage.getItem("cdm26_custom_colors")||"{}");}catch{customColorMap={};}
+try{contractSignatures=JSON.parse(localStorage.getItem("cdm26_contract_signatures")||"{}");}catch{contractSignatures={};}
 
 // Libellés de jour (jj/mm -> "Jeudi 11 juin")
 const JOURS=["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
@@ -744,13 +768,16 @@ async function loadAll(){
     const [pr,ma]=await Promise.all([db.from("pronostics").select("*"),db.from("matchs").select("id,resultat,score_dom,score_ext")]);
     if(pr.error)throw pr.error;if(ma.error)throw ma.error;
     const localColors={...customColorMap};
+    const localSignatures={...contractSignatures};
     const remoteColorMap={};
+    const remoteSignatureMap={};
     votes={};tieChoiceMap={};coteMap={};placedBetMap={};
     pr.data.forEach(row=>{
       if(row.participant===TIE_BREAK_PARTICIPANT){if(row.choix)tieChoiceMap[row.match_id]=row.choix;return;}
       if(row.participant===BET_PLACED_PARTICIPANT){if(row.choix==="1")placedBetMap[row.match_id]=true;return;}
       if(typeof row.participant==="string"&&row.participant.startsWith(COTE_PARTICIPANT_PREFIX)){const v=row.participant.slice(COTE_PARTICIPANT_PREFIX.length);if(v)coteMap[row.match_id]=v;return;}
       if(typeof row.participant==="string"&&row.participant.startsWith(COLOR_PARTICIPANT_PREFIX)){const name=row.participant.slice(COLOR_PARTICIPANT_PREFIX.length);if(PARTICIPANTS.includes(name)&&/^#[0-9a-fA-F]{6}$/.test(String(row.choix||"")))remoteColorMap[name]=row.choix;return;}
+      if(typeof row.participant==="string"&&row.participant.startsWith(SIGNATURE_PARTICIPANT_PREFIX)){const name=row.participant.slice(SIGNATURE_PARTICIPANT_PREFIX.length);if(!PARTICIPANTS.includes(name))return;try{const parsed=JSON.parse(String(row.choix||"{}"));const value=String(parsed.value||"").trim();if(!value)return;remoteSignatureMap[name]={value:value.slice(0,80),at:parsed.at?String(parsed.at):null};}catch{}return;}
       const i=PARTICIPANTS.indexOf(row.participant);if(i<0)return;if(!votes[row.match_id])votes[row.match_id]=[null,null,null,null];votes[row.match_id][i]=row.choix;
     });
     const colorsToBackfill=Object.entries(localColors).filter(([name,color])=>PARTICIPANTS.includes(name)&&/^#[0-9a-fA-F]{6}$/.test(String(color||""))&&!remoteColorMap[name]);
@@ -758,11 +785,18 @@ async function loadAll(){
       await Promise.all(colorsToBackfill.map(([name,color])=>savePronostiqueurColorDb(name,color)));
       colorsToBackfill.forEach(([name,color])=>{remoteColorMap[name]=color;});
     }
+    const signaturesToBackfill=Object.entries(localSignatures).filter(([name,data])=>PARTICIPANTS.includes(name)&&String((data||{}).value||"").trim()&&!remoteSignatureMap[name]);
+    if(signaturesToBackfill.length){
+      await Promise.all(signaturesToBackfill.map(([name,data])=>saveContractSignatureDb(name,data)));
+      signaturesToBackfill.forEach(([name,data])=>{remoteSignatureMap[name]={value:String((data||{}).value||"").slice(0,80),at:(data||{}).at?String(data.at):null};});
+    }
     customColorMap=remoteColorMap;
+    contractSignatures=remoteSignatureMap;
     localStorage.setItem("cdm26_tie_choices",JSON.stringify(tieChoiceMap));
     localStorage.setItem("cdm26_cotes",JSON.stringify(coteMap));
     localStorage.setItem("cdm26_paris_places",JSON.stringify(placedBetMap));
     localStorage.setItem("cdm26_custom_colors",JSON.stringify(customColorMap));
+    localStorage.setItem("cdm26_contract_signatures",JSON.stringify(contractSignatures));
     results={};scoreMap={};
     ma.data.forEach(row=>{const s1=row.score_dom==null?"":String(row.score_dom),s2=row.score_ext==null?"":String(row.score_ext);scoreMap[row.id]={s1,s2};results[row.id]=winnerFromScore(s1,s2)||row.resultat||null;});
     setSync("ok");showBanner(null);
@@ -790,8 +824,103 @@ function renderContent(sc){
       ?{title:"Compétition",sub:"Suivi des groupes et projection du tableau final",body:renderCompetition()}
       :tab==="classement"
         ?{title:"Classement",sub:`${total} match${total>1?'s':''} déjà joué${total>1?'s':''}`,body:renderClassement(sc)}
+        :tab==="regles"
+          ?{title:"Règles",sub:"Contrat de participation et cadre commun",body:renderRegles()}
         :{title:"Statistiques",sub:"Performance, tendances et bilan financier",body:renderStatsRich(sc)};
   document.getElementById("content").innerHTML=renderPageHead(page.title,page.sub)+page.body;
+}
+function renderRegles(){
+  const signLine=(name,fullName)=>{const data=contractSignatures[name]||{};const val=String(data.value||"");const safeVal=val.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");const stamp=data.at?`<div class="contract-sign-stamp">Signé le ${data.at}</div>`:"";return `<div class="contract-sign-line"><div class="contract-sign-name">${fullName}</div><input class="contract-sign-input" type="text" value="${safeVal}" placeholder="Signature" oninput="updateContractSignatureDraft('${name}',this.value)"><div class="contract-sign-actions"><button class="contract-sign-btn primary" onclick="signContract('${name}')">Signer</button><button class="contract-sign-btn" onclick="clearContractSignature('${name}')">Effacer</button>${me===name?`<button class='contract-sign-btn' onclick="signContractAsMe()">Signer en tant que moi</button>`:''}</div>${stamp}</div>`;};
+  return `<div class="contract-wrap">
+    <div class="contract-card">
+      <div class="contract-title">Contrat de Participation – Paris Sportifs Coupe du Monde</div>
+      <div class="contract-text">Fait à Niort, le 10/06/2026</div>
+    </div>
+
+    <div class="contract-card">
+      <div class="contract-title">1. Parties prenantes</div>
+      <div class="contract-text">Le présent contrat est conclu entre les participants suivants (ci-après “les participants”) :</div>
+      <ul class="contract-list">
+        <li>Participant 1 : Maxime DEMOUGIN</li>
+        <li>Participant 2 : Morgan BERNARD</li>
+        <li>Participant 3 : Yohann GAZEAU</li>
+        <li>Participant 4 : Thomas LARCHER</li>
+      </ul>
+    </div>
+
+    <div class="contract-card">
+      <div class="contract-title">2. Objet</div>
+      <div class="contract-text">Les participants conviennent de s'associer dans le cadre de paris sportifs portant sur les matchs de la Coupe du Monde.</div>
+    </div>
+
+    <div class="contract-card">
+      <div class="contract-title">3. Modalités de participation</div>
+      <ul class="contract-list">
+        <li>Chaque participant mise <span class="contract-strong">1 € par match</span>, soit une mise collective de <span class="contract-strong">4 € par match</span>.</li>
+        <li>L'objectif est de parier sur <span class="contract-strong">l'ensemble des matchs de la compétition</span> (estimé à 104 matchs).</li>
+        <li>Les mises sont regroupées pour effectuer un pari commun.</li>
+      </ul>
+    </div>
+
+    <div class="contract-card">
+      <div class="contract-title">4. Méthode de prise de décision</div>
+      <ul class="contract-list">
+        <li>Avant chaque match, chaque participant renseigne son pronostic dans un fichier Excel partagé.</li>
+        <li>Le pronostic retenu est celui <span class="contract-strong">majoritairement choisi</span> par les participants.</li>
+        <li>En cas d'égalité (ex æquo), la décision revient au participant ayant obtenu <span class="contract-strong">le meilleur taux de réussite</span> jusqu'au moment du match.</li>
+      </ul>
+    </div>
+
+    <div class="contract-card">
+      <div class="contract-title">5. Suivi des performances</div>
+      <ul class="contract-list">
+        <li>Un suivi des pronostics et des résultats est tenu dans le fichier Excel.</li>
+        <li>Les performances individuelles sont mesurées en fonction du nombre de bons pronostics réalisés.</li>
+      </ul>
+    </div>
+
+    <div class="contract-card">
+      <div class="contract-title">6. Répartition des gains</div>
+      <div class="contract-text">Les gains éventuels sont répartis <span class="contract-strong">équitablement entre les participants</span>, sauf accord contraire explicite.</div>
+    </div>
+
+    <div class="contract-card">
+      <div class="contract-title">7. Engagement et transparence</div>
+      <ul class="contract-list">
+        <li>Donner son pronostic honnêtement avant chaque match.</li>
+        <li>Respecter les décisions collectives.</li>
+        <li>Participer financièrement à chaque pari.</li>
+      </ul>
+    </div>
+
+    <div class="contract-card">
+      <div class="contract-title">8. Clause “Apéro”</div>
+      <ul class="contract-list">
+        <li>À l'issue de la compétition, le participant ayant obtenu le <span class="contract-strong">plus faible nombre de bons pronostics</span> devra offrir un apéritif aux autres participants.</li>
+        <li>Les modalités de cet apéritif (date, lieu, budget raisonnable) seront définies collectivement.</li>
+      </ul>
+    </div>
+
+    <div class="contract-card">
+      <div class="contract-title">9. Durée</div>
+      <div class="contract-text">Le présent contrat prend effet à compter de sa signature jusqu'à la fin de la Coupe du Monde et la clôture des comptes (gains/pertes).</div>
+    </div>
+
+    <div class="contract-card">
+      <div class="contract-title">10. Esprit du contrat</div>
+      <div class="contract-text">Le présent accord repose sur un esprit de convivialité, de confiance et de bonne humeur. Aucun recours juridique ne sera engagé entre les participants en cas de litige.</div>
+    </div>
+
+    <div class="contract-card">
+      <div class="contract-sign">Signatures</div>
+      <div class="contract-sign-grid">
+        ${signLine("Maxime","Maxime DEMOUGIN")}
+        ${signLine("Morgan","Morgan BERNARD")}
+        ${signLine("Yohann","Yohann GAZEAU")}
+        ${signLine("Thomas","Thomas LARCHER")}
+      </div>
+    </div>
+  </div>`;
 }
 function renderMatchs(sc){
   const phases=["Groupes","1/16","1/8","Quart","Demi","FINALE"];
@@ -1048,6 +1177,19 @@ async function savePronostiqueurColorDb(name,color){
   const {error}=await db.from("pronostics").upsert({match_id:METADATA_MATCH_ID,participant,choix:color});
   if(error)throw error;
 }
+async function saveContractSignatureDb(name,data){
+  if(!PARTICIPANTS.includes(name))throw new Error("Signataire inconnu");
+  const participant=`${SIGNATURE_PARTICIPANT_PREFIX}${name}`;
+  const value=String((data||{}).value||"").trim();
+  if(!value){
+    const {error}=await db.from("pronostics").delete().match({match_id:METADATA_MATCH_ID,participant});
+    if(error)throw error;
+    return;
+  }
+  const payload=JSON.stringify({value:value.slice(0,80),at:(data||{}).at?String(data.at):null});
+  const {error}=await db.from("pronostics").upsert({match_id:METADATA_MATCH_ID,participant,choix:payload});
+  if(error)throw error;
+}
 function groupTables(){
   const groups={};
   MG.forEach(m=>{if(!groups[m.g])groups[m.g]={};if(!groups[m.g][m.e1])groups[m.g][m.e1]={team:m.e1,pts:0,j:0,gf:0,ga:0,d:0};if(!groups[m.g][m.e2])groups[m.g][m.e2]={team:m.e2,pts:0,j:0,gf:0,ga:0,d:0};
@@ -1140,6 +1282,29 @@ function renderResultats(){
 }
 
 window.setMe=function(p){me=(me===p?null:p);if(me)localStorage.setItem("cdm26_me",me);else localStorage.removeItem("cdm26_me");applyPronostiqueurTheme(me);render();};
+window.updateContractSignatureDraft=function(name,value){if(!PARTICIPANTS.includes(name))return;const cur=contractSignatures[name]||{};contractSignatures[name]={...cur,value:String(value||"").slice(0,80)};localStorage.setItem("cdm26_contract_signatures",JSON.stringify(contractSignatures));};
+window.signContract=async function(name){
+  if(!PARTICIPANTS.includes(name))return;
+  const cur=contractSignatures[name]||{};
+  const value=String(cur.value||"").trim();
+  if(!value)return;
+  const dt=new Date();
+  const stamp=`${String(dt.getDate()).padStart(2,"0")}/${String(dt.getMonth()+1).padStart(2,"0")}/${dt.getFullYear()} ${String(dt.getHours()).padStart(2,"0")}:${String(dt.getMinutes()).padStart(2,"0")}`;
+  contractSignatures[name]={value,at:stamp};
+  localStorage.setItem("cdm26_contract_signatures",JSON.stringify(contractSignatures));
+  if(tab==="regles")render();
+  setSync("busy");
+  try{await saveContractSignatureDb(name,contractSignatures[name]);setSync("ok");showBanner(null);}catch(e){setSync("off");showBanner("Échec de l'enregistrement de la signature — base injoignable.");console.error(e);} 
+};
+window.signContractAsMe=function(){if(!me)return;const cur=contractSignatures[me]||{};if(!String(cur.value||"").trim())contractSignatures[me]={...cur,value:me};localStorage.setItem("cdm26_contract_signatures",JSON.stringify(contractSignatures));window.signContract(me);};
+window.clearContractSignature=async function(name){
+  if(!PARTICIPANTS.includes(name))return;
+  delete contractSignatures[name];
+  localStorage.setItem("cdm26_contract_signatures",JSON.stringify(contractSignatures));
+  if(tab==="regles")render();
+  setSync("busy");
+  try{await saveContractSignatureDb(name,null);setSync("ok");showBanner(null);}catch(e){setSync("off");showBanner("Échec de l'enregistrement de la signature — base injoignable.");console.error(e);} 
+};
 window.setPronostiqueurColor=function(name,value){if(!/^#[0-9a-fA-F]{6}$/.test(String(value||"")))return;customColorMap[name]=value;localStorage.setItem("cdm26_custom_colors",JSON.stringify(customColorMap));if(me===name)applyPronostiqueurTheme(me);render();setSync("busy");savePronostiqueurColorDb(name,value).then(()=>{setSync("ok");showBanner(null);}).catch(e=>{setSync("off");showBanner("Échec de l'enregistrement de la couleur — base injoignable.");console.error(e);});};
 window.resetPronostiqueurColor=function(name){delete customColorMap[name];localStorage.setItem("cdm26_custom_colors",JSON.stringify(customColorMap));if(me===name)applyPronostiqueurTheme(me);render();setSync("busy");savePronostiqueurColorDb(name,null).then(()=>{setSync("ok");showBanner(null);}).catch(e=>{setSync("off");showBanner("Échec de l'enregistrement de la couleur — base injoignable.");console.error(e);});};
 // Repliage : on ne redessine QUE le contenu, en préservant la position de scroll
