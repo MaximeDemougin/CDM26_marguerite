@@ -408,6 +408,7 @@ body{font-family:'Inter',sans-serif;background:radial-gradient(circle at top lef
 .contract-sign-btn:hover{border-color:var(--ink);color:var(--ink)}
 .contract-sign-btn.primary{border-color:var(--accent);color:var(--accent);background:color-mix(in oklab,var(--accent) 9%, white)}
 .contract-sign-stamp{font-size:11px;color:var(--faint)}
+.contract-signature-value{font-size:13px;font-weight:700;color:var(--ink)}
 .admin-card{margin:0 18px 10px;border:1px solid var(--line2);background:var(--card);border-radius:10px;padding:12px 14px}
 .admin-card.filled{border-color:var(--ok);box-shadow:0 0 0 1px color-mix(in oklab,var(--ok) 30%, transparent)}
 .admin-head{display:flex;align-items:center;gap:8px;margin-bottom:9px}
@@ -830,7 +831,7 @@ function renderContent(sc){
   document.getElementById("content").innerHTML=renderPageHead(page.title,page.sub)+page.body;
 }
 function renderRegles(){
-  const signLine=(name,fullName)=>{const data=contractSignatures[name]||{};const val=String(data.value||"");const safeVal=val.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");const stamp=data.at?`<div class="contract-sign-stamp">Signé le ${data.at}</div>`:"";return `<div class="contract-sign-line"><div class="contract-sign-name">${fullName}</div><input class="contract-sign-input" type="text" value="${safeVal}" placeholder="Signature" oninput="updateContractSignatureDraft('${name}',this.value)"><div class="contract-sign-actions"><button class="contract-sign-btn primary" onclick="signContract('${name}')">Signer</button><button class="contract-sign-btn" onclick="clearContractSignature('${name}')">Effacer</button>${me===name?`<button class='contract-sign-btn' onclick="signContractAsMe()">Signer en tant que moi</button>`:''}</div>${stamp}</div>`;};
+  const signLine=(name,fullName)=>{const data=contractSignatures[name]||{};const val=String(data.value||"");const safeVal=val.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");const stamp=data.at?`<div class="contract-sign-stamp">Signé le ${data.at}</div>`:"";if(data.at&&val.trim())return `<div class="contract-sign-line"><div class="contract-sign-name">${fullName}</div><div class="contract-signature-value">${safeVal}</div>${stamp}</div>`;return `<div class="contract-sign-line"><div class="contract-sign-name">${fullName}</div><input class="contract-sign-input" type="text" value="${safeVal}" placeholder="Signature" oninput="updateContractSignatureDraft('${name}',this.value)"><div class="contract-sign-actions"><button class="contract-sign-btn primary" onclick="signContract('${name}')">Signer</button><button class="contract-sign-btn" onclick="clearContractSignature('${name}')">Effacer</button>${me===name?`<button class='contract-sign-btn' onclick="signContractAsMe()">Signer en tant que moi</button>`:''}</div>${stamp}</div>`;};
   return `<div class="contract-wrap">
     <div class="contract-card">
       <div class="contract-title">Contrat de Participation – Paris Sportifs Coupe du Monde</div>
