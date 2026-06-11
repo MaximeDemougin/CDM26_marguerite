@@ -169,27 +169,26 @@ body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--b
 .vs{font-size:9px;color:var(--faint);padding:0 12px;font-weight:600;letter-spacing:.8px}
 .votes{padding:6px 12px 12px;border-top:1px solid color-mix(in oklab,var(--line) 78%, white)}
 .votes-title{font-size:9px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--faint);margin:2px 0 6px;padding-left:1px}
-.vrow{display:grid;grid-template-columns:62px minmax(0,1fr);align-items:center;column-gap:10px;padding:4px 0;border-radius:10px;position:relative}
+.vrow{display:grid;grid-template-columns:96px minmax(0,1fr) 96px;align-items:center;column-gap:10px;padding:4px 0;border-radius:10px;position:relative}
 .vrow.me-row::before{content:"";position:absolute;left:-8px;top:7px;bottom:7px;width:3px;border-radius:999px;background:var(--pv, var(--accent));opacity:.9;z-index:0}
 .vrow>*{position:relative;z-index:1}
-.vname{font-size:11px;font-weight:600;width:auto;color:var(--dim)}
+.vname{font-size:11px;font-weight:600;width:auto;color:var(--dim);display:flex;align-items:center;gap:7px;min-width:0}
+.vname>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .vname.me{color:var(--ink);font-weight:800;letter-spacing:.1px}
-.vopts{display:flex;gap:7px;width:clamp(420px,72%,760px);max-width:100%;justify-self:center}
-.vbtn{flex:1;min-height:var(--vote-h);padding:0 7px;border:1px solid #8ea6c0;background:#ffffff;color:#314a67;font-size:10px;font-weight:700;cursor:pointer;transition:all .18s ease;font-family:inherit;border-radius:var(--ctrl-radius);display:flex;align-items:center;justify-content:center;gap:4px;box-shadow:none}
-.vbtn:hover:not(:disabled){border-color:#5f7fa6;background:#f3f8ff;color:#18314f;transform:translateY(-1px)}
-.vrow .vbtn.on{background:#3b4f69;border-color:#2a3b51;color:#f7fbff;box-shadow:none}
-.vrow .vbtn.on.result-ok{background:color-mix(in oklab,var(--bet-on) 48%, white);border-color:color-mix(in oklab,var(--bet-on) 76%, #1d5a43);color:#134d37;box-shadow:none}
-.vrow .vbtn.on.result-ko{background:color-mix(in oklab,var(--ko) 42%, white);border-color:color-mix(in oklab,var(--ko) 74%, #782032);color:#6f1f2f;box-shadow:none}
-.vbtn:disabled{cursor:default;opacity:.85}
-.vrow .vbtn.readonly.on{background:#3a4e67;border-color:#27384c;color:#edf4ff;opacity:.98;box-shadow:none}
-.vrow .vbtn.readonly.on.result-ok{background:color-mix(in oklab,var(--bet-on) 42%, white);border-color:color-mix(in oklab,var(--bet-on) 70%, #226047);color:#17553d;box-shadow:none}
-.vrow .vbtn.readonly.on.result-ko{background:color-mix(in oklab,var(--ko) 38%, white);border-color:color-mix(in oklab,var(--ko) 68%, #87253a);color:#782436;box-shadow:none}
-.vrow .vbtn.betlocked{border-color:#9ab0c8;background:#ffffff;color:#3e5672;opacity:1}
-.vrow .vbtn.betlocked.pending-off{border-color:#afc0d3;background:#f8fbff;color:#7388a2;box-shadow:none}
-.vrow .vbtn.betlocked.on{background:#3a4f69;border-color:#27384c;color:#eef5ff;opacity:1;box-shadow:none}
-.vrow .vbtn.betlocked.on.result-ok{background:color-mix(in oklab,var(--bet-on) 44%, white);border-color:color-mix(in oklab,var(--bet-on) 72%, #1f5f45);color:#16523b;box-shadow:none}
-.vrow .vbtn.betlocked.on.result-ko{background:color-mix(in oklab,var(--ko) 40%, white);border-color:color-mix(in oklab,var(--ko) 70%, #7f2135);color:#712132;box-shadow:none}
-.vrow.me-row .vbtn.on:not(.result-ok):not(.result-ko){background:#3b4f69;border:2px solid color-mix(in oklab,var(--pv, var(--ink)) 84%, #1f3350);color:#f7fbff;box-shadow:0 0 0 2px color-mix(in oklab,var(--pv, var(--ink)) 24%, transparent)}
+.vavatar{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;letter-spacing:.2px;text-transform:uppercase;background:color-mix(in oklab,var(--pv,var(--fr)) 15%,white);color:color-mix(in oklab,var(--pv,var(--fr)) 80%,#10233f);box-shadow:0 0 0 1.5px color-mix(in oklab,var(--pv,var(--fr)) 38%,transparent)}
+.vname.me .vavatar{background:var(--pv,var(--fr));color:#fff;box-shadow:0 0 0 2px color-mix(in oklab,var(--pv,var(--fr)) 28%,transparent)}
+.vopts{display:flex;gap:0;width:min(100%,560px);justify-self:center;border:1.5px solid #9ab0c8;border-radius:999px;overflow:hidden;background:#fff;box-shadow:0 1px 3px rgba(19,41,66,.07)}
+.vbtn{flex:1;min-height:var(--vote-h);padding:0 7px;border:none;background:transparent;color:#42597a;font-size:10px;font-weight:700;cursor:pointer;transition:background .18s,color .18s,box-shadow .18s;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:4px}
+.vbtn+.vbtn{border-left:1px solid color-mix(in oklab,#9ab0c8 50%,transparent)}
+.vopts .vbtn:nth-child(2){flex:.62}
+.vbtn:hover:not(:disabled):not(.on){background:#f1f5fa;color:#243d5c}
+.vrow .vbtn.on{background:linear-gradient(180deg,#4c688f 0%,#3a5174 100%);color:#f4f8ff;box-shadow:inset 0 1px 0 rgba(255,255,255,.22)}
+.vrow .vbtn.on:hover:not(:disabled){background:linear-gradient(180deg,#54719a 0%,#41597e 100%)}
+.vrow .vbtn.on.result-ok{background:linear-gradient(180deg,#2aab80 0%,#17916a 100%);color:#ffffff;box-shadow:inset 0 1px 0 rgba(255,255,255,.26)}
+.vrow .vbtn.on.result-ko{background:linear-gradient(180deg,#cb495f 0%,#b3304a 100%);color:#ffe9ed;box-shadow:inset 0 1px 0 rgba(255,255,255,.20)}
+.vbtn:disabled{cursor:default}
+.vrow .vbtn.betlocked.pending-off{background:#f8fbff;color:#8398b1}
+.vrow.me-row .vbtn.on:not(.result-ok):not(.result-ko){box-shadow:inset 0 0 0 2px rgba(255,255,255,.5),inset 0 1px 0 rgba(255,255,255,.28)}
 .retenu{display:flex;flex-direction:column;align-items:stretch;gap:14px;margin-top:16px;padding-top:16px;border-top:1px solid color-mix(in oklab,var(--line) 78%, white)}
 .retenu-main{display:flex;align-items:center;gap:14px;justify-content:center;min-width:0;flex-wrap:wrap}
 .retenu-tools{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
@@ -277,7 +276,7 @@ body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--b
   .team{min-width:0}
   .tname{font-size:13px}
   .vs{padding:0 6px}
-  .vrow{align-items:flex-start;flex-direction:column;gap:7px}
+  .vrow{grid-template-columns:88px minmax(0,1fr) 88px}
   .vname{width:auto}
   .vopts{width:100%}
   .retenu{gap:10px}
@@ -313,6 +312,8 @@ body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--b
   .team,.team.r{flex:1 1 calc(50% - 26px)}
   .vs{width:100%;text-align:center;padding:2px 0}
   .vbtn{font-size:10px;padding:6px 6px}
+  .vrow{grid-template-columns:1fr;row-gap:5px}
+  .vrow.me-row::before{left:-6px}
   .m-score,.odds-box,.bet-toggle,.reset-toggle,.gain-pill{width:100%;min-width:0;justify-content:center}
   .retenu-row{width:100%}
   .retenu-row.scoreline{flex-direction:column;align-items:stretch}
@@ -1237,7 +1238,7 @@ function matchCard(m,sc){
     const resultClass=real&&pick?(pick===real?"result-ok":"result-ko"):"";
     const pendingOff=placed&&!real?"pending-off":"";
     const btnClass=opt=>`vbtn ${stateClass} ${pick===opt?`on ${resultClass}`:pendingOff}`.trim();
-    return `<div class="vrow ${isMe?'me-row':''}" style="${pronostiqueurVoteStyle(p)}"><span class="vname ${isMe?'me':''}">${p}</span><div class="vopts"><button class="${btnClass('1')}" ${dis} onclick="vote(${m.id},${i},'1')">${s1h}</button><button class="${btnClass('N')}" ${dis} onclick="vote(${m.id},${i},'N')">Nul</button><button class="${btnClass('2')}" ${dis} onclick="vote(${m.id},${i},'2')">${s2h}</button></div></div>`;
+    return `<div class="vrow ${isMe?'me-row':''}" style="${pronostiqueurVoteStyle(p)}"><span class="vname ${isMe?'me':''}"><span class="vavatar">${p.slice(0,2)}</span><span>${p}</span></span><div class="vopts"><button class="${btnClass('1')}" ${dis} onclick="vote(${m.id},${i},'1')">${s1h}</button><button class="${btnClass('N')}" ${dis} onclick="vote(${m.id},${i},'N')">Nul</button><button class="${btnClass('2')}" ${dis} onclick="vote(${m.id},${i},'2')">${s2h}</button></div></div>`;
   }).join('');
   const badges=real?PARTICIPANTS.map((p,i)=>mv[i]?`<span class="badge ${mv[i]===real?'ok':'ko'}">${mv[i]===real?'✓':'✗'} ${p}</span>`:'').join(''):'';
   const coteRaw=coteOf(m.id);
