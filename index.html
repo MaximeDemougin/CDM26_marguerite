@@ -510,24 +510,42 @@ body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -
 .br-name{display:flex;align-items:center;gap:6px;min-width:0}
 .br-name span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .br-goals{width:14px;text-align:right;font-weight:800}
-.past-results{display:grid;gap:10px;padding:0 18px 12px}
-.past-day{display:grid;gap:8px}
+.past-phases{display:grid;gap:18px;padding:0 18px 12px}
+.past-phase-block{display:grid;gap:10px}
+.past-phase-head{font-size:12px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;color:var(--ink);padding:0 2px}
+.past-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,420px));justify-content:center;gap:14px}
+.past-day{display:grid;gap:8px;align-content:start}
 .past-day-title{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--dim);padding:2px 2px 0}
-.past-result{border:none;background:#ffffff;border-radius:12px;padding:11px 13px;box-shadow:0 10px 22px rgba(15,29,49,.13),0 0 0 1px rgba(255,255,255,.74) inset}
+.past-group{border:none;background:#ffffff;border-radius:12px;padding:10px 12px;box-shadow:0 10px 22px rgba(15,29,49,.13),0 0 0 1px rgba(255,255,255,.74) inset}
+.past-group-title{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+.past-rows{display:grid}
+.past-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto minmax(0,1fr) auto;align-items:center;gap:8px;padding:7px 0;width:100%;border:none;background:none;font:inherit;text-align:left;cursor:pointer;border-radius:8px;transition:background .15s,transform .15s}
+.past-row+.past-row{box-shadow:inset 0 1px 0 color-mix(in oklab,var(--line2) 45%, transparent)}
+.past-row:hover{background:color-mix(in oklab,var(--paper) 62%, white);transform:translateY(-1px)}
+.past-row:focus-visible{outline:none;box-shadow:0 0 0 2px color-mix(in oklab,var(--fr) 24%, transparent),inset 0 1px 0 color-mix(in oklab,var(--line2) 45%, transparent)}
 .past-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:8px}
 .past-id{font-size:10px;font-weight:800;color:var(--faint);letter-spacing:.8px}
 .past-phase{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--dim);padding:2px 7px;border-radius:999px;background:color-mix(in oklab,var(--paper) 80%, white)}
 .past-when{font-size:10px;font-weight:700;color:var(--faint)}
 .past-status{font-size:9px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:color-mix(in oklab,var(--paper) 82%, white);color:var(--dim)}
-.past-teams{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:10px}
 .past-team{font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;min-width:0}
 .past-team.r{justify-content:flex-end;text-align:right}
 .past-team.win{color:var(--ok)}
 .past-team span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.past-score{font-size:15px;font-weight:900;color:var(--ink);letter-spacing:.4px}
-.past-result.pending{background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%)}
-.past-result.pending .past-score{color:var(--faint)}
-.past-result.pending .past-status{background:color-mix(in oklab,var(--line2) 56%, white);color:#5a708b}
+.past-score{font-size:14px;font-weight:900;color:var(--ink);letter-spacing:.4px;min-width:34px;text-align:center}
+.past-row.pending .past-score{color:var(--faint)}
+.past-row.pending .past-status{background:color-mix(in oklab,var(--line2) 56%, white);color:#5a708b}
+@media (max-width:760px){
+  .past-phases{gap:14px;padding:0 14px 12px}
+  .past-results{grid-template-columns:1fr;gap:10px}
+  .past-row{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"time home status" "dots dots dots" "away away score";gap:6px 8px}
+  .past-row .past-when{grid-area:time}
+  .past-row .past-team:first-of-type{grid-area:home}
+  .past-row .past-team.r{grid-area:away;justify-content:flex-start;text-align:left}
+  .past-row .past-score{grid-area:score;justify-self:end}
+  .past-row .past-status{grid-area:status;justify-self:end}
+  .past-row .past-id{display:none}
+}
 
 /* Bracket connectors: show how two matches feed the next round */
 .br-side-col.r8 .br-match,
@@ -1122,7 +1140,7 @@ function matchCard(m,sc){
   const resetEditor=`<button class="reset-toggle" onclick="resetMatchAdmin(${m.id})">Réinitialiser</button>`;
   const tieChooser=hasTie?`<div class="tie-chooser">${tieOptions.map(v=>`<button class="tie-btn ${maj===v?'on':''}" onclick="setTieDecision(${m.id},'${v}')">${choiceLabel(v)}</button>`).join('')}</div>`:"";
   const retainedText=majL?`<span class="rval">${majL}</span>`:hasTie?`<span class="rpending">égalité : choisis l'avis final</span>`:'<span class="rpending">en attente</span>';
-  return `<div class="card ${m.fr?'fr':''} ${filled?'filled':''} ${placed?'locked':''} ${betState?`bet-${betState.cls}`:''}" style="${pronostiqueurVoteStyle(me)}">${topBar}<div class="teams"><div class="team">${i1}<span class="tname">${m.e1}</span></div><div class="vs">VS</div><div class="team r"><span class="tname">${m.e2}</span>${i2}</div></div><div class="votes"><div class="votes-title">Choix des pronostics</div>${rows}<div class="retenu"><div class="retenu-main"><span class="rlabel">Retenu :</span>${retainedText}${tieChooser}${coteEditor}${betEditor}${resetEditor}</div><div class="retenu-tools"><div class="retenu-row scoreline">${scoreEditor}${gainEditor}</div></div>${real&&badges?`<div class="badges">${badges}</div>`:''}</div></div></div>`;
+  return `<div id="match-${m.id}" class="card ${m.fr?'fr':''} ${filled?'filled':''} ${placed?'locked':''} ${betState?`bet-${betState.cls}`:''}" style="${pronostiqueurVoteStyle(me)}">${topBar}<div class="teams"><div class="team">${i1}<span class="tname">${m.e1}</span></div><div class="vs">VS</div><div class="team r"><span class="tname">${m.e2}</span>${i2}</div></div><div class="votes"><div class="votes-title">Choix des pronostics</div>${rows}<div class="retenu"><div class="retenu-main"><span class="rlabel">Retenu :</span>${retainedText}${tieChooser}${coteEditor}${betEditor}${resetEditor}</div><div class="retenu-tools"><div class="retenu-row scoreline">${scoreEditor}${gainEditor}</div></div>${real&&badges?`<div class="badges">${badges}</div>`:''}</div></div></div>`;
 }
 function renderClassement(sc){
   const sorted=[...PARTICIPANTS].sort((a,b)=>(sc[b]||0)-(sc[a]||0));
@@ -1135,42 +1153,66 @@ function renderClassement(sc){
 function renderCompetition(){
   const tables=groupTables();
   const kval=buildKnockoutProjection(tables);
+  const phaseOrder=["Phase de groupes","1/16","1/8","Quart","Demi","3ème place","Finale"];
   const gHtml=Object.keys(tables).map(g=>`<div class="gcard"><div class="ghead">Groupe ${g}</div>${tables[g].map((t,i)=>`<div class="grow"><span class="gpos">${i+1}</span><span class="gteam">${flagImg(t.team,"flag-sm")}<span>${t.team}</span></span><span class="gnum">${t.pts}</span><span class="gnum">${t.d}</span><span class="gnum">${t.gf}</span><span class="gnum">${t.j}</span></div>`).join('')}</div>`).join('');
   const thirdLine=kval.bestThirdRanking.length?`<div class="ko-line"><b>3e meilleurs</b>${kval.bestThirdRanking.join(" · ")}</div>`:"";
   const fixtureById=Object.fromEntries(kval.fixtures.map(f=>[f.id,f]));
+  const competitionPhaseLabel=fm=>fm.g?"Phase de groupes":((fm.round||fm.t)==="FINALE"?"Finale":(fm.round||fm.t||"Phase finale"));
+  const competitionSubLabel=fm=>fm.g?`Groupe ${fm.g}`:(((fm.round||fm.t)==="FINALE")?"Finale":((fm.round||fm.t)||"Phase finale"));
   const calendarMatches=ALL
     .map(m=>{
       const fm=fixtureById[m.id]||m;
       const s=scoreOf(m.id);
       const done=s.s1!==""&&s.s2!=="";
-      return {m,fm,s,done};
+      const phaseLabel=competitionPhaseLabel(fm);
+      const subLabel=competitionSubLabel(fm);
+      return {m,fm,s,done,phaseLabel,subLabel};
     })
     .sort((a,b)=>{
+      const pa=phaseOrder.indexOf(a.phaseLabel),pb=phaseOrder.indexOf(b.phaseLabel);
+      if(pa!==pb)return (pa===-1?999:pa)-(pb===-1?999:pb);
       const da=matchDate(a.fm.date).getTime(),db=matchDate(b.fm.date).getTime();
       if(da!==db)return da-db;
       return a.fm.id-b.fm.id;
     });
-  const byDate={};
-  const orderedDates=[];
+  const byPhase={};
+  const orderedPhases=[];
   calendarMatches.forEach(entry=>{
-    const d=entry.fm.date;
-    if(!byDate[d]){byDate[d]=[];orderedDates.push(d);} 
-    byDate[d].push(entry);
+    if(!byPhase[entry.phaseLabel]){byPhase[entry.phaseLabel]=[];orderedPhases.push(entry.phaseLabel);}
+    byPhase[entry.phaseLabel].push(entry);
   });
-  const calendarHtml=orderedDates.map(d=>{
-    const rows=byDate[d].map(({fm,s,done})=>{
-      const a=Number(s.s1),b=Number(s.s2);
-      const hasWinner=done&&Number.isFinite(a)&&Number.isFinite(b)&&a!==b;
-      const phaseLabel=fm.g?`Groupe ${fm.g}`:(fm.t==="FINALE"?"Finale":fm.t);
-      const statusLabel=done?"Terminé":"À jouer";
-      const scoreLabel=done?`${s.s1} - ${s.s2}`:"—";
-      return `<div class="past-result ${done?"":"pending"}"><div class="past-meta"><span class="past-id">M${String(fm.id).padStart(3,"0")}</span><span class="past-phase">${phaseLabel}</span><span class="past-when">${fm.h}</span><span class="past-status">${statusLabel}</span></div><div class="past-teams"><span class="past-team ${hasWinner&&a>b?"win":""}">${flagImg(fm.e1,"flag-sm")}<span>${fm.e1}</span></span><span class="past-score">${scoreLabel}</span><span class="past-team r ${hasWinner&&b>a?"win":""}">${flagImg(fm.e2,"flag-sm")}<span>${fm.e2}</span></span></div></div>`;
+  const calendarHtml=orderedPhases.map(phaseLabel=>{
+    const byDate={};
+    const orderedDates=[];
+    byPhase[phaseLabel].forEach(entry=>{
+      const d=entry.fm.date;
+      if(!byDate[d]){byDate[d]=[];orderedDates.push(d);} 
+      byDate[d].push(entry);
+    });
+    const daysHtml=orderedDates.map(d=>{
+      const byGroup={};
+      const orderedGroups=[];
+      byDate[d].forEach(({subLabel,fm,s,done})=>{
+        if(!byGroup[subLabel]){byGroup[subLabel]=[];orderedGroups.push(subLabel);} 
+        byGroup[subLabel].push({fm,s,done});
+      });
+      const groupsHtml=orderedGroups.map(groupLabel=>{
+        const rows=byGroup[groupLabel].map(({fm,s,done})=>{
+        const a=Number(s.s1),b=Number(s.s2);
+        const hasWinner=done&&Number.isFinite(a)&&Number.isFinite(b)&&a!==b;
+        const statusLabel=done?"Terminé":"À jouer";
+        const scoreLabel=done?`${s.s1}-${s.s2}`:"—";
+        return `<button class="past-row ${done?"":"pending"}" onclick="goToMatch(${fm.id})"><span class="past-when">${fm.h}</span><span class="past-team ${hasWinner&&a>b?"win":""}">${flagImg(fm.e1,"flag-sm")}<span>${fm.e1}</span></span><span class="past-score">${scoreLabel}</span><span class="past-team r ${hasWinner&&b>a?"win":""}">${flagImg(fm.e2,"flag-sm")}<span>${fm.e2}</span></span><span class="past-status">${statusLabel}</span></button>`;
+        }).join('');
+        return `<div class="past-group"><div class="past-group-title">${groupLabel}</div><div class="past-rows">${rows}</div></div>`;
+      }).join('');
+      return `<div class="past-day"><div class="past-day-title">${dayLabel(d)}</div>${groupsHtml}</div>`;
     }).join('');
-    return `<div class="past-day"><div class="past-day-title">${dayLabel(d)}</div>${rows}</div>`;
+    return `<div class="past-phase-block"><div class="past-phase-head">${phaseLabel}</div><div class="past-results">${daysHtml}</div></div>`;
   }).join('');
   const playedBlock=calendarHtml||`<div class="ko-line">Aucun match disponible.</div>`;
   const finishedCount=calendarMatches.filter(x=>x.done).length;
-  return `<div class="slabel"><span class="slabel-text">Classement phase de groupes</span><span class="slabel-line"></span><span class="slabel-count">Pts / Diff / BP / J</span></div><div class="group-grid">${gHtml}</div><div class="slabel"><span class="slabel-text">Phase éliminatoire</span><span class="slabel-line"></span></div>${thirdLine}${renderKnockout(kval.fixtures)}<div class="slabel"><span class="slabel-text">Calendrier des matchs</span><span class="slabel-line"></span><span class="slabel-count">${finishedCount}/${ALL.length} joués</span></div><div class="past-results">${playedBlock}</div><div style="height:16px"></div>`;
+  return `<div class="slabel"><span class="slabel-text">Classement phase de groupes</span><span class="slabel-line"></span><span class="slabel-count">Pts / Diff / BP / J</span></div><div class="group-grid">${gHtml}</div><div class="slabel"><span class="slabel-text">Phase éliminatoire</span><span class="slabel-line"></span></div>${thirdLine}${renderKnockout(kval.fixtures)}<div class="slabel"><span class="slabel-text">Calendrier des matchs</span><span class="slabel-line"></span><span class="slabel-count">${finishedCount}/${ALL.length} joués</span></div><div class="past-phases">${playedBlock}</div><div style="height:16px"></div>`;
 }
 function renderStats(sc){const total=Object.values(results).filter(Boolean).length;const max=Math.max(...Object.values(sc),0);const sorted=[...PARTICIPANTS].sort((a,b)=>(sc[b]||0)-(sc[a]||0));const detail=PARTICIPANTS.map((p,pi)=>{const voted=ALL.filter(m=>results[m.id]&&(votes[m.id]||[])[pi]).length;const correct=ALL.filter(m=>{const r=results[m.id];return r&&(votes[m.id]||[])[pi]===r;}).length;const missed=ALL.filter(m=>results[m.id]&&!(votes[m.id]||[])[pi]).length;return `<div class="rcard"><div class="rtop"><span class="rname">${p}</span><span class="rscore" style="font-size:24px">${sc[p]||0}<span class="runit">pts</span></span></div><div class="rbars"><div class="brow"><span class="blabel">Saisis</span><div class="btrack"><div class="bfill neutral" style="width:${total>0?(voted/total*100):0}%"></div></div><span class="bval">${voted}/${total}</span></div><div class="brow"><span class="blabel">Corrects</span><div class="btrack"><div class="bfill" style="width:${voted>0?(correct/voted*100):0}%"></div></div><span class="bval">${correct}</span></div><div class="brow"><span class="blabel">Manqués</span><div class="btrack"><div class="bfill neutral" style="width:${total>0?(missed/total*100):0}%"></div></div><span class="bval">${missed}</span></div></div></div>`;}).join('');const rules=[["⚽","Mise","1 € par personne et par match — 4 € collectifs"],["🗳️","Vote majoritaire","Le pronostic le plus choisi est retenu avant chaque match"],["⚖️","Égalité","En cas d'ex-æquo, le meilleur taux de réussite tranche"],["💰","Gains","Répartis équitablement entre les quatre participants"],["🍻","Apéro","Le dernier du classement offre l'apéro à Niort"]].map(([i,t,d])=>`<div class="rule"><span class="rule-ico">${i}</span><div><div class="rule-t">${t}</div><div class="rule-d">${d}</div></div></div>`).join('');return `<div class="slabel"><span class="slabel-text">Vue d'ensemble</span><span class="slabel-line"></span></div><div class="grid"><div class="scard"><div class="slbl">Matchs joués</div><div class="sval a">${total}</div><div class="ssub">sur 104 au total</div></div><div class="scard"><div class="slbl">Mise engagée</div><div class="sval">${total*4} €</div><div class="ssub">1 € × 4 × ${total}</div></div><div class="scard"><div class="slbl">En tête</div><div class="sval">${max}</div><div class="ssub">${sorted[0]}</div></div><div class="scard"><div class="slbl">Restants</div><div class="sval">${104-total}</div><div class="ssub">${(104-total)*4} € à jouer</div></div></div><div class="slabel"><span class="slabel-text">Par joueur</span><span class="slabel-line"></span></div>${detail}<div class="slabel"><span class="slabel-text">Règles</span><span class="slabel-line"></span></div>${rules}<div style="height:16px"></div>`;}
 
@@ -1580,6 +1622,33 @@ window.setResult=async function(id,v){
   }catch(e){setSync("off");showBanner("Échec de l'enregistrement — base injoignable.");console.error(e);}
 };
 window.setTab=function(t){if(t==="resultats")t="matchs";tab=t;document.querySelectorAll(".nbtn").forEach(b=>b.classList.remove("on"));const nav=document.getElementById("nav-"+t);if(nav)nav.classList.add("on");document.querySelector(".app").classList.toggle("wide",t==="competition");document.getElementById("content").scrollTop=0;render();};
+window.goToMatch=function(id){
+  const base=ALL.find(m=>m.id===id);
+  if(!base)return;
+  filterSearch="";
+  filterTeam="Toutes";
+  filterDate=base.date;
+  if(base.g){
+    filterPhase="Groupes";
+    filterGroupe=base.g;
+  }else{
+    const kval=buildKnockoutProjection(groupTables());
+    const fixture=kval.fixtures.find(m=>m.id===id);
+    filterPhase=(fixture&&fixture.round)||base.t||"FINALE";
+    filterGroupe="Tous";
+  }
+  openDays[dayLabel(base.date)]=true;
+  tab="matchs";
+  document.querySelectorAll(".nbtn").forEach(b=>b.classList.remove("on"));
+  const nav=document.getElementById("nav-matchs");
+  if(nav)nav.classList.add("on");
+  document.querySelector(".app").classList.toggle("wide",false);
+  render();
+  requestAnimationFrame(()=>{
+    const target=document.getElementById(`match-${id}`);
+    if(target)target.scrollIntoView({block:"start",behavior:"smooth"});
+  });
+};
 window.setPhase=function(p){filterPhase=p;render();};
 window.setGroupe=function(g){filterGroupe=g;render();};
 window.setFilterSearch=function(v){filterSearch=v;renderMatchsOnly();};
