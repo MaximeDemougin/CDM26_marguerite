@@ -200,7 +200,7 @@ body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--b
 .retenu-row.scoreline{justify-content:center}
 .rlabel{font-size:9px;font-weight:600;letter-spacing:.9px;color:var(--faint);text-transform:uppercase}
 .rval{min-height:var(--ctrl-h);font-size:var(--ctrl-fs);font-weight:600;color:var(--ok);background:color-mix(in oklab,var(--ok) 14%, white);padding:0 11px;border-radius:var(--ctrl-radius);display:inline-flex;align-items:center}
-.rpending{font-size:var(--ctrl-fs);color:var(--faint);font-style:italic}
+.rpending{font-size:var(--ctrl-fs);color:var(--faint);font-style:italic;min-height:var(--ctrl-h);display:inline-flex;align-items:center}
 .retenu-main .rlabel{min-width:54px;text-align:right}
 .retenu-main .rval,.retenu-main .rpending{min-width:132px;justify-content:center}
 .tie-chooser{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -505,8 +505,8 @@ body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--b
 .gnum{font-size:10px;color:var(--dim);text-align:right;font-weight:700}
 .ko-line{margin:0 18px 8px;border:none;background:#ffffff;border-radius:10px;padding:10px 12px;font-size:12px;color:var(--ink);box-shadow:0 10px 22px rgba(15,29,49,.13),0 0 0 1px rgba(255,255,255,.72) inset}
 .ko-line b{font-size:10px;color:var(--faint);margin-right:7px;letter-spacing:.8px}
-.bracket-wrap{padding:8px 18px 14px;overflow-x:auto;background:linear-gradient(180deg,#fdfcf9 0%,#f7f6f2 100%);border:none;border-radius:12px;margin:0 18px;box-shadow:0 12px 28px rgba(15,29,49,.14),0 0 0 1px rgba(255,255,255,.74) inset}
-.br-main{display:grid;grid-template-columns:auto 190px auto;gap:12px;min-width:1600px;align-items:start;margin:0 auto}
+.bracket-wrap{padding:8px 18px 14px;overflow-x:auto;background:linear-gradient(180deg,#ffffff 0%,#f1f6fc 100%);border:none;border-radius:12px;margin:0 18px;box-shadow:0 12px 28px rgba(15,29,49,.14),0 0 0 1px rgba(255,255,255,.74) inset}
+.br-main{display:grid;grid-template-columns:auto 190px auto;gap:12px;width:max-content;align-items:start;margin:0 auto}
 .br-side{display:grid;grid-template-columns:repeat(4,165px);gap:10px;align-items:start}
 .br-side-col{display:flex;flex-direction:column;gap:8px;justify-content:flex-start}
 .br-col-title{font-size:10px;color:var(--faint);font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:2px 2px 6px;text-align:center}
@@ -1044,6 +1044,14 @@ function getMajority(mv,sc,id){const w=majorityCandidates(mv);if(!w.length)retur
 
 function centerCompetitionBracket(){const b=document.querySelector('.bracket-wrap');if(!b)return;b.scrollLeft=Math.max(0,Math.round((b.scrollWidth-b.clientWidth)/2));}
 function render(){renderWho();const sc=computeScores();renderBoard(sc);renderContent(sc);if(tab==="competition")requestAnimationFrame(centerCompetitionBracket);}
+function updateMatchCard(id){
+  const el=document.getElementById("match-"+id);
+  const m=ALL.find(x=>x.id===id);
+  if(!el||!m||tab!=="matchs"){render();return;}
+  const tmp=document.createElement("div");
+  tmp.innerHTML=matchCard(m,computeScores());
+  el.replaceWith(tmp.firstElementChild);
+}
 function renderWho(){const who=document.getElementById("who"),subtitle=document.getElementById("who-subtitle");if(tab!=="matchs"){who.innerHTML="";who.style.display="none";if(subtitle)subtitle.style.display="none";return;}who.style.display="block";if(subtitle)subtitle.style.display="block";const currentColor=me?(customColorMap[me]||themeForPronostiqueur(me).accent):null;const picker=me?`<div class="who-tools"><details class="who-menu"><summary class="who-menu-btn"><span class="who-menu-dot" style="background:${currentColor}"></span>Couleurs</summary><div class="who-menu-pop"><label class="who-color">Couleur de ${me}<input type="color" value="${currentColor}" onchange="setPronostiqueurColor('${me}',this.value)"></label><button class="who-reset" onclick="resetPronostiqueurColor('${me}')">Reinitialiser</button></div></details></div>`:'';who.innerHTML=`<div class="who">${PARTICIPANTS.map(p=>`<button class="who-btn ${me===p?'on':''}" style="${pronostiqueurVoteStyle(p)}" onclick="setMe('${p}')">${p}</button>`).join('')}</div>${picker}`;}
 function renderBoard(sc){const board=document.getElementById("board");board.innerHTML="";board.style.display="none";}
 function renderPageHead(title,sub){return `<div class="page-head"><div class="page-head-title">${title}</div>${sub?`<div class="page-head-sub">${sub}</div>`:''}</div>`;}
@@ -1058,7 +1066,10 @@ function renderContent(sc){
         :tab==="regles"
           ?{title:"Règles",sub:"Contrat de participation et cadre commun",body:renderRegles()}
         :{title:"Statistiques",sub:"Performance, tendances et bilan financier",body:renderStatsRich(sc)};
-  document.getElementById("content").innerHTML=renderPageHead(page.title,page.sub)+page.body;
+  const c=document.getElementById("content");
+  const y=c.scrollTop,wy=window.scrollY;
+  c.innerHTML=renderPageHead(page.title,page.sub)+page.body;
+  c.scrollTop=y;window.scrollTo(0,wy);
 }
 function renderRegles(){
   const signLine=(name,fullName)=>{const data=contractSignatures[name]||{};const val=String(data.value||"");const safeVal=val.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");const stamp=data.at?`<div class="contract-sign-stamp">Signé le ${data.at}</div>`:"";if(data.at&&val.trim())return `<div class="contract-sign-line"><div class="contract-sign-name">${fullName}</div><div class="contract-signature-value">${safeVal}</div>${stamp}</div>`;return `<div class="contract-sign-line"><div class="contract-sign-name">${fullName}</div><input class="contract-sign-input" type="text" value="${safeVal}" placeholder="Signature" oninput="updateContractSignatureDraft('${name}',this.value)">${stamp}<div class="contract-sign-actions"><button class="contract-sign-btn primary" onclick="signContract('${name}')">Signer</button><button class="contract-sign-btn" onclick="clearContractSignature('${name}')">Effacer</button>${me===name?`<button class='contract-sign-btn' onclick="signContractAsMe()">Signer en tant que moi</button>`:''}</div></div>`;};
@@ -1704,7 +1715,7 @@ window.vote=async function(id,pi,v){
   if(me!==PARTICIPANTS[pi])return;
   if(betPlaced(id)){showBanner("Pronostics verrouillés : pari déjà placé pour ce match.");return;}
   const cur=votes[id]?[...votes[id]]:[null,null,null,null];
-  const newv=cur[pi]===v?null:v;cur[pi]=newv;votes[id]=cur;render();
+  const newv=cur[pi]===v?null:v;cur[pi]=newv;votes[id]=cur;updateMatchCard(id);
   const tieOptions=majorityCandidates(cur);
   const shouldClearTie=tieOptions.length<=1||!tieOptions.includes(tieChoiceMap[id]);
   if(shouldClearTie){delete tieChoiceMap[id];localStorage.setItem("cdm26_tie_choices",JSON.stringify(tieChoiceMap));}
@@ -1775,10 +1786,11 @@ window.setFilterTeam=function(v){filterTeam=v;renderMatchsOnly();};
 // Rafraîchit les données puis redessine SANS casser le scroll ni les sections ouvertes
 async function softRefresh(){
   const c=document.getElementById("content");
-  const y=c?c.scrollTop:0;
+  const y=c?c.scrollTop:0,wy=window.scrollY;
   await loadAll();
   if(tab==="matchs"){const sc=computeScores();renderWho();renderBoard(sc);c.innerHTML=renderMatchs(sc);c.scrollTop=y;}
   else render();
+  window.scrollTo(0,wy);
 }
 
 async function refresh(){
