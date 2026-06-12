@@ -5,36 +5,43 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pronostics CDM 2026</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&family=Fredoka:wght@500;600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
   --paper:#eef4fb;--card:#ffffff;--ink:#0f1d31;--dim:#314a67;--faint:#5f7694;
-  --line:#b9cce1;--line2:#9eb6cf;--accent:#d7183a;--accent-soft:#ffd8df;
-  --accent-fixed:#e11f3f;--accent-soft-fixed:#ffdfe5;
-  --lock:#2f8f66;--lock-soft:#e9f8f0;--lock-deep:#1f6c4b;
-  --bet-warn:#4f76a6;--bet-warn-soft:#e8f0fb;--bet-warn-deep:#223f5f;
-  --bet-on:#1f885f;--bet-on-soft:#e5f7ee;--bet-on-deep:#106144;
-  --fr:#0d4fc2;--ok:#138254;--ko:#b3172f;
-  --bg1:rgba(15,86,199,.20);--bg2:rgba(225,31,63,.22);--bg3:rgba(22,127,82,.10);--bg4:#e7eff9;
+  --line:#b9cce1;--line2:#9eb6cf;--accent:#D7282F;--accent-soft:#fcdcdd;
+  --accent-fixed:#D7282F;--accent-soft-fixed:#fcdcdd;
+  --lock:#14916b;--lock-soft:#e2f8f0;--lock-deep:#0c6b4e;
+  --bet-warn:#FF5A1E;--bet-warn-soft:#ffe9df;--bet-warn-deep:#9c3a12;
+  --bet-on:#14916b;--bet-on-soft:#e2f8f0;--bet-on-deep:#0c6b4e;
+  --fr:#2d5ce6;--ok:#14916b;--ko:#D7282F;
+  --bg1:rgba(45,92,230,.20);--bg2:rgba(215,40,47,.22);--bg3:rgba(164,210,51,.14);--bg4:#e7eff9;
+  --wc-purple:#5B2D8C;--wc-red:#D7282F;--wc-orange:#FF5A1E;--wc-lime:#A4D233;
+  --wc-blue:#2D5CE6;--wc-lav:#B79CE4;--wc-salmon:#F8A29A;--wc-mint:#63e0be;--wc-black:#101418;
+  --font-round:'Fredoka','Manrope',sans-serif;
 }
 body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -10%,rgba(13,79,194,.16),transparent 32%),radial-gradient(circle at 92% -8%,rgba(215,24,58,.14),transparent 34%),linear-gradient(180deg,#f7fafe 0%,#eaf2fb 100%);color:var(--ink);min-height:100vh;font-feature-settings:"tnum"}
 body::before,body::after{content:"";position:fixed;top:-6%;bottom:-6%;width:50vw;pointer-events:none;z-index:0;animation:sideBreathe 11s ease-in-out infinite alternate}
 body::after{animation-delay:-5.5s}
-@keyframes sideBreathe{from{opacity:.72;transform:translateY(-1.5%) scale(1)}to{opacity:1;transform:translateY(1.5%) scale(1.04)}}
+@keyframes sideBreathe{from{opacity:.85;transform:translateY(-1.2%) scale(1)}to{opacity:1;transform:translateY(1.2%) scale(1.02)}}
 @media (prefers-reduced-motion:reduce){body::before,body::after{animation:none}}
 html::before,html::after{content:"";position:fixed;top:0;height:200vh;width:clamp(40px,12vw,220px);pointer-events:none;z-index:0;background-image:radial-gradient(circle 3px,color-mix(in oklab,var(--fr) 55%,transparent) 100%,transparent 100%),radial-gradient(circle 2.5px,color-mix(in oklab,var(--accent) 50%,transparent) 100%,transparent 100%),radial-gradient(circle 2px,color-mix(in oklab,var(--fr) 38%,transparent) 100%,transparent 100%);background-size:120px 230px,90px 190px,70px 150px;background-position:14px 40px,50px 120px,30px 80px;will-change:transform;animation:confettiFall 24s linear infinite}
 html::before{left:0;mask-image:linear-gradient(90deg,black 30%,transparent 100%);-webkit-mask-image:linear-gradient(90deg,black 30%,transparent 100%)}
 html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black 30%,transparent 100%);-webkit-mask-image:linear-gradient(270deg,black 30%,transparent 100%)}
 @keyframes confettiFall{from{transform:translateY(-100vh)}to{transform:translateY(0)}}
 @media (prefers-reduced-motion:reduce){html::before,html::after{animation:none}}
-body::before{left:0;background:linear-gradient(105deg,color-mix(in oklab,var(--bg1) 62%,transparent) 0%,transparent 78%),radial-gradient(ellipse 70% 42% at 0% 28%,color-mix(in oklab,var(--bg1) 55%,transparent),transparent 72%),radial-gradient(ellipse 56% 30% at 0% 78%,color-mix(in oklab,var(--bg3) 70%,transparent),transparent 70%)}
-body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--bg2) 58%,transparent) 0%,transparent 78%),radial-gradient(ellipse 70% 42% at 100% 34%,color-mix(in oklab,var(--bg2) 52%,transparent),transparent 72%),radial-gradient(ellipse 56% 30% at 100% 84%,color-mix(in oklab,var(--bg1) 48%,transparent),transparent 70%)}
+body::before{left:0;background:
+ radial-gradient(circle at -120px 18%,var(--wc-purple) 0 150px,var(--wc-blue) 150px 205px,var(--wc-red) 205px 255px,var(--wc-orange) 255px 298px,var(--wc-lime) 298px 334px,var(--wc-salmon) 334px 362px,transparent 362px),
+ radial-gradient(circle at -80px 88%,var(--wc-lav) 0 90px,var(--wc-mint) 90px 130px,var(--wc-blue) 130px 164px,transparent 164px)}
+body::after{right:0;background:
+ radial-gradient(circle at calc(100% + 120px) 76%,var(--wc-red) 0 150px,var(--wc-orange) 150px 205px,var(--wc-lav) 205px 255px,var(--wc-blue) 255px 298px,var(--wc-salmon) 298px 334px,var(--wc-lime) 334px 362px,transparent 362px),
+ radial-gradient(circle at calc(100% + 80px) 12%,var(--wc-mint) 0 90px,var(--wc-purple) 90px 130px,var(--wc-salmon) 130px 164px,transparent 164px)}
 ::-webkit-scrollbar{width:0;height:0}
 .app{width:100%;max-width:min(100%,1180px);margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:#fdfefe;position:relative;border:1px solid color-mix(in oklab,var(--line2) 78%, #7f9fbe);border-radius:20px;overflow:hidden;box-shadow:0 12px 30px rgba(15,29,49,.10);z-index:1}
 .app.wide{max-width:min(100%,1800px)}
 .header{padding:18px 22px 14px;border-bottom:1px solid color-mix(in oklab,var(--line2) 86%, #8aa5c2);position:sticky;top:0;z-index:100;background:rgba(249,252,255,.95);backdrop-filter:blur(8px) saturate(130%)}
 .h-row{display:flex;align-items:center;justify-content:space-between;gap:14px}
-.eyebrow{font-size:9px;letter-spacing:2.2px;color:color-mix(in oklab,var(--fr) 44%, var(--faint));text-transform:uppercase;font-weight:800;margin-bottom:6px}
+.eyebrow{font-size:9px;letter-spacing:2.2px;color:var(--wc-purple);text-transform:uppercase;font-weight:800;margin-bottom:6px}
 .title{font-family:'Space Grotesk',sans-serif;font-size:25px;font-weight:700;letter-spacing:-.5px;line-height:1;color:#0b1930}
 .subtitle{font-size:12px;color:var(--dim);margin-top:6px;font-weight:500}
 .who{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
@@ -78,7 +85,7 @@ body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--b
 .scroller::-webkit-scrollbar{display:none}
 .chip{padding:7px 15px;border:1px solid #9cb6d3;border-radius:999px;background:linear-gradient(135deg,#e3ecf9 0%,#d3e3f8 100%);background-size:180% 180%;color:#1f3654;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .16s;font-family:inherit;box-shadow:0 4px 10px rgba(15,79,194,.12)}
 .chip:hover{border-color:#4d7fb8;color:#0f2747;transform:translateY(-2px) scale(1.01);animation:chipPulse .75s ease-out;box-shadow:0 8px 18px rgba(13,79,194,.24)}
-.chip.on{background:linear-gradient(135deg,color-mix(in oklab,var(--pv, var(--fr)) 86%, #0d3f8f) 0%,color-mix(in oklab,var(--pv, var(--accent)) 70%, #103a74) 100%);border-color:color-mix(in oklab,var(--pv, var(--fr)) 72%, #0a2d5d);color:#f5f9ff;box-shadow:0 10px 20px color-mix(in oklab,var(--pv, var(--fr)) 32%, transparent)}
+.chip.on{background:var(--wc-black);border-color:var(--wc-black);color:#fff;box-shadow:0 8px 18px rgba(16,20,24,.30)}
 .scroller.sub .chip{padding:5px 12px;font-size:10px}
 @keyframes chipPulse{0%{background-position:0% 50%}100%{background-position:100% 50%}}
 .slabel{display:flex;align-items:center;gap:11px;padding:18px 20px 10px}
@@ -132,10 +139,8 @@ body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--b
 @keyframes pendingBottomSolid{0%,100%{opacity:.68}50%{opacity:1}}
 @keyframes pendingBadgeBreath{0%,100%{transform:scale(1);opacity:.92;box-shadow:0 2px 8px color-mix(in oklab,var(--bet-warn) 18%, transparent)}50%{transform:scale(1.045);opacity:1;box-shadow:0 5px 14px color-mix(in oklab,var(--bet-warn) 30%, transparent)}}
 /* Carte repliée : ligne compacte cliquable */
-.card-top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #1f3755;background:linear-gradient(135deg,#35526f 0%,#243a55 100%)}
+.teams-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:8px 14px;box-shadow:inset 0 -1px 0 rgba(255,255,255,.10)}
 .c-top-left{display:inline-flex;align-items:center;gap:10px;justify-self:start;min-width:0}
-.card.collapsed .card-top{border-bottom:none}
-.card.collapsed .teams{padding:10px 12px}
 .card-chev{font-size:10px;color:var(--faint);transition:transform .2s;margin-left:2px}
 .card:not(.collapsed) .card-chev{transform:rotate(90deg)}
 .mini-status{margin-left:auto;display:flex;align-items:center;gap:7px}
@@ -145,28 +150,36 @@ body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--b
 .mini-dot.partial{background:#7f96b3}
 .mini-dot.empty{background:var(--line2)}
 .collapsible{overflow:hidden;transition:none}
-.c-num{display:inline-flex;align-items:center;justify-content:center;height:20px;padding:0 8px;border-radius:999px;font-size:9px;color:#eef5ff;font-weight:800;letter-spacing:.3px;background:rgba(255,255,255,.15);box-shadow:inset 0 0 0 1px rgba(255,255,255,.34)}
+.c-num{display:inline-flex;align-items:center;justify-content:center;height:20px;padding:0 9px;border-radius:999px;font-size:9px;color:#fff;font-weight:800;letter-spacing:.3px;background:var(--wc-blue);font-family:var(--font-round)}
 .c-when{font-size:11px;color:#f3f8ff;font-weight:800}
 .c-state{font-size:9px;font-weight:800;letter-spacing:.7px;padding:3px 8px;border-radius:999px;text-transform:uppercase;margin:0;border:1px solid color-mix(in oklab,var(--line2) 92%, #8ea9c7);background:#f0f5fc;color:var(--dim);white-space:nowrap;justify-self:center}
 .c-state.pending{border-color:color-mix(in oklab,var(--bet-warn) 54%, var(--line2));background:var(--bet-warn-soft);color:var(--bet-warn-deep);animation:pendingBadgeBreath 2.6s ease-in-out infinite;box-shadow:none}
 .c-state.won{border-color:color-mix(in oklab,var(--bet-on) 62%, var(--line2));background:var(--bet-on-soft);color:var(--bet-on-deep)}
 .c-state.lost{border-color:color-mix(in oklab,var(--ko) 48%, var(--line2));background:color-mix(in oklab,var(--ko) 9%, white);color:var(--ko)}
-.c-tag{margin-left:auto;font-size:9px;font-weight:700;letter-spacing:.7px;padding:3px 8px;background:rgba(255,255,255,.13);border:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.32);color:#eef5ff;border-radius:999px;text-transform:uppercase}
-.c-tag.frtag{background:linear-gradient(135deg,rgba(82,131,222,.5),rgba(215,24,58,.34));box-shadow:inset 0 0 0 1px rgba(173,205,250,.65);color:#f2f7ff}
+.c-tag{margin-left:auto;font-size:9px;font-weight:700;letter-spacing:.7px;padding:3px 9px;background:transparent;border:none;box-shadow:inset 0 0 0 1.5px var(--wc-lime);color:var(--wc-lime);border-radius:999px;text-transform:uppercase}
+.c-tag.frtag{background:#fff;box-shadow:none;color:var(--wc-black)}
 .c-top-tags{margin-left:0;display:inline-flex;align-items:center;gap:5px;justify-self:end}
 .c-top-tags .c-tag{margin-left:0}
 
-.card.bet-pending .card-top{background:linear-gradient(135deg,#557da9 0%,#41618c 100%);border-bottom-color:#365a85}
-.card.bet-won .card-top{background:linear-gradient(135deg,#27955f 0%,#187a4e 100%);border-bottom-color:#166747}
-.card.bet-lost .card-top{background:linear-gradient(135deg,#c02440 0%,#9d1430 100%);border-bottom-color:#861123}
-.teams{display:flex;align-items:center;padding:14px 13px}
-.team{flex:1;display:flex;align-items:center;gap:8px}
+.card.bet-pending .teams-head{box-shadow:inset 0 -3px 0 var(--wc-orange)}
+.card.bet-won .teams-head{box-shadow:inset 0 -3px 0 var(--wc-lime)}
+.card.bet-lost .teams-head{box-shadow:inset 0 -3px 0 var(--wc-red)}
+.card.bet-pending .c-state.pending{border-color:rgba(255,90,30,.55);background:rgba(255,90,30,.16);color:#ffb38f}
+.card.bet-won .c-state.won{border-color:rgba(164,210,51,.6);background:rgba(164,210,51,.16);color:#d4ee92}
+.card.bet-lost .c-state.lost{border-color:rgba(215,40,47,.6);background:rgba(215,40,47,.18);color:#ffaab0}
+.teams{display:flex;flex-direction:column;margin:10px 12px 4px;border-radius:14px;position:relative;background:#12161d;overflow:hidden;box-shadow:none}
+.teams-score{display:flex;align-items:center;padding:9px 14px}
+.teams::before,.teams::after{content:"";position:absolute;left:0;right:0;height:3px;z-index:1}
+.teams::before{top:0;background:linear-gradient(90deg,var(--wc-red) 0% 7%,var(--wc-blue) 7% 38%,var(--wc-mint) 38% 43%,var(--wc-lime) 43% 74%,var(--wc-orange) 74% 87%,var(--wc-purple) 87% 100%)}
+.teams::after{bottom:0;background:linear-gradient(90deg,var(--wc-purple) 0% 10%,var(--wc-lime) 10% 38%,var(--wc-orange) 38% 50%,var(--wc-red) 50% 58%,var(--wc-blue) 58% 88%,var(--wc-mint) 88% 100%)}
+.team{flex:1;display:flex;align-items:center;gap:9px;min-width:0}
 .team.r{flex-direction:row-reverse;text-align:right}
-.flag{width:20px;height:20px;object-fit:contain;flex-shrink:0}
+.flag{width:22px;height:16px;object-fit:cover;flex-shrink:0;border-radius:3px;box-shadow:0 0 0 2px rgba(255,255,255,.85)}
 .flag-sm{width:12px;height:12px;object-fit:contain;flex-shrink:0}
 .with-flag{display:inline-flex;align-items:center;gap:4px}
-.tname{font-size:13px;font-weight:600;line-height:1.15}
-.vs{font-size:9px;color:var(--faint);padding:0 12px;font-weight:600;letter-spacing:.8px}
+.tname{font-size:13px;font-weight:800;line-height:1.15;color:#f4f7fb;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vs{font-size:11px;color:#0d332a;background:#63e0be;padding:5px 13px;border-radius:8px;font-weight:900;letter-spacing:1px;flex-shrink:0;margin:0 10px;box-shadow:none}
+.vs.scored{font-size:13px;letter-spacing:2px}
 .votes{padding:6px 12px 12px;border-top:1px solid color-mix(in oklab,var(--line) 78%, white)}
 .votes-title{display:flex;align-items:center;gap:8px;font-size:9px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--faint);margin:2px 0 6px;padding-left:1px}
 .vlock{display:inline-flex;align-items:center;gap:4px;font-size:8px;font-weight:800;letter-spacing:.5px;padding:2px 8px;border-radius:999px;background:#fff6e4;color:#8a5a00;box-shadow:inset 0 0 0 1px #ecd9ac}
@@ -216,8 +229,8 @@ body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--b
 .odds-box{display:flex;align-items:center;gap:6px;min-height:var(--ctrl-h);min-width:132px;justify-content:center;border:1px solid var(--line2);background:var(--paper);border-radius:var(--ctrl-radius);padding:3px 6px}
 .odds-in{width:54px;padding:3px;border:1px solid var(--line2);border-radius:6px;background:var(--card);color:var(--ink);font:inherit;font-size:var(--ctrl-fs);text-align:center;height:26px}
 .odds-in:focus{outline:none;border-color:var(--accent)}
-.bet-toggle{min-height:var(--ctrl-h);min-width:132px;justify-content:center;border:1px solid #e3b35a;background:#fff3dc;color:#8a5a11;font:inherit;font-size:var(--ctrl-fs);font-weight:700;border-radius:999px;padding:0 11px;cursor:pointer;transition:all .15s;box-shadow:none;display:inline-flex;align-items:center}
-.bet-toggle:hover{border-color:#cf9734;background:#ffefcf;color:#6f460c;box-shadow:0 0 0 2px rgba(227,179,90,.22)}
+.bet-toggle{min-height:var(--ctrl-h);min-width:132px;justify-content:center;border:1px solid color-mix(in oklab,var(--wc-orange) 50%,white);background:color-mix(in oklab,var(--wc-orange) 11%,white);color:var(--bet-warn-deep);font:inherit;font-size:var(--ctrl-fs);font-weight:700;border-radius:999px;padding:0 11px;cursor:pointer;transition:all .15s;box-shadow:none;display:inline-flex;align-items:center}
+.bet-toggle:hover{border-color:var(--wc-orange);background:color-mix(in oklab,var(--wc-orange) 17%,white);color:#7d2e0e;box-shadow:0 0 0 2px color-mix(in oklab,var(--wc-orange) 24%,transparent)}
 .bet-toggle.on{border-color:var(--bet-on);background:color-mix(in oklab,var(--bet-on) 14%, white);color:var(--bet-on-deep);box-shadow:none}
 .reset-toggle{min-height:var(--ctrl-h);min-width:132px;justify-content:center;border:1px solid #e7c9ce;background:#fff;color:var(--ko);font:inherit;font-size:var(--ctrl-fs);font-weight:700;border-radius:999px;padding:0 11px;cursor:pointer;transition:all .15s;box-shadow:none;display:inline-flex;align-items:center}
 .reset-toggle:hover{border-color:var(--ko);background:linear-gradient(180deg,#fff6f6 0%,#ffecee 100%);transform:translateY(-1px)}
@@ -276,10 +289,11 @@ body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--b
   .day-meta{width:100%;margin-left:0;justify-content:space-between}
   .card,.rcard,.rule,.admin-card,.ko-line,.stats-table-wrap,.apero,.bracket-wrap{margin-left:14px;margin-right:14px}
   .group-grid,.grid,.stats-hero,.stats-bars,.finance-grid,.bet-summary{padding-left:14px;padding-right:14px}
-  .teams{padding:11px 10px;gap:8px}
+  .teams-score{padding:11px 10px;gap:8px}
+  .teams-head{padding:7px 10px}
   .team{min-width:0}
   .tname{font-size:13px}
-  .vs{padding:0 6px}
+  .vs{padding:5px 10px;margin:0 6px}
   .vrow{grid-template-columns:104px minmax(0,1fr) 104px}
   .vname{width:auto}
   .vopts{width:100%}
@@ -311,10 +325,10 @@ body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--b
   .b-score{font-size:22px}
   .day-name{font-size:11px}
   .day-pill,.day-prog{font-size:9px}
-  .card-top{padding:8px 10px;gap:8px}
-  .teams{flex-wrap:wrap;justify-content:space-between}
+  .teams-head{padding:6px 10px;gap:8px}
+  .teams-score{flex-wrap:wrap;justify-content:space-between;padding:9px 10px}
   .team,.team.r{flex:1 1 calc(50% - 26px)}
-  .vs{width:100%;text-align:center;padding:2px 0}
+  .vs{order:3;width:auto;margin:6px auto 0;text-align:center}
   .vbtn{font-size:10px;padding:6px 6px}
   .vrow{grid-template-columns:1fr;row-gap:5px}
   .m-score,.odds-box,.bet-toggle,.reset-toggle,.gain-pill{width:100%;min-width:0;justify-content:center}
@@ -367,8 +381,8 @@ body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--b
 .stats-progress-label{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--faint)}
 .stats-progress-val{font-size:11px;font-weight:800;color:var(--ink)}
 .stats-progress-track{height:10px;border-radius:999px;background:color-mix(in oklab,var(--paper) 88%, #dbe5f1);overflow:hidden;box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--line2) 50%, transparent)}
-.stats-progress-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#2f8f66 0%,#1f6c4b 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.32)}
-.stats-progress-fill.tempo{background:linear-gradient(90deg,#0f56c7 0%,#2f8f66 100%)}
+.stats-progress-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--wc-mint) 0%,#14916b 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.32)}
+.stats-progress-fill.tempo{background:linear-gradient(90deg,var(--wc-blue) 0%,var(--wc-purple) 50%,var(--wc-red) 100%)}
 .hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;position:relative}
 .hero-kpi{border:none;background:#ffffff;border-radius:12px;padding:12px;display:flex;flex-direction:column;justify-content:space-between;min-height:112px;box-shadow:0 10px 22px rgba(19,41,66,.14),0 0 0 1px rgba(255,255,255,.72) inset}
 .hero-kpi-val{font-size:24px;font-weight:800;letter-spacing:-1px;color:var(--ink)}
@@ -384,8 +398,8 @@ body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--b
 .bar-name.player{color:var(--ps, var(--ink))}
 .bar-meta{font-size:10px;color:var(--faint);font-weight:700;letter-spacing:.7px;text-transform:uppercase;margin-top:2px}
 .bar-rail{height:12px;border-radius:999px;background:var(--paper);overflow:hidden;box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--line2) 55%, transparent)}
-.bar-fill{height:100%;background:linear-gradient(90deg,#4e7fcb 0%,#2f8f66 100%);border-radius:999px}
-.bar-fill.alt{background:linear-gradient(90deg,#2f7a5a 0%,#6fb889 100%)}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--wc-blue) 0%,var(--wc-mint) 100%);border-radius:999px}
+.bar-fill.alt{background:linear-gradient(90deg,var(--wc-orange) 0%,var(--wc-lime) 100%)}
 .bar-fill.player{background:linear-gradient(90deg,var(--ps, var(--accent)) 0%,color-mix(in oklab,var(--ps, var(--accent)) 62%, white) 100%)}
 .bar-fill.alt.player{background:linear-gradient(90deg,color-mix(in oklab,var(--ps, var(--accent)) 78%, #2f7a5a 22%) 0%,color-mix(in oklab,var(--ps, var(--accent)) 48%, white) 100%)}
 .bar-val{text-align:right;font-size:12px;font-weight:700;color:var(--ink)}
@@ -478,7 +492,7 @@ body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--b
 .contract-sign-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end;margin-top:auto}
 .contract-sign-btn{border:1px solid color-mix(in oklab,var(--line2) 86%, white);background:linear-gradient(180deg,#ffffff 0%,#f3f7fc 100%);color:var(--dim);font:600 11px/1 Inter,sans-serif;border-radius:999px;padding:7px 10px;cursor:pointer;transition:all .15s;box-shadow:0 7px 14px rgba(15,29,49,.08)}
 .contract-sign-btn:hover{border-color:color-mix(in oklab,var(--ink) 40%, var(--line2));color:var(--ink);transform:translateY(-1px)}
-.contract-sign-btn.primary{border-color:var(--accent);color:#f5fbff;background:linear-gradient(145deg,#d53f58 0%,var(--accent) 65%,#9f152c 100%);box-shadow:0 10px 18px rgba(225,31,63,.24)}
+.contract-sign-btn.primary{border-color:var(--wc-red);color:#fff;background:linear-gradient(145deg,#e8474d 0%,var(--wc-red) 60%,#9d161c 100%);box-shadow:0 10px 18px rgba(215,40,47,.26)}
 .contract-sign-stamp{font-size:11px;color:var(--faint)}
 .contract-signature-value{font-size:13px;font-weight:700;color:var(--ink)}
 .contract-sign-card.complete{border-color:var(--ok);box-shadow:0 0 0 2px color-mix(in oklab,var(--ok) 28%, transparent)}
@@ -679,8 +693,8 @@ body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--b
 /* ── Animations hover page Compétition ── */
 .gcard{transition:transform .22s cubic-bezier(.16,1,.3,1),box-shadow .22s cubic-bezier(.16,1,.3,1)}
 .gcard:hover{transform:translateY(-3px) scale(1.012);box-shadow:0 20px 40px rgba(15,29,49,.18),0 0 0 1.5px rgba(255,255,255,.82) inset,0 0 0 2px color-mix(in oklab,var(--fr) 18%, transparent)}
-.gcard:hover .ghead{background:color-mix(in oklab,var(--fr) 10%, transparent);color:var(--fr)}
-.ghead{transition:background .22s,color .22s}
+.gcard:hover .ghead{filter:brightness(1.12)}
+.ghead{transition:filter .22s}
 .grow{transition:background .16s,transform .16s;border-radius:6px}
 .grow:hover{background:color-mix(in oklab,var(--fr) 7%, transparent);transform:translateX(3px)}
 .grow:hover .gteam{color:var(--fr)}
@@ -720,20 +734,26 @@ body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--b
 .comp-section-head::-webkit-details-marker{display:none}
 .comp-section-head:hover .slabel-text{color:var(--fr);transition:color .16s}
 /* ── Touches festives ── */
-.title{background:linear-gradient(100deg,#0b1930 0%,var(--fr) 35%,var(--accent) 60%,#0b1930 100%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;animation:titleShimmer 7s ease-in-out infinite}
+.title{font-family:var(--font-round);font-weight:600;letter-spacing:0;background:linear-gradient(100deg,var(--wc-purple) 0%,var(--wc-blue) 30%,var(--wc-red) 55%,var(--wc-orange) 80%,var(--wc-purple) 100%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;animation:titleShimmer 7s ease-in-out infinite}
 @keyframes titleShimmer{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
-.app::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;z-index:5;background:linear-gradient(90deg,var(--fr),#9db9e8,#ffffff,#f0a9b6,var(--accent),var(--fr));background-size:300% 100%;animation:edgeFlow 9s linear infinite}
-@keyframes edgeFlow{from{background-position:0% 50%}to{background-position:300% 50%}}
+.app::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;z-index:5;background:repeating-linear-gradient(90deg,var(--wc-purple) 0 44px,var(--wc-blue) 44px 88px,var(--wc-red) 88px 132px,var(--wc-orange) 132px 176px,var(--wc-lime) 176px 220px);animation:edgeFlow 7s linear infinite}
+@keyframes edgeFlow{from{background-position:0 0}to{background-position:220px 0}}
 @media (prefers-reduced-motion:reduce){.title,.app::before{animation:none}}
-.page-head-title{position:relative;padding-left:13px;background:linear-gradient(95deg,var(--ink) 0%,var(--fr) 70%,var(--accent) 115%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
-.page-head-title::before{content:"";position:absolute;left:0;top:2px;bottom:2px;width:4px;border-radius:99px;background:linear-gradient(180deg,var(--fr) 0%,#ffffff 50%,var(--accent) 100%);box-shadow:0 0 0 1px rgba(15,29,49,.06)}
+.page-head-title{position:relative;padding-left:14px;font-family:var(--font-round);font-weight:600;letter-spacing:.2px;color:var(--ink);background:none;-webkit-text-fill-color:initial}
+.page-head-title::before{content:"";position:absolute;left:0;top:1px;bottom:1px;width:5px;border-radius:99px;background:linear-gradient(180deg,var(--wc-blue) 0 33.4%,var(--wc-red) 33.4% 66.7%,var(--wc-lime) 66.7% 100%)}
 .page-head{border-bottom:none;background:linear-gradient(180deg,rgba(255,255,255,.68),rgba(255,255,255,0))}
-.page-head::after{content:"";display:block;margin-top:10px;height:2px;border-radius:99px;background:linear-gradient(90deg,var(--fr) 0%,color-mix(in oklab,var(--fr) 40%,white) 34%,#e9eff7 50%,color-mix(in oklab,var(--accent) 40%,white) 66%,var(--accent) 100%)}
+.page-head::after{content:"";display:block;margin-top:10px;height:3px;border-radius:99px;background:linear-gradient(90deg,var(--wc-purple) 0 16%,var(--wc-blue) 16% 32%,var(--wc-red) 32% 48%,var(--wc-orange) 48% 64%,var(--wc-lime) 64% 80%,var(--wc-lav) 80% 92%,transparent 92%)}
 .slabel-text{display:inline-flex;align-items:center;gap:8px}
-.slabel-text::before{content:"";width:7px;height:7px;border-radius:50%;background:conic-gradient(var(--fr) 0 33%,#ffffff 33% 66%,var(--accent) 66% 100%);box-shadow:0 0 0 2px color-mix(in oklab,var(--fr) 14%,transparent);flex-shrink:0}
-.slabel-line{height:2px;background:linear-gradient(90deg,color-mix(in oklab,var(--fr) 45%,transparent) 0%,color-mix(in oklab,var(--accent) 35%,transparent) 60%,transparent 100%)}
-.slabel-count{color:var(--fr);background:color-mix(in oklab,var(--fr) 9%,white);padding:3px 9px;border-radius:999px;font-weight:700;box-shadow:0 0 0 1px color-mix(in oklab,var(--fr) 18%,transparent)}
-.ghead{background:linear-gradient(90deg,color-mix(in oklab,var(--fr) 7%,transparent) 0%,transparent 70%);box-shadow:inset 0 -2px 0 color-mix(in oklab,var(--fr) 22%,transparent)}
+.slabel-text::before{content:"";width:13px;height:13px;border-radius:4px;background:conic-gradient(from 0deg,var(--wc-blue) 0 25%,var(--wc-red) 25% 50%,var(--wc-lime) 50% 75%,var(--wc-purple) 75% 100%);flex-shrink:0}
+.slabel-line{height:3px;background:linear-gradient(90deg,var(--wc-blue) 0 30%,var(--wc-lav) 30% 55%,var(--wc-salmon) 55% 75%,transparent 75%);border-radius:99px}
+.slabel-count{color:#fff;background:var(--wc-black);padding:3px 10px;border-radius:999px;font-weight:700;box-shadow:none}
+.gcard{--gc:var(--wc-blue);--gct:#ffffff}
+.gcard:nth-child(6n+2){--gc:var(--wc-purple)}
+.gcard:nth-child(6n+3){--gc:var(--wc-red)}
+.gcard:nth-child(6n+4){--gc:var(--wc-orange)}
+.gcard:nth-child(6n+5){--gc:#6d9412}
+.gcard:nth-child(6n){--gc:var(--wc-lav);--gct:#33215c}
+.ghead{background:var(--gc);color:var(--gct);box-shadow:none;font-family:var(--font-round);letter-spacing:.8px}
 .stats-table-title{position:relative;padding-left:11px}
 .stats-table-title::before{content:"";position:absolute;left:0;top:1px;bottom:1px;width:3px;border-radius:99px;background:linear-gradient(180deg,var(--fr),var(--accent))}
 .contract-title{position:relative;padding-left:11px}
@@ -749,16 +769,23 @@ body::after{right:0;background:linear-gradient(255deg,color-mix(in oklab,var(--b
 .app.wide .nav{max-width:1800px}
 .nbtn{flex:1;padding:12px 4px 14px;background:none;border:none;color:var(--faint);cursor:pointer;transition:color .18s,transform .18s,background .18s,box-shadow .18s;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;font-family:inherit;border-radius:14px;outline:none}
 .nbtn:not(:first-child)::before{content:"";position:absolute;left:0;top:18%;bottom:18%;width:1px;background:linear-gradient(180deg,transparent,rgba(19,34,56,.10),transparent)}
-.nbtn.on{color:var(--accent);background:linear-gradient(180deg,color-mix(in oklab,var(--accent) 18%, white),color-mix(in oklab,var(--accent) 9%, white));transform:translateY(-2px);box-shadow:inset 0 0 0 2px color-mix(in oklab,var(--accent) 24%, white),0 8px 16px color-mix(in oklab,var(--accent) 20%, transparent)}
-.nbtn:focus-visible{color:var(--accent);background:linear-gradient(180deg,color-mix(in oklab,var(--accent) 16%, white),color-mix(in oklab,var(--accent) 8%, white));box-shadow:inset 0 0 0 2px color-mix(in oklab,var(--accent) 24%, white),0 0 0 2px color-mix(in oklab,var(--fr) 24%, transparent),0 8px 16px color-mix(in oklab,var(--accent) 18%, transparent)}
-.nbtn.on::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:32px;height:3px;background:var(--accent);border-radius:999px;box-shadow:0 0 0 2px color-mix(in oklab,var(--accent) 28%, white)}
-.nbtn:not(.on):hover{color:var(--fr);background:linear-gradient(180deg,color-mix(in oklab,var(--fr) 9%, white),color-mix(in oklab,var(--fr) 4%, white));transform:translateY(-2px);box-shadow:inset 0 0 0 1.5px color-mix(in oklab,var(--fr) 16%, white),0 6px 14px color-mix(in oklab,var(--fr) 14%, transparent)}
-.nbtn.on:hover{color:var(--accent);transform:translateY(-3px)}
+#nav-matchs{--tab:var(--wc-blue)}
+#nav-competition{--tab:var(--wc-purple)}
+#nav-classement{--tab:var(--wc-red)}
+#nav-stats{--tab:var(--wc-orange)}
+#nav-regles{--tab:#6d9412}
+.nbtn.on{color:var(--tab,var(--accent));background:linear-gradient(180deg,color-mix(in oklab,var(--tab,var(--accent)) 18%, white),color-mix(in oklab,var(--tab,var(--accent)) 9%, white));transform:translateY(-2px);box-shadow:inset 0 0 0 2px color-mix(in oklab,var(--tab,var(--accent)) 24%, white),0 8px 16px color-mix(in oklab,var(--tab,var(--accent)) 20%, transparent)}
+.nbtn:focus-visible{color:var(--tab,var(--accent));background:linear-gradient(180deg,color-mix(in oklab,var(--tab,var(--accent)) 16%, white),color-mix(in oklab,var(--tab,var(--accent)) 8%, white));box-shadow:inset 0 0 0 2px color-mix(in oklab,var(--tab,var(--accent)) 24%, white),0 0 0 2px color-mix(in oklab,var(--fr) 24%, transparent),0 8px 16px color-mix(in oklab,var(--tab,var(--accent)) 18%, transparent)}
+.nbtn.on::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:32px;height:3px;background:var(--tab,var(--accent));border-radius:999px;box-shadow:0 0 0 2px color-mix(in oklab,var(--tab,var(--accent)) 28%, white)}
+.nbtn:not(.on):hover{color:var(--tab,var(--fr));background:linear-gradient(180deg,color-mix(in oklab,var(--tab,var(--fr)) 10%, white),color-mix(in oklab,var(--tab,var(--fr)) 4%, white));transform:translateY(-2px);box-shadow:inset 0 0 0 1.5px color-mix(in oklab,var(--tab,var(--fr)) 18%, white),0 6px 14px color-mix(in oklab,var(--tab,var(--fr)) 14%, transparent)}
+.nbtn.on:hover{color:var(--tab,var(--accent));transform:translateY(-3px)}
 .nbtn:active{transform:translateY(0);transition-duration:.08s}
 .nico{font-size:17px;line-height:1;opacity:.96;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
 .nbtn:hover .nico{transform:scale(1.18)}
 .nbtn.on .nico{transform:scale(1.08)}
 .nlbl{font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.rscore,.hero-kpi-val,.past-score,.bar-val,.vs,.br-score,.b-score,.bval{font-family:var(--font-round);font-weight:600}
+.br-col-title,.past-phase-head{font-family:var(--font-round);font-weight:600}
 </style>
 </head>
 <body>
@@ -1239,7 +1266,7 @@ function matchCard(m,sc){
   const filled=s.s1!==""&&s.s2!=="";
   const betState=placed?(real?(maj===real?{txt:"GAGNE",cls:"won"}:{txt:"PERDU",cls:"lost"}):{txt:"EN ATTENTE",cls:"pending"}):null;
   const tag=m.g?`<span class="c-tag">Groupe ${m.g}</span>`:`<span class="c-tag">${m.t}</span>`;
-  const topBar=`<div class="card-top"><span class="c-top-left"><span class="c-num">M${String(m.id).padStart(2,'0')}</span><span class="c-when">${m.h}</span></span>${betState?`<span class="c-state ${betState.cls}">${betState.txt}</span>`:''}<span class="c-top-tags">${m.fr?`<span class="c-tag frtag">France</span>`:''}${tag}</span></div>`;
+  const teamsHead=`<div class="teams-head"><span class="c-top-left"><span class="c-num">M${String(m.id).padStart(2,'0')}</span><span class="c-when">${m.h}</span></span>${betState?`<span class="c-state ${betState.cls}">${betState.txt}</span>`:''}<span class="c-top-tags">${m.fr?`<span class="c-tag frtag">France</span>`:''}${tag}</span></div>`;
   const rows=PARTICIPANTS.map((p,i)=>{
     const isMe=me===p;
     const canEdit=isMe&&!placed;
@@ -1263,7 +1290,7 @@ function matchCard(m,sc){
   const resetEditor=`<button class="reset-toggle" onclick="resetMatchAdmin(${m.id})">Réinitialiser</button>`;
   const tieChooser=hasTie?`<div class="tie-chooser">${tieOptions.map(v=>`<button class="tie-btn ${maj===v?'on':''}" onclick="setTieDecision(${m.id},'${v}')">${choiceLabel(v)}</button>`).join('')}</div>`:"";
   const retainedText=majL?`<span class="rval">${majL}</span>`:hasTie?`<span class="rpending">égalité : choisis l'avis final</span>`:'<span class="rpending">en attente</span>';
-  return `<div id="match-${m.id}" class="card ${m.fr?'fr':''} ${filled?'filled':''} ${placed?'locked':''} ${betState?`bet-${betState.cls}`:''}" style="${pronostiqueurVoteStyle(me)}">${topBar}<div class="teams"><div class="team">${i1}<span class="tname">${m.e1}</span></div><div class="vs">VS</div><div class="team r"><span class="tname">${m.e2}</span>${i2}</div></div><div class="votes"><div class="votes-title">Choix des pronostics${placed&&!real?`<span class="vlock">🔒 Pari placé · pronos verrouillés</span>`:''}</div>${rows}<div class="retenu"><div class="retenu-main"><span class="rlabel">Retenu :</span>${retainedText}${tieChooser}${coteEditor}${betEditor}${resetEditor}</div><div class="retenu-tools"><div class="retenu-row scoreline">${scoreEditor}${gainEditor}</div></div>${real&&badges?`<div class="badges">${badges}</div>`:''}</div></div></div>`;
+  return `<div id="match-${m.id}" class="card ${m.fr?'fr':''} ${filled?'filled':''} ${placed?'locked':''} ${betState?`bet-${betState.cls}`:''}" style="${pronostiqueurVoteStyle(me)}"><div class="teams">${teamsHead}<div class="teams-score"><div class="team">${i1}<span class="tname">${m.e1}</span></div><div class="vs${filled?' scored':''}">${filled?`${s.s1}&hairsp;·&hairsp;${s.s2}`:'VS'}</div><div class="team r"><span class="tname">${m.e2}</span>${i2}</div></div></div><div class="votes"><div class="votes-title">Choix des pronostics${placed&&!real?`<span class="vlock">🔒 Pari placé · pronos verrouillés</span>`:''}</div>${rows}<div class="retenu"><div class="retenu-main"><span class="rlabel">Retenu :</span>${retainedText}${tieChooser}${coteEditor}${betEditor}${resetEditor}</div><div class="retenu-tools"><div class="retenu-row scoreline">${scoreEditor}${gainEditor}</div></div>${real&&badges?`<div class="badges">${badges}</div>`:''}</div></div></div>`;
 }
 function renderClassement(sc){
   const sorted=[...PARTICIPANTS].sort((a,b)=>(sc[b]||0)-(sc[a]||0));
