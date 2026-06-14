@@ -1142,6 +1142,8 @@ function renderContent(sc){
   if(tab==="stats"){const _syncStats=()=>{
     const fc=[...document.querySelectorAll('.finance-grid>.curve-card')];
     if(fc.length===2){const h=fc[0].offsetHeight;fc[1].style.maxHeight=h+'px';}
+    const ch=[...document.querySelectorAll('.finance-grid .curve-head')];
+    if(ch.length===2){ch.forEach(h=>h.style.minHeight='');const h=Math.max(ch[0].offsetHeight,ch[1].offsetHeight);ch.forEach(el=>el.style.minHeight=h+'px');}
     const sp=[...document.querySelectorAll('.stats-hero>.stats-panel')];
     if(sp.length===2){sp.forEach(p=>p.style.minHeight='');const h=Math.max(sp[0].offsetHeight,sp[1].offsetHeight);sp.forEach(p=>p.style.minHeight=h+'px');}
   };requestAnimationFrame(_syncStats);setTimeout(_syncStats,150);}
