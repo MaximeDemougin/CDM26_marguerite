@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pronostics CDM 2026</title>
+<link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/1/17/2026_FIFA_World_Cup_emblem.svg" type="image/svg+xml">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Barlow+Condensed:wght@700;800;900&family=Fredoka:wght@500;600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -34,6 +35,8 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .app.wide{max-width:min(100%,1800px)}
 .header{padding:18px 22px 14px;border-bottom:1px solid color-mix(in oklab,var(--line2) 86%, #8aa5c2);position:sticky;top:0;z-index:100;background:rgba(249,252,255,.95);backdrop-filter:blur(8px) saturate(130%)}
 .h-row{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.h-brand{display:flex;align-items:center;gap:14px}
+.cdm-logo{height:64px;width:auto;object-fit:contain;flex-shrink:0}
 .eyebrow{font-size:9px;letter-spacing:2.2px;color:var(--wc-purple);text-transform:uppercase;font-weight:800;margin-bottom:6px}
 .title{font-family:'Space Grotesk',sans-serif;font-size:25px;font-weight:700;letter-spacing:-.5px;line-height:1;color:#0b1930}
 .subtitle{font-size:12px;color:var(--dim);margin-top:6px;font-weight:500}
@@ -741,7 +744,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .comp-section-head::-webkit-details-marker{display:none}
 .comp-section-head:hover .slabel-text{color:var(--fr);transition:color .16s}
 /* ── Touches festives ── */
-.title{font-family:var(--font-round);font-weight:600;letter-spacing:0;background:linear-gradient(100deg,var(--wc-purple) 0%,var(--wc-blue) 30%,var(--wc-red) 55%,var(--wc-orange) 80%,var(--wc-purple) 100%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;animation:titleShimmer 7s ease-in-out infinite}
+.title{font-family:var(--font-cond);font-weight:900;font-size:34px;letter-spacing:1.5px;text-transform:uppercase;color:#101418;-webkit-text-fill-color:#101418;background:none}
 @keyframes titleShimmer{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
 .app::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;z-index:5;background:repeating-linear-gradient(90deg,var(--wc-purple) 0 44px,var(--wc-blue) 44px 88px,var(--wc-red) 88px 132px,var(--wc-orange) 132px 176px,var(--wc-lime) 176px 220px);animation:edgeFlow 7s linear infinite}
 @keyframes edgeFlow{from{background-position:0 0}to{background-position:220px 0}}
@@ -774,6 +777,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .curve-head{background:#0d1525;color:#fff;margin:-14px -16px 12px;padding:10px 16px;align-items:center;position:relative;overflow:hidden}
 .curve-title{color:rgba(255,255,255,.65)}
 .curve-sub{color:rgba(255,255,255,.45)}
+.eyebrow{font-family:var(--font-cond);font-size:11px;font-weight:900;letter-spacing:4px;color:var(--wc-blue)}
 .stats-table-title{position:relative;padding-left:11px}
 .stats-table-title::before{content:"";position:absolute;left:0;top:1px;bottom:1px;width:3px;border-radius:99px;background:linear-gradient(180deg,var(--fr),var(--accent))}
 .contract-title{background:#0d1525;color:#fff;margin:-14px -16px 12px;padding:10px 16px;position:relative;overflow:hidden}
@@ -813,10 +817,13 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 <div class="app">
   <div class="header">
     <div class="h-row">
-      <div>
-        <div class="eyebrow">Coupe du Monde 2026</div>
-        <div class="title">Pronostics marguerite</div>
-        <div class="subtitle" id="who-subtitle">Choisis qui tu es pour pronostiquer&nbsp;:</div>
+      <div class="h-brand">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/1/17/2026_FIFA_World_Cup_emblem.svg" alt="WC2026" class="cdm-logo">
+        <div>
+          <div class="eyebrow">Coupe du Monde 2026</div>
+          <div class="title">Pronostics marguerite</div>
+          <div class="subtitle" id="who-subtitle">Choisis qui tu es pour pronostiquer&nbsp;:</div>
+        </div>
       </div>
       <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span></div>
     </div>
