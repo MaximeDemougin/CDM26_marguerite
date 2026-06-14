@@ -179,7 +179,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .tname{font-family:var(--font-cond);font-size:18px;font-weight:900;line-height:1;color:#fff;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vs{font-family:var(--font-cond);font-size:13px;color:#0d332a;background:#63e0be;padding:6px 14px;border-radius:0 8px 0 8px;font-weight:900;letter-spacing:2px;text-transform:uppercase;flex-shrink:0;margin:0 10px;box-shadow:none}
 .vs.scored{font-size:22px;letter-spacing:4px;padding:8px 18px}
-.votes{padding:6px 12px 12px;background:#fff;border-top:1px solid rgba(15,29,49,.10)}
+.votes{padding:6px 12px 12px;background:linear-gradient(180deg,#f0f5ff 0%,#eaf0fd 100%);border-top:1px solid rgba(30,45,140,.12)}
 .votes-title{display:flex;align-items:center;gap:8px;font-family:var(--font-cond);font-size:12px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--dim);margin:2px 0 6px;padding-left:1px}
 .vlock{display:inline-flex;align-items:center;gap:4px;font-size:8px;font-weight:800;letter-spacing:.5px;padding:2px 8px;border-radius:999px;background:rgba(255,160,60,.14);color:#f4a86a;box-shadow:inset 0 0 0 1px rgba(255,160,60,.28)}
 .vrow{display:grid;grid-template-columns:118px minmax(0,1fr) 118px;align-items:center;column-gap:10px;padding:4px 0;border-radius:10px;position:relative}
@@ -193,10 +193,10 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .vname.me{color:var(--ink);font-weight:900;letter-spacing:.4px}
 .vavatar{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;letter-spacing:.2px;text-transform:uppercase;background:color-mix(in oklab,var(--pv,var(--fr)) 28%,rgba(255,255,255,.05));color:color-mix(in oklab,var(--pv,var(--fr)) 90%,white);box-shadow:0 0 0 1.5px color-mix(in oklab,var(--pv,var(--fr)) 55%,transparent)}
 .vname.me .vavatar{background:var(--pv,var(--fr));color:#fff;box-shadow:0 0 0 2px color-mix(in oklab,var(--pv,var(--fr)) 35%,transparent)}
-.vopts{display:flex;gap:3px;width:min(100%,560px);justify-self:center;border:1px solid rgba(15,29,49,.12);border-radius:10px;background:rgba(15,29,49,.06);padding:3px;box-shadow:none}
-.vbtn{flex:1;min-height:var(--vote-h);padding:0 7px;border:none;border-radius:0 7px 0 7px;background:transparent;color:rgba(15,29,49,.38);font-family:var(--font-cond);font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .18s,color .18s,box-shadow .18s;display:flex;align-items:center;justify-content:center;gap:4px}
+.vopts{display:flex;gap:6px;width:min(100%,560px);justify-self:center;border:none;background:transparent;padding:0;box-shadow:none}
+.vbtn{flex:1;min-height:var(--vote-h);padding:0 7px;border:1px solid rgba(30,45,140,.20);border-radius:0 7px 0 7px;background:#fff;color:rgba(15,29,78,.52);font-family:var(--font-cond);font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .18s,color .18s,box-shadow .18s,border-color .18s;display:flex;align-items:center;justify-content:center;gap:4px;box-shadow:0 2px 6px rgba(30,45,140,.10)}
 .vopts .vbtn:nth-child(2){flex:.62}
-.vbtn:hover:not(:disabled):not(.on){background:rgba(15,29,49,.09);color:var(--ink);box-shadow:none}
+.vbtn:hover:not(:disabled):not(.on){background:#f0f5ff;border-color:rgba(30,45,140,.40);color:rgba(15,29,78,.85);box-shadow:0 2px 8px rgba(30,45,140,.16)}
 .vrow .vbtn.on{background:color-mix(in oklab,var(--pv,var(--fr)) 18%,transparent);color:color-mix(in oklab,var(--pv,var(--fr)) 90%,#0d1525);box-shadow:inset 0 0 0 1.5px color-mix(in oklab,var(--pv,var(--fr)) 55%,transparent);font-weight:800}
 .vrow.me-row .vbtn.on:not(.result-ok):not(.result-ko){background:var(--pv,var(--fr));color:#fff;box-shadow:0 2px 12px color-mix(in oklab,var(--pv,var(--fr)) 45%,transparent)}
 .vrow .vbtn.on.result-ok{background:color-mix(in oklab,var(--bet-on) 14%,transparent);color:color-mix(in oklab,var(--bet-on) 80%,#002210);box-shadow:inset 0 0 0 2px color-mix(in oklab,var(--bet-on) 50%,transparent)}
@@ -221,26 +221,26 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .tie-btn.on{border-color:var(--ok);background:color-mix(in oklab,var(--ok) 20%,transparent);color:#6edea8}
 .rsel{margin-left:auto;background:rgba(15,29,49,.05);border:1px solid rgba(15,29,49,.16);color:var(--ink);font-size:11px;font-weight:500;padding:6px 9px;cursor:pointer;font-family:inherit;border-radius:0 6px 0 6px;box-shadow:none}
 .rsel:focus{outline:none;border-color:var(--accent)}
-.m-score{display:flex;align-items:center;gap:6px;min-height:var(--ctrl-h);min-width:132px;justify-content:center;border:1px solid rgba(15,29,49,.16);background:rgba(15,29,49,.04);border-radius:var(--ctrl-radius);padding:3px 6px;color:var(--ink)}
-.m-score.filled{border-color:var(--ok);box-shadow:0 0 0 2px color-mix(in oklab,var(--ok) 28%,transparent)}
-.m-score .score-in{width:42px;padding:4px 3px;font-size:var(--ctrl-fs);text-align:center;height:28px;background:transparent;color:var(--ink);border:none}
-.m-score .score-vs{font-size:8px;color:var(--dim)}
-.odds-box{display:flex;align-items:center;gap:6px;min-height:var(--ctrl-h);min-width:132px;justify-content:center;border:1px solid rgba(15,29,49,.16);background:rgba(15,29,49,.04);border-radius:var(--ctrl-radius);padding:3px 6px}
-.odds-in{width:54px;padding:3px;border:1px solid rgba(15,29,49,.18);border-radius:6px;background:rgba(15,29,49,.06);color:var(--ink);font:inherit;font-size:var(--ctrl-fs);text-align:center;height:26px}
-.odds-in:focus{outline:none;border-color:var(--wc-blue)}
+.m-score{display:flex;align-items:center;gap:6px;min-height:var(--ctrl-h);min-width:132px;justify-content:center;border:1px solid rgba(30,45,140,.22);background:#fff;border-radius:var(--ctrl-radius);padding:3px 6px;color:var(--ink);box-shadow:0 2px 6px rgba(30,45,140,.10)}
+.m-score.filled{border-color:#3a7a00;box-shadow:0 2px 8px rgba(164,210,51,.30)}
+.m-score .score-in{width:42px;padding:4px 3px;font-size:var(--ctrl-fs);font-family:var(--font-cond);font-weight:800;text-align:center;height:28px;background:transparent;color:var(--ink);border:none}
+.m-score .score-vs{font-size:10px;font-weight:800;color:rgba(30,45,140,.35);font-family:var(--font-cond)}
+.odds-box{display:flex;align-items:center;min-height:var(--ctrl-h);min-width:132px;justify-content:center;border:none;background:transparent;padding:0;box-shadow:none}
+.odds-in{width:100%;padding:0 11px;border:1px solid rgba(30,45,140,.22);border-radius:0 9px 0 9px;background:#fff;color:var(--ink);font-family:var(--font-cond);font-weight:900;font-size:15px;text-align:center;height:var(--ctrl-h);box-shadow:0 2px 6px rgba(30,45,140,.10);-moz-appearance:textfield;appearance:textfield}
+.odds-in:focus{outline:none;border-color:var(--wc-blue);box-shadow:0 0 0 2px rgba(45,92,230,.18)}
 .bet-toggle{min-height:var(--ctrl-h);min-width:132px;justify-content:center;border:1.5px solid rgba(255,90,30,.55);background:rgba(255,90,30,.16);color:#ff9860;font-family:var(--font-cond);font-size:var(--ctrl-fs);font-weight:800;letter-spacing:.6px;text-transform:uppercase;border-radius:0 9px 0 9px;padding:0 11px;cursor:pointer;transition:all .15s;box-shadow:none;display:inline-flex;align-items:center}
 .bet-toggle:hover{border-color:var(--wc-orange);background:rgba(255,90,30,.26);color:#ffc08a;box-shadow:0 0 0 3px rgba(255,90,30,.15);transform:translateY(-1px)}
-.bet-toggle.on{border-color:var(--wc-lime);background:rgba(164,210,51,.16);color:#c4e858;box-shadow:none}
+.bet-toggle.on{border-color:#6a9200;background:var(--wc-lime);color:#1e3400;box-shadow:0 2px 10px rgba(164,210,51,.40)}
 .reset-toggle{min-height:var(--ctrl-h);min-width:132px;justify-content:center;border:1.5px solid rgba(215,40,47,.45);background:rgba(215,40,47,.14);color:#ff7a84;font-family:var(--font-cond);font-size:var(--ctrl-fs);font-weight:800;letter-spacing:.6px;text-transform:uppercase;border-radius:0 9px 0 9px;padding:0 11px;cursor:pointer;transition:all .15s;box-shadow:none;display:inline-flex;align-items:center}
 .reset-toggle:hover{border-color:var(--wc-red);background:rgba(215,40,47,.26);color:#ffaab0;box-shadow:0 0 0 3px rgba(215,40,47,.15);transform:translateY(-1px)}
 .gain-pill{min-height:var(--ctrl-h);min-width:132px;justify-content:center;font-family:var(--font-cond);font-size:var(--ctrl-fs);font-weight:800;letter-spacing:.5px;text-transform:uppercase;border-radius:0 9px 0 9px;padding:0 11px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:rgba(255,255,255,.45);display:inline-flex;align-items:center}
-.gain-pill.win{border-color:color-mix(in oklab,var(--ok) 55%,transparent);color:#6edea8;background:color-mix(in oklab,var(--ok) 18%,transparent)}
-.gain-pill.loss{border-color:color-mix(in oklab,var(--ko) 50%,transparent);color:#ff9099;background:color-mix(in oklab,var(--ko) 16%,transparent)}
+.gain-pill.win{border-color:#3a7a00;background:var(--wc-lime);color:#1a3200;box-shadow:0 2px 10px rgba(164,210,51,.38)}
+.gain-pill.loss{border-color:#8a0e17;background:var(--wc-red);color:#fff;box-shadow:0 2px 10px rgba(215,40,47,.35)}
 .gain-pill.sim{opacity:.8}
 .badges{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;width:100%;opacity:.9;margin-top:2px}
 .badge{font-family:var(--font-cond);font-size:9px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;padding:2px 7px;border-radius:20px}
-.badge.ok{background:color-mix(in oklab,var(--ok) 20%,transparent);color:#6edea8}
-.badge.ko{background:color-mix(in oklab,var(--ko) 16%,transparent);color:#ff9099}
+.badge.ok{background:var(--wc-lime);color:#1a3200;box-shadow:0 1px 5px rgba(164,210,51,.35)}
+.badge.ko{background:var(--wc-red);color:#fff;box-shadow:0 1px 5px rgba(215,40,47,.30)}
 .bet-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:12px 18px 2px}
 .bet-box{border:none;background:#ffffff;border-radius:12px;padding:13px 15px;box-shadow:0 10px 22px rgba(19,41,66,.12),0 0 0 1px rgba(255,255,255,.72) inset}
 .bet-box .slbl{margin-bottom:6px}
