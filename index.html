@@ -336,6 +336,10 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
   .score-row .score-in{width:100%}
   .score-team{min-width:100%}
   .stats-table{min-width:560px}
+  .group-grid{padding:0 10px;gap:10px}
+  .grow{grid-template-columns:16px 1fr 26px 26px 26px 26px;padding:7px 12px;gap:6px;font-size:10px}
+  .bracket-wrap{margin:0 10px;padding:8px 10px 12px}
+  .past-phases{padding:0 10px 12px}
 }
 .rcard{margin:0 18px 12px;border:none;background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 14px 30px rgba(15,29,49,.16),0 0 0 1px rgba(255,255,255,.78) inset}
 .rcard.gold{box-shadow:0 16px 34px color-mix(in oklab,var(--ps,var(--fr)) 28%,rgba(15,29,49,.18)),0 0 0 1px rgba(255,255,255,.82) inset;border-top:3px solid var(--ps,var(--fr))}
@@ -507,18 +511,22 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .score-in:focus{outline:none;border-color:var(--wc-blue)}
 .score-in::-webkit-outer-spin-button,.score-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .score-vs{font-size:10px;color:var(--faint);font-weight:700;letter-spacing:1px}
-.group-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:0 18px}
+.group-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;padding:0 18px}
 .gcard{border:none;background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 12px 28px rgba(15,29,49,.14),0 0 0 1px rgba(255,255,255,.74) inset}
 .ghead{padding:11px 16px;box-shadow:inset 0 -1px 0 color-mix(in oklab,var(--line2) 55%, transparent);font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase}
 .grow{display:grid;grid-template-columns:22px 1fr 28px 28px 28px 28px;gap:8px;align-items:center;padding:8px 16px;box-shadow:inset 0 1px 0 color-mix(in oklab,var(--line2) 50%, transparent)}
 .grow:first-of-type{border-top:none}
 .gpos{font-size:10px;color:var(--faint);font-weight:700}
-.gteam{font-size:11px;font-weight:600;display:flex;align-items:center;gap:6px;min-width:0}
-.gteam span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gteam{font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px;min-width:0}
+.gteam .gname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.gq-badge{flex-shrink:0}
 .gnum{font-size:10px;color:var(--dim);text-align:right;font-weight:700}
+@media (min-width:900px){.group-grid{grid-template-columns:repeat(3,1fr)}}
+@media (min-width:1140px){.group-grid{grid-template-columns:repeat(4,1fr)}}
+@media (max-width:560px){.group-grid{grid-template-columns:1fr;padding:0 12px;gap:10px}.grow{grid-template-columns:16px 1fr 26px 26px 26px 26px;padding:7px 12px;gap:6px;font-size:10px}}
 .ko-line{margin:0 18px 8px;border:none;background:#ffffff;border-radius:10px;padding:10px 12px;font-size:12px;color:var(--ink);box-shadow:0 10px 22px rgba(15,29,49,.13),0 0 0 1px rgba(255,255,255,.72) inset}
 .ko-line b{font-size:10px;color:var(--faint);margin-right:7px;letter-spacing:.8px}
-.bracket-wrap{padding:8px 18px 14px;overflow-x:auto;background:linear-gradient(180deg,#ffffff 0%,#f1f6fc 100%);border:none;border-radius:12px;margin:0 18px;box-shadow:0 12px 28px rgba(15,29,49,.14),0 0 0 1px rgba(255,255,255,.74) inset}
+.bracket-wrap{padding:8px 18px 14px;overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;background:linear-gradient(180deg,#ffffff 0%,#f1f6fc 100%);border:none;border-radius:12px;margin:0 18px;box-shadow:0 12px 28px rgba(15,29,49,.14),0 0 0 1px rgba(255,255,255,.74) inset}
 .br-main{display:grid;grid-template-columns:auto 190px auto;gap:12px;width:max-content;align-items:start;margin:0 auto}
 .br-side{display:grid;grid-template-columns:repeat(4,165px);gap:10px;align-items:start}
 .br-side-col{display:flex;flex-direction:column;gap:8px;justify-content:flex-start}
@@ -1305,7 +1313,7 @@ function renderCompetition(){
   const tables=groupTables();
   const kval=buildKnockoutProjection(tables);
   const phaseOrder=["Phase de groupes","1/16","1/8","Quart","Demi","3ème place","Finale"];
-  const gHtml=Object.keys(tables).map(g=>{const rows=tables[g].map((t,i)=>{const isQ=i<2;const is3rd=i===2;const is3rdQual=is3rd&&kval.bestThirdRanking.includes(t.team);const rowCls=isQ?"grow-q":is3rd?(is3rdQual?"grow-3 grow-3q":"grow-3"):"grow-out";const badge=isQ?`<span class="gq-badge gq-ok">Q</span>`:is3rdQual?`<span class="gq-badge gq-maybe">3e ✓</span>`:``;const divider=i===2?`<div class="gq-divider"></div>`:``;return `${divider}<div class="grow ${rowCls}"><span class="gpos">${i+1}</span><span class="gteam">${flagImg(t.team,"flag-sm")}<span>${t.team}</span>${badge}</span><span class="gnum">${t.pts}</span><span class="gnum">${t.d}</span><span class="gnum">${t.gf}</span><span class="gnum">${t.j}</span></div>`;}).join('');return `<div class="gcard${compAnimDone?'':' gcard-anim'}"><div class="ghead">Groupe ${g}</div>${rows}</div>`;}).join('');compAnimDone=true;
+  const gHtml=Object.keys(tables).map(g=>{const rows=tables[g].map((t,i)=>{const isQ=i<2;const is3rd=i===2;const is3rdQual=is3rd&&kval.bestThirdRanking.includes(t.team);const rowCls=isQ?"grow-q":is3rd?(is3rdQual?"grow-3 grow-3q":"grow-3"):"grow-out";const badge=isQ?`<span class="gq-badge gq-ok">Q</span>`:is3rdQual?`<span class="gq-badge gq-maybe">3e ✓</span>`:``;const divider=i===2?`<div class="gq-divider"></div>`:``;return `${divider}<div class="grow ${rowCls}"><span class="gpos">${i+1}</span><span class="gteam">${flagImg(t.team,"flag-sm")}<span class="gname">${t.team}</span>${badge}</span><span class="gnum">${t.pts}</span><span class="gnum">${t.d}</span><span class="gnum">${t.gf}</span><span class="gnum">${t.j}</span></div>`;}).join('');return `<div class="gcard${compAnimDone?'':' gcard-anim'}"><div class="ghead">Groupe ${g}</div>${rows}</div>`;}).join('');compAnimDone=true;
   const thirdLine=kval.bestThirdRanking.length?`<div class="ko-line"><b>3e meilleurs</b>${kval.bestThirdRanking.join(" · ")}</div>`:"";
   const fixtureById=Object.fromEntries(kval.fixtures.map(f=>[f.id,f]));
   const competitionPhaseLabel=fm=>fm.g?"Phase de groupes":((fm.round||fm.t)==="FINALE"?"Finale":(fm.round||fm.t||"Phase finale"));
@@ -1622,7 +1630,7 @@ function renderResultats(){
   const tables=groupTables();
   const kval=buildKnockoutProjection(tables);
   const mRows=matches.map(m=>{const s=scoreOf(m.id);const filled=s.s1!==""&&s.s2!=="";return `<div class="admin-card ${filled?"filled":""}"><div class="admin-head"><span class="admin-id">M${String(m.id).padStart(3,"0")}</span><span class="admin-when">${m.date} · ${m.h}</span><span class="c-tag">${m.g?`Groupe ${m.g}`:m.t}</span></div><div class="score-row"><div class="score-team">${flagImg(m.e1,"flag-sm")}<span class="score-name">${m.e1}</span></div><input class="score-in" type="number" min="0" step="1" value="${s.s1}" oninput="setScoreDraft(${m.id},'s1',this.value,this)"><span class="score-vs">-</span><input class="score-in" type="number" min="0" step="1" value="${s.s2}" oninput="setScoreDraft(${m.id},'s2',this.value,this)"><div class="score-team" style="justify-content:flex-end">${flagImg(m.e2,"flag-sm")}<span class="score-name">${m.e2}</span></div></div></div>`;}).join('');
-  const groupHtml=Object.keys(tables).map(g=>`<div class="gcard"><div class="ghead">Groupe ${g}</div>${tables[g].map((t,i)=>`<div class="grow"><span class="gpos">${i+1}</span><span class="gteam">${flagImg(t.team,"flag-sm")}<span>${t.team}</span></span><span class="gnum">${t.pts}</span><span class="gnum">${t.d}</span><span class="gnum">${t.gf}</span><span class="gnum">${t.j}</span></div>`).join('')}</div>`).join('');
+  const groupHtml=Object.keys(tables).map(g=>`<div class="gcard"><div class="ghead">Groupe ${g}</div>${tables[g].map((t,i)=>`<div class="grow"><span class="gpos">${i+1}</span><span class="gteam">${flagImg(t.team,"flag-sm")}<span class="gname">${t.team}</span></span><span class="gnum">${t.pts}</span><span class="gnum">${t.d}</span><span class="gnum">${t.gf}</span><span class="gnum">${t.j}</span></div>`).join('')}</div>`).join('');
   const thirdLine=kval.bestThirdRanking.length?`<div class="ko-line"><b>3e meilleurs</b>${kval.bestThirdRanking.join(" · ")}</div>`:"";
   const filters=`<div class="scroller">${phases.map(p=>`<button class="chip ${filterPhase===p?'on':''}" onclick="setPhase('${p}')">${p==="Groupes"?"Phase de groupes":p==="FINALE"?"Finale":p}</button>`).join('')}</div>${filterPhase==="Groupes"?`<div class="scroller sub">${groups.map(g=>`<button class="chip ${filterGroupe===g?'on':''}" onclick="setGroupe('${g}')">${g==="Tous"?"Tous":g==="France"?"France":"Gr. "+g}</button>`).join('')}</div>`:''}<div class="datebar"><span class="datebar-lbl">📅 Aller à</span><select class="datesel" onchange="setFilterDate(this.value)"><option value="Toutes" ${filterDate==="Toutes"?'selected':''}>Toutes les dates</option>${dates.map(d=>`<option value="${d}" ${filterDate===d?'selected':''}>${dayLabel(d)}</option>`).join('')}</select>${filterDate!=="Toutes"?`<button class="datereset" onclick="setFilterDate('Toutes')">✕</button>`:''}</div>`;
   return `${filters}<div class="slabel"><span class="slabel-text">Saisie des scores</span><span class="slabel-line"></span><span class="slabel-count">${matches.length} matchs</span></div>${mRows}<div class="slabel"><span class="slabel-text">Classements groupes</span><span class="slabel-line"></span><span class="slabel-count">Pts / Diff / BP / J</span></div><div class="group-grid">${groupHtml}</div><div class="slabel"><span class="slabel-text">Phase éliminatoire</span><span class="slabel-line"></span></div>${thirdLine}${renderKnockout(kval.fixtures)}<div style="height:18px"></div>`;
