@@ -115,7 +115,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .day-body{overflow:hidden;margin:0 18px 12px;padding:10px;border:none;border-radius:0 0 10px 10px;background:#fdfefe;box-shadow:0 12px 24px rgba(19,41,66,.12),0 0 0 1px rgba(255,255,255,.72) inset}
 .day-body .card{margin:0 0 10px}
 .day-body .card:last-child{margin-bottom:0}
-.card{--ctrl-h:34px;--vote-h:30px;--ctrl-radius:8px;--ctrl-fs:11px;margin:0 18px 16px;border:none;background:linear-gradient(170deg,#1e2d4e 0%,#141e34 100%);border-radius:12px;overflow:hidden;transition:transform .18s;box-shadow:0 12px 32px rgba(0,0,0,.42),0 0 0 1px rgba(255,255,255,.08) inset;position:relative}
+.card{--ctrl-h:34px;--vote-h:30px;--ctrl-radius:8px;--ctrl-fs:11px;margin:0 18px 16px;border:none;background:linear-gradient(170deg,#1e2d4e 0%,#141e34 100%);border-radius:18px;overflow:hidden;transition:transform .18s;box-shadow:0 12px 32px rgba(0,0,0,.42),0 0 0 1px rgba(255,255,255,.08) inset;position:relative}
 .card:hover{transform:translateY(-1px)}
 .card.filled{border-color:color-mix(in oklab,var(--ok) 28%, var(--line2))}
 .card.locked{border-color:color-mix(in oklab,var(--line2) 68%, #9fb0c4)}
@@ -167,7 +167,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .card.bet-pending .c-state.pending{border-color:rgba(255,90,30,.55);background:rgba(255,90,30,.16);color:#ffb38f}
 .card.bet-won .c-state.won{border-color:rgba(164,210,51,.6);background:rgba(164,210,51,.16);color:#d4ee92}
 .card.bet-lost .c-state.lost{border-color:rgba(215,40,47,.6);background:rgba(215,40,47,.18);color:#ffaab0}
-.teams{display:flex;flex-direction:column;margin:0;border-radius:0;position:relative;background:#0d1525;overflow:hidden;box-shadow:none}
+.teams{display:flex;flex-direction:column;margin:8px 8px 0;border-radius:14px;position:relative;background:#0d1525;overflow:hidden;box-shadow:inset 3px 0 0 var(--wc-red),inset -3px 0 0 var(--wc-purple)}
 .teams-score{display:flex;align-items:center;padding:14px 16px}
 .teams::before,.teams::after{content:"";position:absolute;left:0;right:0;height:3px;z-index:1}
 .teams::before{top:0;background:linear-gradient(90deg,var(--wc-red) 0% 7%,var(--wc-blue) 7% 38%,var(--wc-mint) 38% 43%,var(--wc-lime) 43% 74%,var(--wc-orange) 74% 87%,var(--wc-purple) 87% 100%)}
@@ -201,7 +201,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .vopts .vbtn:nth-child(2){flex:.62}
 .vbtn:hover:not(:disabled):not(.on){background:#f0f5ff;border-color:rgba(30,45,140,.40);color:rgba(15,29,78,.85);box-shadow:0 2px 8px rgba(30,45,140,.16)}
 .vrow .vbtn.on{background:color-mix(in oklab,var(--pv,var(--fr)) 18%,transparent);color:color-mix(in oklab,var(--pv,var(--fr)) 90%,#0d1525);box-shadow:inset 0 0 0 1.5px color-mix(in oklab,var(--pv,var(--fr)) 55%,transparent);font-weight:800}
-.vrow.me-row .vbtn.on:not(.result-ok):not(.result-ko){background:var(--pv,var(--fr));color:#fff;box-shadow:0 2px 12px color-mix(in oklab,var(--pv,var(--fr)) 45%,transparent)}
+.vrow.me-row .vbtn.on:not(.result-ok):not(.result-ko){background:var(--pv,var(--fr));color:#0d1525;box-shadow:0 2px 12px color-mix(in oklab,var(--pv,var(--fr)) 45%,transparent)}
 .vrow .vbtn.on.result-ok{background:color-mix(in oklab,var(--bet-on) 14%,transparent);color:color-mix(in oklab,var(--bet-on) 80%,#002210);box-shadow:inset 0 0 0 2px color-mix(in oklab,var(--bet-on) 50%,transparent)}
 .vrow .vbtn.on.result-ko{background:color-mix(in oklab,var(--ko) 12%,transparent);color:color-mix(in oklab,var(--ko) 80%,#2a0005);box-shadow:inset 0 0 0 2px color-mix(in oklab,var(--ko) 45%,transparent)}
 .vbtn:disabled{cursor:default}
@@ -348,7 +348,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .rcard.gold{box-shadow:0 16px 34px color-mix(in oklab,var(--ps,var(--fr)) 28%,rgba(15,29,49,.18)),0 0 0 1px rgba(255,255,255,.82) inset}
 .rtop{display:flex;align-items:center;gap:13px;padding:8px 16px;background:#fff;color:var(--ink);position:relative;overflow:hidden;border-bottom:1px solid rgba(30,45,140,.08)}
 .rmedal{font-size:22px;width:28px;text-align:center}
-.rmedal.txt{font-size:15px;font-weight:700;color:rgba(255,255,255,.42)}
+.rmedal.txt{font-size:22px}
 .rname{font-family:var(--font-cond);font-size:17px;font-weight:800;letter-spacing:.4px;text-transform:uppercase}
 .rname.player{color:var(--ps,var(--ink));font-weight:900}
 .rscore{margin-left:auto;font-size:32px;font-weight:900;line-height:1;letter-spacing:1px}
@@ -1146,6 +1146,8 @@ function renderContent(sc){
     if(ch.length===2){ch.forEach(h=>h.style.minHeight='');const h=Math.max(ch[0].offsetHeight,ch[1].offsetHeight);ch.forEach(el=>el.style.minHeight=h+'px');}
     const sp=[...document.querySelectorAll('.stats-hero>.stats-panel')];
     if(sp.length===2){sp.forEach(p=>p.style.minHeight='');const h=Math.max(sp[0].offsetHeight,sp[1].offsetHeight);sp.forEach(p=>p.style.minHeight=h+'px');}
+    const bc=[...document.querySelectorAll('.stats-bars>.bar-card')];
+    if(bc.length===2){const r1=[...bc[0].querySelectorAll('.bar-row')];const r2=[...bc[1].querySelectorAll('.bar-row')];r1.forEach((r,i)=>{r.style.minHeight='';if(r2[i])r2[i].style.minHeight='';});r1.forEach((r,i)=>{if(!r2[i])return;const h=Math.max(r.offsetHeight,r2[i].offsetHeight);r.style.minHeight=h+'px';r2[i].style.minHeight=h+'px';});}
   };requestAnimationFrame(_syncStats);setTimeout(_syncStats,150);}
 }
 function renderRegles(){
@@ -1338,13 +1340,76 @@ function matchCard(m,sc){
   const retainedText=majL?`<span class="rval">${majL}</span>`:hasTie?`<span class="rpending">égalité : choisis l'avis final</span>`:'<span class="rpending">en attente</span>';
   return `<div id="match-${m.id}" class="card ${m.fr?'fr':''} ${filled?'filled':''} ${placed?'locked':''} ${betState?`bet-${betState.cls}`:''}" style="${pronostiqueurVoteStyle(me)}"><div class="teams">${teamsHead}<div class="teams-score"><div class="team">${i1}<span class="tname">${m.e1}</span></div><div class="vs${filled?' scored':''}">${filled?`${s.s1}&hairsp;·&hairsp;${s.s2}`:'VS'}</div><div class="team r"><span class="tname">${m.e2}</span>${i2}</div></div></div><div class="votes"><div class="votes-title">Choix des pronostics${placed&&!real?`<span class="vlock">🔒 Pari placé · pronos verrouillés</span>`:''}</div>${rows}<div class="retenu"><div class="retenu-main"><span class="rlabel">Retenu :</span>${retainedText}${tieChooser}${coteEditor}${betEditor}${resetEditor}</div><div class="retenu-tools"><div class="retenu-row scoreline">${scoreEditor}${gainEditor}</div></div>${real&&badges?`<div class="badges">${badges}</div>`:''}</div></div></div>`;
 }
+function evoHover(e,svg){
+  const n=+svg.dataset.n,EW=+svg.dataset.ew,EH=+svg.dataset.eh,epx=+svg.dataset.epx,epR=+svg.dataset.epr,ept=+svg.dataset.ept,epb=+svg.dataset.epb;
+  const rect=svg.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(EW/rect.width);
+  const chartW=EW-epx-epR;
+  const idx=Math.max(0,Math.min(n-1,Math.round((mx-epx)/chartW*(n-1))));
+  const xPos=n<=1?EW/2:epx+chartW*(idx/(n-1));
+  const ch=svg.querySelector('.evo-ch');
+  if(ch){ch.setAttribute('x1',xPos);ch.setAttribute('x2',xPos);ch.removeAttribute('display');}
+  const tt=svg.parentElement.querySelector('.evo-tt');
+  if(!tt)return;
+  const series=JSON.parse(svg.dataset.series);
+  const matches=JSON.parse(svg.dataset.matches);
+  const names=JSON.parse(svg.dataset.names);
+  const colors=JSON.parse(svg.dataset.colors);
+  const m=matches[idx];
+  let html=`<div style="font-weight:700;color:var(--ink);font-size:12px">${m.id}</div><div style="color:var(--dim);font-size:10px;margin-bottom:7px">${m.e1} · ${m.e2}</div>`;
+  [...names].sort((a,b)=>series[names.indexOf(b)][idx]-series[names.indexOf(a)][idx]).forEach(name=>{
+    const i=names.indexOf(name);const val=series[i][idx];
+    html+=`<div style="display:flex;align-items:center;gap:7px;margin-top:4px"><span style="width:8px;height:8px;border-radius:50%;background:${colors[i]};flex-shrink:0"></span><span style="color:var(--dim)">${name}</span><span style="margin-left:auto;font-weight:700;color:${colors[i]};padding-left:12px">${val}</span></div>`;
+  });
+  tt.innerHTML=html;
+  const pxX=xPos/EW*rect.width;
+  tt.style.left=Math.min(pxX+14,rect.width-160)+'px';
+  tt.style.top='10px';
+  tt.style.display='block';
+}
+function evoLeave(svg){
+  const ch=svg.querySelector('.evo-ch');if(ch)ch.setAttribute('display','none');
+  const tt=svg.parentElement.querySelector('.evo-tt');if(tt)tt.style.display='none';
+}
+function finHover(e,svg){
+  const n=+svg.dataset.n,FW=+svg.dataset.fw,FH=+svg.dataset.fh,fpx=+svg.dataset.fpx;
+  const rect=svg.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(FW/rect.width);
+  const cw=FW-2*fpx;
+  const idx=Math.max(0,Math.min(n-1,Math.round((mx-fpx)/cw*(n-1))));
+  const xPos=n<=1?FW/2:fpx+cw*(idx/(n-1));
+  const ch=svg.querySelector('.fin-ch');
+  if(ch){ch.setAttribute('x1',xPos.toFixed(1));ch.setAttribute('x2',xPos.toFixed(1));ch.removeAttribute('display');}
+  const tt=svg.parentElement.querySelector('.fin-tt');
+  if(!tt)return;
+  const pts=JSON.parse(svg.dataset.points);
+  const pt=pts[idx];if(!pt)return;
+  const gc=pt.gain>0?'var(--ok)':'var(--ko)';
+  const tc=pt.total>0?'var(--ok)':pt.total<0?'var(--ko)':'var(--dim)';
+  let html=`<div style="font-weight:700;color:var(--ink);font-size:12px">${pt.id}</div>`;
+  if(pt.e1)html+=`<div style="color:var(--dim);font-size:10px;margin-bottom:6px">${pt.e1} · ${pt.e2}</div>`;
+  if(pt.e1)html+=`<div style="display:flex;justify-content:space-between;gap:16px;margin-top:4px"><span style="color:var(--dim)">Résultat</span><span style="font-weight:600">${pt.maj||'—'}</span></div><div style="display:flex;justify-content:space-between;gap:16px;margin-top:3px"><span style="color:var(--dim)">Gain</span><span style="font-weight:700;color:${gc}">${pt.gain>0?'+':''}${pt.gain.toFixed(2)} €</span></div>`;
+  html+=`<div style="display:flex;justify-content:space-between;gap:16px;margin-top:6px;padding-top:6px;border-top:1px solid rgba(0,0,0,.08)"><span style="color:var(--dim)">Bilan</span><span style="font-weight:700;color:${tc}">${pt.total>0?'+':''}${pt.total.toFixed(2)} €</span></div>`;
+  tt.innerHTML=html;
+  const px2=xPos/FW*rect.width;
+  tt.style.left=Math.min(px2+14,rect.width-170)+'px';
+  tt.style.top='8px';tt.style.display='block';
+}
+function finLeave(svg){
+  const ch=svg.querySelector('.fin-ch');if(ch)ch.setAttribute('display','none');
+  const tt=svg.parentElement?.querySelector('.fin-tt');if(tt)tt.style.display='none';
+}
 function renderClassement(sc){
   const sorted=[...PARTICIPANTS].sort((a,b)=>(sc[b]||0)-(sc[a]||0));
   const total=Object.values(results).filter(Boolean).length;
   const max=Math.max(...Object.values(sc),1);
-  const last=sorted[sorted.length-1];
-  const pCards=sorted.map((p,i)=>`<div class="rcard ${i===0&&(sc[p]||0)>0?'gold':''}" style="${pronostiqueurStatStyle(p)}"><div class="rtop"><span class="rmedal ${i===3?'txt':''}">${MEDALS[i]}</span><span class="rname player">${p}</span><span class="rscore">${sc[p]||0}<span class="runit">pts</span></span></div><div class="rbars"><div class="brow"><span class="blabel">Bons pronos</span><div class="btrack"><div class="bfill player" style="width:${max>0?((sc[p]||0)/max*100):0}%"></div></div><span class="bval">${sc[p]||0}/${total}</span></div><div class="brow"><span class="blabel">Réussite</span><div class="btrack"><div class="bfill neutral player" style="width:${total>0?((sc[p]||0)/total*100):0}%"></div></div><span class="bval">${total>0?Math.round(((sc[p]||0)/total)*100)+'%':'—'}</span></div></div></div>`).join('');
-  return `<div class="slabel"><span class="slabel-text">Classement pronos</span><span class="slabel-line"></span><span class="slabel-count">${total} joués</span></div>${pCards}${total>0?`<div class="apero"><span class="apero-ico">🍻</span><div class="apero-txt"><b>Clause Apéro —</b> à ce stade, <span class="apero-name" style="color:${themeForPronostiqueur(last).accent}">${last}</span> offre l'apéro à la fin du tournoi.</div></div>`:''}<div style="height:16px"></div>`;
+  const minPts=sc[sorted[sorted.length-1]]||0;
+  const medals=total?sorted.map((p,i)=>(sc[p]||0)===minPts?'🍺':(MEDALS[i]||'🍺')):MEDALS;
+  const lastPlayers=total?sorted.filter(p=>(sc[p]||0)===minPts):[];
+  const pCards=sorted.map((p,i)=>`<div class="rcard ${i===0&&(sc[p]||0)>0?'gold':''}" style="${pronostiqueurStatStyle(p)}"><div class="rtop"><span class="rmedal ${medals[i]==='🍺'?'txt':''}">${medals[i]}</span><span class="rname player">${p}</span><span class="rscore">${sc[p]||0}<span class="runit">pts</span></span></div><div class="rbars"><div class="brow"><span class="blabel">Bons pronos</span><div class="btrack"><div class="bfill player" style="width:${max>0?((sc[p]||0)/max*100):0}%"></div></div><span class="bval">${sc[p]||0}/${total}</span></div><div class="brow"><span class="blabel">Réussite</span><div class="btrack"><div class="bfill neutral player" style="width:${total>0?((sc[p]||0)/total*100):0}%"></div></div><span class="bval">${total>0?Math.round(((sc[p]||0)/total)*100)+'%':'—'}</span></div></div></div>`).join('');
+  const aperoNames=lastPlayers.map(p=>`<span class="apero-name" style="color:${themeForPronostiqueur(p).accent}">${p}</span>`).join(' &amp; ');
+  const aperoVerb=lastPlayers.length>1?'offrent conjointement':'offre';
+  return `<div class="slabel"><span class="slabel-text">Classement pronos</span><span class="slabel-line"></span><span class="slabel-count">${total} joués</span></div>${pCards}${total>0?`<div class="apero"><span class="apero-ico">🍻</span><div class="apero-txt"><b>Clause Apéro —</b> à ce stade, ${aperoNames} ${aperoVerb} l'apéro à la fin du tournoi.</div></div>`:''}<div style="height:16px"></div>`;
 }
 function renderCompetition(){
   const sc=computeScores();
@@ -1441,9 +1506,11 @@ function renderStatsDashboard(sc){
   const maxPoints=Math.max(...stats.map(s=>s.points),1);
   const bestAccuracy=Math.max(...stats.map(s=>s.accuracy),0);
   const avgAccuracy=stats.length?Math.round(stats.reduce((sum,s)=>sum+s.accuracy,0)/stats.length):0;
-  const scoreBars=stats.map((s,i)=>`<div class="bar-row" style="${pronostiqueurStatStyle(s.name)}"><div><div class="bar-name player">${MEDALS[i]||'•'} ${s.name}</div><div class="bar-meta">${s.correct} bons sur ${s.voted||0} saisis</div></div><div class="bar-rail"><div class="bar-fill player" style="width:${maxPoints?Math.max(8,s.points/maxPoints*100):0}%"></div></div><div class="bar-val">${s.points} pts</div></div>`).join('');
+  const minPts1=stats.length?(stats[stats.length-1].points||0):0;
+  const medals1=total?stats.map((s,i)=>s.points===minPts1?'🍺':(MEDALS[i]||'🍺')):[...MEDALS];
+  const scoreBars=stats.map((s,i)=>`<div class="bar-row" style="${pronostiqueurStatStyle(s.name)}"><div><div class="bar-name player">${medals1[i]||'•'} ${s.name}</div><div class="bar-meta">${s.correct}/${s.voted||0} saisis</div></div><div class="bar-rail"><div class="bar-fill player" style="width:${maxPoints?Math.max(8,s.points/maxPoints*100):0}%"></div></div><div class="bar-val">${s.points} pts</div></div>`).join('');
   const accuracyBars=stats.map(s=>`<div class="bar-row" style="${pronostiqueurStatStyle(s.name)}"><div><div class="bar-name player">${s.name}</div><div class="bar-meta">Couverture ${s.coverage}%</div></div><div class="bar-rail"><div class="bar-fill alt player" style="width:${Math.max(s.accuracy>0?8:0,s.accuracy)}%"></div></div><div class="bar-val">${s.accuracy}%</div></div>`).join('');
-  const tableRows=stats.map((s,i)=>`<tr><td class="stats-rank">${MEDALS[i]||i+1}</td><td><div class="stats-player player" style="${pronostiqueurStatStyle(s.name)}"><span class="stats-dot player"></span><span>${s.name}</span></div></td><td>${s.points}</td><td>${s.voted}</td><td>${s.correct}</td><td>${s.wrong}</td><td>${s.missed}</td><td><span class="stats-chip ${s.accuracy>=60?'good':s.accuracy<35&&s.voted?'warn':''}">${s.accuracy}%</span></td><td>${s.coverage}%</td></tr>`).join('');
+  const tableRows=stats.map((s,i)=>`<tr><td class="stats-rank">${medals1[i]||i+1}</td><td><div class="stats-player player" style="${pronostiqueurStatStyle(s.name)}"><span class="stats-dot player"></span><span>${s.name}</span></div></td><td>${s.points}</td><td>${s.voted}</td><td>${s.correct}</td><td>${s.wrong}</td><td>${s.missed}</td><td><span class="stats-chip ${s.accuracy>=60?'good':s.accuracy<35&&s.voted?'warn':''}">${s.accuracy}%</span></td><td>${s.coverage}%</td></tr>`).join('');
   const tempoProgressBar=`<div class="stats-progress"><div class="stats-progress-row"><span class="stats-progress-label">Progression tournoi</span><span class="stats-progress-val">${playedPct}%</span></div><div class="stats-progress-track"><div class="stats-progress-fill tempo" style="width:${playedPct}%"></div></div></div>`;
   return `<div class="slabel"><span class="slabel-text">Vue d'ensemble</span><span class="slabel-line"></span><span class="slabel-count">${total}/${ALL.length} joués</span></div><div class="stats-hero"><div class="stats-panel"><div class="stats-title">Tempo du tournoi</div><div class="hero-score"><div class="hero-big">${total}<small>matchs</small></div><div class="hero-sub">${playedPct}% de la compétition a été jouée. ${leader.name} mène actuellement avec ${leader.points} point${leader.points>1?'s':''}.</div></div>${tempoProgressBar}</div><div class="stats-panel"><div class="stats-title">Signaux clés</div><div class="hero-grid"><div class="hero-kpi"><div class="hero-kpi-val">${playedPct}%</div><div class="hero-kpi-lbl">Progression</div><div class="hero-kpi-sub">part des matchs clôturés</div></div><div class="hero-kpi"><div class="hero-kpi-val">${bestAccuracy}%</div><div class="hero-kpi-lbl">Meilleure précision</div><div class="hero-kpi-sub">pic individuel actuel</div></div><div class="hero-kpi"><div class="hero-kpi-val ${betAll.settled<0?'neg':betAll.settled>0?'pos':''}">${betAll.settled.toFixed(2)} €</div><div class="hero-kpi-lbl">Bilan paris</div><div class="hero-kpi-sub">${betAll.count} pari${betAll.count>1?'s':''} placé${betAll.count>1?'s':''}</div></div></div></div></div><div class="stats-bars"><div class="bar-card"><div class="stats-title">Baromètre points</div>${scoreBars}</div><div class="bar-card"><div class="stats-title">Baromètre précision</div>${accuracyBars}</div></div><div class="stats-table-wrap"><div class="stats-table-head"><div class="stats-table-title">Tableau de performance</div><div class="stats-table-note">Précision moyenne : ${avgAccuracy}%</div></div><div class="stats-table-scroll"><table class="stats-table"><thead><tr><th>#</th><th>Participant</th><th>Pts</th><th>Saisis</th><th>Bons</th><th>Faux</th><th>Sans vote</th><th>Précision</th><th>Couverture</th></tr></thead><tbody>${tableRows}</tbody></table></div></div><div style="height:16px"></div>`;
 }
@@ -1466,9 +1533,11 @@ function renderStatsRich(sc){
   const maxPoints=Math.max(...stats.map(s=>s.points),1);
   const bestAccuracy=Math.max(...stats.map(s=>s.accuracy),0);
   const avgAccuracy=stats.length?Math.round(stats.reduce((sum,s)=>sum+s.accuracy,0)/stats.length):0;
-  const scoreBars=stats.map((s,i)=>`<div class="bar-row" style="${pronostiqueurStatStyle(s.name)}"><div><div class="bar-name player">${MEDALS[i]||'•'} ${s.name}</div><div class="bar-meta">${s.correct} bons sur ${s.voted||0} saisis</div></div><div class="bar-rail"><div class="bar-fill player" style="width:${maxPoints?Math.max(8,s.points/maxPoints*100):0}%"></div></div><div class="bar-val">${s.points} pts</div></div>`).join('');
+  const minPts2=stats.length?(stats[stats.length-1].points||0):0;
+  const medals2=total?stats.map((s,i)=>s.points===minPts2?'🍺':(MEDALS[i]||'🍺')):[...MEDALS];
+  const scoreBars=stats.map((s,i)=>`<div class="bar-row" style="${pronostiqueurStatStyle(s.name)}"><div><div class="bar-name player">${medals2[i]||'•'} ${s.name}</div><div class="bar-meta">${s.correct}/${s.voted||0} saisis</div></div><div class="bar-rail"><div class="bar-fill player" style="width:${maxPoints?Math.max(8,s.points/maxPoints*100):0}%"></div></div><div class="bar-val">${s.points} pts</div></div>`).join('');
   const accuracyBars=stats.map(s=>`<div class="bar-row" style="${pronostiqueurStatStyle(s.name)}"><div><div class="bar-name player">${s.name}</div><div class="bar-meta">Couverture ${s.coverage}%</div></div><div class="bar-rail"><div class="bar-fill alt player" style="width:${Math.max(s.accuracy>0?8:0,s.accuracy)}%"></div></div><div class="bar-val">${s.accuracy}%</div></div>`).join('');
-  const tableRows=stats.map((s,i)=>`<tr><td class="stats-rank">${MEDALS[i]||i+1}</td><td><div class="stats-player player" style="${pronostiqueurStatStyle(s.name)}"><span class="stats-dot player"></span><span>${s.name}</span></div></td><td>${s.points}</td><td>${s.voted}</td><td>${s.correct}</td><td>${s.wrong}</td><td>${s.missed}</td><td><span class="stats-chip ${s.accuracy>=60?'good':s.accuracy<35&&s.voted?'warn':''}">${s.accuracy}%</span></td><td>${s.coverage}%</td></tr>`).join('');
+  const tableRows=stats.map((s,i)=>`<tr><td class="stats-rank">${medals2[i]||i+1}</td><td><div class="stats-player player" style="${pronostiqueurStatStyle(s.name)}"><span class="stats-dot player"></span><span>${s.name}</span></div></td><td>${s.points}</td><td>${s.voted}</td><td>${s.correct}</td><td>${s.wrong}</td><td>${s.missed}</td><td><span class="stats-chip ${s.accuracy>=60?'good':s.accuracy<35&&s.voted?'warn':''}">${s.accuracy}%</span></td><td>${s.coverage}%</td></tr>`).join('');
 
   const settledBets=ALL.filter(m=>betPlaced(m.id)&&results[m.id]).map(m=>{
     const maj=getMajority(votes[m.id]||[],sc,m.id);
@@ -1501,6 +1570,27 @@ function renderStatsRich(sc){
   const areaPath=financePoints.length?`${linePath} L ${scaleX(financePoints.length-1,financePoints.length).toFixed(1)} ${scaleY(0).toFixed(1)} L ${scaleX(0,financePoints.length).toFixed(1)} ${scaleY(0).toFixed(1)} Z`:'';
   const eventPath=financePoints.length?financePoints.map((p,i)=>`${i===0?'M':'L'} ${scaleX(i,financePoints.length).toFixed(1)} ${scaleY(p.gain).toFixed(1)}`).join(' '):`M ${padX} ${scaleY(0).toFixed(1)} L ${chartW-padX} ${scaleY(0).toFixed(1)}`;
   const zeroY=scaleY(0).toFixed(1);
+  // ── Finance curve: smooth bezier + gradient + hover ──────────────────
+  const fpAll=[{total:0,gain:0,m:null,maj:null},...financePoints];
+  const fn2=fpAll.length;
+  const fsx=i=>fn2<=1?chartW/2:padX+(chartW-2*padX)*(i/(fn2-1));
+  const fsy=v=>chartH-padY-((v-minCurve)/(maxCurve-minCurve||1))*(chartH-padY*2);
+  const fzY=fsy(0).toFixed(1);
+  const fsmth=pts=>{if(pts.length<2)return`M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;let d=`M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;for(let k=1;k<pts.length;k++){const[px2,py2]=pts[k-1],[cx2,cy2]=pts[k];const mx=((px2+cx2)/2).toFixed(1);d+=` C${mx},${py2.toFixed(1)} ${mx},${cy2.toFixed(1)} ${cx2.toFixed(1)},${cy2.toFixed(1)}`;}return d;};
+  const fCoords=fpAll.map((p,i)=>[fsx(i),fsy(p.total)]);
+  const fLine=fsmth(fCoords);
+  const fArea=`${fLine} L${fsx(fn2-1).toFixed(1)},${fzY} L${fsx(0).toFixed(1)},${fzY} Z`;
+  const fFinalCol=betAll.settled>0?'var(--ok)':betAll.settled<0?'var(--ko)':'#6b7280';
+  const fEndX=fsx(fn2-1).toFixed(1),fEndY=fsy(fpAll[fn2-1].total).toFixed(1);
+  const fRange2=maxCurve-minCurve||1;
+  const fStep=fRange2<=4?1:fRange2<=10?2:fRange2<=20?5:10;
+  let fGrid='';
+  for(let v=Math.floor(minCurve/fStep)*fStep;v<=Math.ceil(maxCurve/fStep)*fStep;v+=fStep){const gy=fsy(v).toFixed(1);const iz=Math.abs(v)<0.001;fGrid+=`<line x1="${padX}" y1="${gy}" x2="${(chartW-padX)}" y2="${gy}" stroke="${iz?'rgba(0,0,0,.2)':'rgba(0,0,0,.06)'}" stroke-width="${iz?1.5:1}"/><text x="${padX-5}" y="${gy}" dy="3.5" fill="#b0b8c8" font-size="11" text-anchor="end" font-family="system-ui,-apple-system,sans-serif">${v>0?'+':''}${v}€</text>`;}
+  const fDefs=`<defs><linearGradient id="fgpos" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--ok)" stop-opacity=".25"/><stop offset="100%" stop-color="var(--ok)" stop-opacity=".01"/></linearGradient><linearGradient id="fgneg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--ko)" stop-opacity=".01"/><stop offset="100%" stop-color="var(--ko)" stop-opacity=".25"/></linearGradient><clipPath id="fcpos"><rect x="0" y="0" width="${chartW}" height="${fzY}"/></clipPath><clipPath id="fcneg"><rect x="0" y="${fzY}" width="${chartW}" height="${chartH}"/></clipPath></defs>`;
+  const fesc=s=>JSON.stringify(s).replace(/'/g,"&#39;");
+  const fPtsJson=fesc(fpAll.map(p=>({id:p.m?`M${String(p.m.id).padStart(2,'0')}`:'Départ',e1:p.m?.e1||'',e2:p.m?.e2||'',maj:p.maj||null,gain:p.gain||0,total:p.total})));
+  const fCh=`<line class="fin-ch" x1="0" y1="${padY}" x2="0" y2="${chartH-padY}" stroke="rgba(0,0,0,.15)" stroke-width="1.5" stroke-dasharray="5,3" display="none"/>`;
+  const newFinanceSvg=`<div style="position:relative;margin-top:8px"><svg viewBox="0 0 ${chartW} ${chartH}" style="width:100%;height:180px;display:block;cursor:crosshair" data-n="${fn2}" data-fw="${chartW}" data-fh="${chartH}" data-fpx="${padX}" data-points='${fPtsJson}' onmousemove="finHover(event,this)" onmouseleave="finLeave(this)">${fDefs}${fGrid}<path d="${fArea}" fill="url(#fgpos)" clip-path="url(#fcpos)"/><path d="${fArea}" fill="url(#fgneg)" clip-path="url(#fcneg)"/><path d="${fLine}" fill="none" stroke="${fFinalCol}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${fEndX}" cy="${fEndY}" r="5.5" fill="${fFinalCol}" stroke="#fff" stroke-width="2.5"/>${fCh}</svg><div class="fin-tt" style="display:none;position:absolute;pointer-events:none;background:#fff;border-radius:10px;padding:10px 14px;box-shadow:0 8px 24px rgba(0,0,0,.14),0 0 0 1px rgba(30,45,140,.08);font-size:11px;z-index:20;min-width:150px"></div></div>`;
   const pendingRows=pendingBets.slice().reverse().map(p=>`<div class="finance-row"><div><div class="finance-match">M${String(p.m.id).padStart(2,'0')} · ${p.m.e1} vs ${p.m.e2}</div><div class="finance-meta">${p.m.date} · ${p.maj?`ret. ${p.maj}`:'ret. —'} · cote ${p.cote?p.cote.toFixed(2):'—'}</div></div><span class="finance-pill pending">en attente</span><span class="finance-amt ${p.potential!=null?'pos':''}">${p.potential!=null?`pot. ${p.potential.toFixed(2)} €`:'pot. —'}</span></div>`).join('');
   const settledRows=financePoints.slice(-6).reverse().map(p=>`<div class="finance-row"><div><div class="finance-match">M${String(p.m.id).padStart(2,'0')} · ${p.m.e1} vs ${p.m.e2}</div><div class="finance-meta">${p.m.date} · ${p.maj?`ret. ${p.maj}`:'ret. —'}</div></div><span class="finance-pill ${p.gain>0?'win':'loss'}">${p.gain>0?'gagné':'perdu'}</span><span class="finance-amt ${p.gain>0?'pos':'neg'}">${p.gain.toFixed(2)} €</span></div>`).join('');
   const financeRows=(pendingRows+settledRows)||`<div class="finance-row"><div><div class="finance-match">Aucun pari placé</div><div class="finance-meta">Active "Pari placé" sur les matchs concernés</div></div><span class="finance-pill pending">en attente</span><span class="finance-amt">—</span></div>`;
@@ -1525,9 +1615,58 @@ function renderStatsRich(sc){
   playedSorted.forEach(m=>{const mv=(votes[m.id]||[]).filter(Boolean);if(!mv.length)return;const cnt={};mv.forEach(v=>cnt[v]=(cnt[v]||0)+1);const top=Math.max(...Object.values(cnt));const minority=mv.length-top;if(minority>maxMinority){maxMinority=minority;mostDisputed=m;}});
   const disputedLabel=mostDisputed?`M${String(mostDisputed.id).padStart(2,'0')} · ${mostDisputed.e1} vs ${mostDisputed.e2}`:'—';
   const disputedSub=mostDisputed?`${maxMinority} vote${maxMinority>1?'s':''} contre la majorité`:'aucun match joué';
+  // Evolution chart
+  const evoPlayed=ALL.filter(m=>results[m.id]).sort((a,b)=>a.id-b.id);
+  let evoChart='';
+  if(evoPlayed.length>=2){
+    // Prepend 0 so each curve starts at the bottom-left before match 1
+    const evoSeries=PARTICIPANTS.map((p,pi)=>{let c=0;return [0,...evoPlayed.map(m=>{const r=results[m.id];const pk=(votes[m.id]||[])[pi];if(r&&pk===r)c++;return c;})];});
+    const evoMax=Math.max(...evoSeries.flat(),1);
+    const EW=900,EH=230,epx=36,ept=14,epb=2,epR=70,en=evoSeries[0].length;
+    const esx=i=>en<=1?EW/2:epx+(EW-epx-epR)*(i/(en-1));
+    const esy=v=>EH-epb-(v/evoMax)*(EH-ept-epb);
+    // Smooth bezier path
+    const smoothD=ser=>{const pts=ser.map((v,j)=>[esx(j),esy(v)]);if(pts.length<2)return`M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;let d=`M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;for(let k=1;k<pts.length;k++){const[px,py]=pts[k-1];const[cx,cy]=pts[k];const mx=((px+cx)/2).toFixed(1);d+=` C${mx},${py.toFixed(1)} ${mx},${cy.toFixed(1)} ${cx.toFixed(1)},${cy.toFixed(1)}`;}return d;};
+    // Grid lines + Y labels — skip 0, start from yStep
+    const yStep=evoMax<=6?1:evoMax<=12?2:3;
+    let gridSvg=``;
+    for(let v=yStep;v<=evoMax;v+=yStep){const gy=esy(v).toFixed(1);gridSvg+=`<line x1="${epx}" y1="${gy}" x2="${EW-epR}" y2="${gy}" stroke="rgba(30,45,140,.07)" stroke-width="1"/><text x="${(epx-8).toFixed(1)}" y="${gy}" dy="3.5" fill="#c0c8d8" font-size="13" text-anchor="end" font-family="system-ui,-apple-system,sans-serif">${v}</text>`;}
+    const defs='';
+    const areas='';
+    // Lines (smooth)
+    const elines=PARTICIPANTS.map((p,i)=>{const col=themeForPronostiqueur(p).accent;return `<path d="${smoothD(evoSeries[i])}" fill="none" stroke="${col}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;}).join('');
+    const smallDots='';
+    // End dots + name labels with collision avoidance (sorted top→bottom)
+    const endPts=PARTICIPANTS.map((p,i)=>({p,i,col:themeForPronostiqueur(p).accent,val:evoSeries[i][en-1],rawY:esy(evoSeries[i][en-1])})).sort((a,b)=>a.rawY-b.rawY);
+    endPts.forEach(pt=>{pt.labelY=pt.rawY;});
+    for(let k=1;k<endPts.length;k++){if(endPts[k].labelY<endPts[k-1].labelY+17)endPts[k].labelY=endPts[k-1].labelY+17;}
+    const edots=endPts.map(pt=>`<circle cx="${esx(en-1).toFixed(1)}" cy="${pt.rawY.toFixed(1)}" r="5.5" fill="${pt.col}" stroke="#fff" stroke-width="2.5"/><text x="${(EW-epR+10).toFixed(1)}" y="${pt.labelY.toFixed(1)}" dy="4" fill="${pt.col}" font-size="13" font-weight="700" font-family="system-ui,-apple-system,sans-serif">${pt.p} ${pt.val}</text>`).join('');
+    const xLabels='';
+    // Legend
+    const elegend=PARTICIPANTS.map((p,i)=>{const col=themeForPronostiqueur(p).accent;const val=evoSeries[i][en-1];return `<div style="display:flex;align-items:center;gap:6px"><span style="width:20px;height:3px;border-radius:2px;background:${col};flex-shrink:0;display:inline-block"></span><span style="font-size:11px;color:var(--dim)">${p}</span><span style="font-size:11px;font-weight:700;color:${col}">${val}</span></div>`;}).join('');
+    // Crosshair
+    const crosshair=`<line class="evo-ch" x1="0" y1="${ept}" x2="0" y2="${EH-epb}" stroke="rgba(30,45,140,.2)" stroke-width="1.5" stroke-dasharray="5,3" display="none"/>`;
+    // JSON data (escape single quotes)
+    const esc=s=>JSON.stringify(s).replace(/'/g,"&#39;");
+    const matchesJson=esc([{id:'Départ',e1:'',e2:''},...evoPlayed.map(m=>({id:`M${String(m.id).padStart(2,'0')}`,e1:m.e1,e2:m.e2}))]);
+    const namesJson=esc(PARTICIPANTS);
+    const colorsJson=esc(PARTICIPANTS.map(p=>themeForPronostiqueur(p).accent));
+    const seriesJson=esc(evoSeries);
+    // Companion card: recent form + ranking
+    const formN=Math.min(5,en);
+    const recentM2=evoPlayed.slice(-formN);
+    const companionRows=stats.map((s,rank)=>{
+      const pi=PARTICIPANTS.indexOf(s.name);
+      const col=themeForPronostiqueur(s.name).accent;
+      const med=medals2[rank]||'🍺';
+      const dots=recentM2.map(m=>{const res=results[m.id];const pick=(votes[m.id]||[])[pi];const ok=res&&pick===res;const ko=res&&pick!==res;return `<span style="width:9px;height:9px;border-radius:50%;background:${ok?'var(--ok)':ko?'var(--ko)':'#dde2ef'};flex-shrink:0;display:inline-block"></span>`;}).join('');
+      return `<div style="display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid rgba(30,45,140,.06)"><span style="font-size:16px;width:22px;text-align:center">${med}</span><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;color:${col}">${s.name}</div><div style="font-size:10px;color:var(--dim);margin-top:2px">${s.correct} bons · ${s.accuracy}%</div></div><div style="display:flex;gap:3px;flex-shrink:0;align-items:center">${dots}</div></div>`;
+    }).join('');
+    const companion=`<div class="bar-card" style="display:flex;flex-direction:column"><div class="stats-title">Forme récente</div><div style="padding:0 2px;flex:1">${companionRows}</div><div style="font-size:10px;color:var(--dim);padding-top:8px;border-top:1px solid rgba(30,45,140,.06)">Derniers ${formN} matchs disputés</div></div>`;
+    evoChart=`<div style="display:grid;grid-template-columns:3fr 1.3fr;gap:10px;margin:0 18px 10px"><div class="bar-card" style="display:flex;flex-direction:column"><div class="stats-title">Évolution des bons pronos</div><div style="position:relative;flex:1;min-height:120px"><svg viewBox="0 0 ${EW} ${EH}" style="position:absolute;top:6px;left:0;width:100%;height:calc(100% - 6px);display:block;cursor:crosshair" preserveAspectRatio="none" data-n="${en}" data-ew="${EW}" data-eh="${EH}" data-epx="${epx}" data-epr="${epR}" data-ept="${ept}" data-epb="${epb}" data-series='${seriesJson}' data-matches='${matchesJson}' data-names='${namesJson}' data-colors='${colorsJson}' onmousemove="evoHover(event,this)" onmouseleave="evoLeave(this)">${defs}${gridSvg}${areas}${elines}${edots}${xLabels}${crosshair}</svg><div class="evo-tt" style="display:none;position:absolute;pointer-events:none;background:#fff;border-radius:10px;padding:10px 14px;box-shadow:0 8px 24px rgba(0,0,0,.14),0 0 0 1px rgba(30,45,140,.08);font-size:11px;z-index:20;min-width:130px"></div></div></div>${companion}</div>`;
+  }
 
-
-  return `<div class="slabel"><span class="slabel-text">Vue d'ensemble</span><span class="slabel-line"></span><span class="slabel-count">${total}/${ALL.length} joués</span></div><div class="stats-hero"><div class="stats-panel"><div class="stats-title">Tempo du tournoi</div><div class="hero-score"><div class="hero-big">${total}<small>matchs</small></div><div class="hero-sub">${playedPct}% de la compétition a été jouée. ${leader.name} mène actuellement avec ${leader.points} point${leader.points>1?'s':''}.</div></div>${tempoProgressBar}<div class="hero-grid" style="margin-top:12px"><div class="hero-kpi"><div class="hero-kpi-val ${streakCls}">${streak||'—'}</div><div class="hero-kpi-lbl">Série en cours</div><div class="hero-kpi-sub">${streakSub}</div></div><div class="hero-kpi"><div class="hero-kpi-val">${accordRate}%</div><div class="hero-kpi-lbl">Taux d'accord</div><div class="hero-kpi-sub">${unanimousCount} match${unanimousCount>1?'s':''} à vote unanime</div></div><div class="hero-kpi"><div class="hero-kpi-val">${mostDisputed?`M${String(mostDisputed.id).padStart(2,'0')}`:'—'}</div><div class="hero-kpi-lbl">Plus disputé</div><div class="hero-kpi-sub">${mostDisputed?`${mostDisputed.e1} vs ${mostDisputed.e2}`:'aucun'}</div></div></div></div><div class="stats-panel"><div class="stats-title">Signaux clés</div><div class="hero-grid"><div class="hero-kpi"><div class="hero-kpi-val">${bestAccuracy}%</div><div class="hero-kpi-lbl">Meilleure précision</div><div class="hero-kpi-sub">pic individuel actuel</div></div><div class="hero-kpi"><div class="hero-kpi-val ${betAll.settled<0?'neg':betAll.settled>0?'pos':''}">${betAll.settled.toFixed(2)} €</div><div class="hero-kpi-lbl">Bilan paris</div><div class="hero-kpi-sub">${betAll.count} pari${betAll.count>1?'s':''} placé${betAll.count>1?'s':''}</div></div><div class="hero-kpi"><div class="hero-kpi-val ${roiCls}">${roiStr}</div><div class="hero-kpi-lbl">ROI paris</div><div class="hero-kpi-sub">${settledCount} réglé${settledCount>1?'s':''} · ${totalStake} € misés</div></div><div class="hero-kpi"><div class="hero-kpi-val">${avgCote}</div><div class="hero-kpi-lbl">Cote moyenne</div><div class="hero-kpi-sub">${betCotes.length} cote${betCotes.length>1?'s':''} renseignée${betCotes.length>1?'s':''}</div></div></div></div></div><div class="finance-grid"><div class="curve-card"><div class="curve-head"><div><div class="curve-title">Courbe du bilan cumulé</div><div class="curve-sub">Évolution match après match des paris réellement placés</div></div><div class="curve-value ${betAll.settled<0?'neg':betAll.settled>0?'pos':''}">${betAll.settled.toFixed(2)} €</div></div><svg class="curve-svg" viewBox="0 0 ${chartW} ${chartH}" preserveAspectRatio="none"><g class="curve-grid"><line x1="0" y1="${(chartH*0.2).toFixed(1)}" x2="${chartW}" y2="${(chartH*0.2).toFixed(1)}"></line><line x1="0" y1="${(chartH*0.5).toFixed(1)}" x2="${chartW}" y2="${(chartH*0.5).toFixed(1)}"></line><line x1="0" y1="${(chartH*0.8).toFixed(1)}" x2="${chartW}" y2="${(chartH*0.8).toFixed(1)}"></line></g><line class="curve-axis" x1="0" y1="${zeroY}" x2="${chartW}" y2="${zeroY}"></line>${areaPath?`<path class="curve-area" d="${areaPath}"></path>`:''}<path class="curve-line" d="${linePath}"></path>${financePoints.map((p,i)=>`<circle class="curve-point" cx="${scaleX(i,financePoints.length).toFixed(1)}" cy="${scaleY(p.total).toFixed(1)}" r="4"></circle>`).join('')}</svg><div class="curve-labels"><span>Départ</span><span>${financePoints.length?`${financePoints.length} paris réglés`:'aucun pari réglé'}</span></div><div class="accord-grid"><div class="accord-item"><div class="accord-val">${accordRate}%</div><div class="accord-lbl">Taux d'accord</div><div class="accord-sub">${unanimousCount} match${unanimousCount>1?'s':''} à vote unanime sur ${playedSorted.length}</div></div><div class="accord-item"><div class="accord-val">${mostDisputed?`M${String(mostDisputed.id).padStart(2,'0')}`:'—'}</div><div class="accord-lbl">Plus disputé</div><div class="accord-sub">${mostDisputed?`${mostDisputed.e1} vs ${mostDisputed.e2} · ${disputedSub}`:disputedSub}</div></div></div></div><div class="curve-card"><div class="curve-head"><div><div class="curve-title">Paris placés</div><div class="curve-sub">Variation sur chaque pari réglé</div></div><div class="curve-value">${pendingCount} en attente</div></div><div class="finance-list">${financeRows}</div></div></div><div class="stats-bars"><div class="bar-card"><div class="stats-title">Baromètre points</div>${scoreBars}</div><div class="bar-card"><div class="stats-title">Baromètre précision</div>${accuracyBars}</div></div><div class="stats-table-wrap"><div class="stats-table-head"><div class="stats-table-title">Tableau de performance</div><div class="stats-table-note">Précision moyenne : ${avgAccuracy}%</div></div><div class="stats-table-scroll"><table class="stats-table"><thead><tr><th>#</th><th>Participant</th><th>Pts</th><th>Saisis</th><th>Bons</th><th>Faux</th><th>Sans vote</th><th>Précision</th><th>Couverture</th></tr></thead><tbody>${tableRows}</tbody></table></div></div><div style="height:16px"></div>`;
+  return `<div class="slabel"><span class="slabel-text">Vue d'ensemble</span><span class="slabel-line"></span><span class="slabel-count">${total}/${ALL.length} joués</span></div><div class="stats-hero"><div class="stats-panel"><div class="stats-title">Tempo du tournoi</div><div class="hero-score"><div class="hero-big">${total}<small>matchs</small></div><div class="hero-sub">${playedPct}% de la compétition a été jouée. ${leader.name} mène actuellement avec ${leader.points} point${leader.points>1?'s':''}.</div></div>${tempoProgressBar}<div class="hero-grid" style="margin-top:12px"><div class="hero-kpi"><div class="hero-kpi-val ${streakCls}">${streak||'—'}</div><div class="hero-kpi-lbl">Série en cours</div><div class="hero-kpi-sub">${streakSub}</div></div><div class="hero-kpi"><div class="hero-kpi-val">${accordRate}%</div><div class="hero-kpi-lbl">Taux d'accord</div><div class="hero-kpi-sub">${unanimousCount} match${unanimousCount>1?'s':''} à vote unanime</div></div><div class="hero-kpi"><div class="hero-kpi-val">${mostDisputed?`M${String(mostDisputed.id).padStart(2,'0')}`:'—'}</div><div class="hero-kpi-lbl">Plus disputé</div><div class="hero-kpi-sub">${mostDisputed?`${mostDisputed.e1} vs ${mostDisputed.e2}`:'aucun'}</div></div></div></div><div class="stats-panel"><div class="stats-title">Signaux clés</div><div class="hero-grid"><div class="hero-kpi"><div class="hero-kpi-val">${bestAccuracy}%</div><div class="hero-kpi-lbl">Meilleure précision</div><div class="hero-kpi-sub">pic individuel actuel</div></div><div class="hero-kpi"><div class="hero-kpi-val ${betAll.settled<0?'neg':betAll.settled>0?'pos':''}">${betAll.settled.toFixed(2)} €</div><div class="hero-kpi-lbl">Bilan paris</div><div class="hero-kpi-sub"><span style="color:${betAll.settled<0?'var(--ko)':betAll.settled>0?'var(--ok)':'inherit'};font-weight:600">${(betAll.settled/4).toFixed(2)} €</span> / joueur · ${betAll.count} paris</div></div><div class="hero-kpi"><div class="hero-kpi-val ${roiCls}">${roiStr}</div><div class="hero-kpi-lbl">ROI paris</div><div class="hero-kpi-sub">${settledCount} réglé${settledCount>1?'s':''} · ${totalStake} € misés</div></div><div class="hero-kpi"><div class="hero-kpi-val">${avgCote}</div><div class="hero-kpi-lbl">Cote moyenne</div><div class="hero-kpi-sub">${betCotes.length} cote${betCotes.length>1?'s':''} renseignée${betCotes.length>1?'s':''}</div></div></div></div></div><div class="finance-grid"><div class="curve-card"><div class="curve-head"><div><div class="curve-title">Courbe du bilan cumulé</div><div class="curve-sub">Évolution match après match des paris réellement placés</div></div><div class="curve-value ${betAll.settled<0?'neg':betAll.settled>0?'pos':''}">${betAll.settled.toFixed(2)} €</div></div>${newFinanceSvg}<div class="curve-labels"><span>Départ</span><span>${financePoints.length?`${financePoints.length} paris réglés`:'aucun pari réglé'}</span></div><div class="accord-grid"><div class="accord-item"><div class="accord-val">${accordRate}%</div><div class="accord-lbl">Taux d'accord</div><div class="accord-sub">${unanimousCount} match${unanimousCount>1?'s':''} à vote unanime sur ${playedSorted.length}</div></div><div class="accord-item"><div class="accord-val">${mostDisputed?`M${String(mostDisputed.id).padStart(2,'0')}`:'—'}</div><div class="accord-lbl">Plus disputé</div><div class="accord-sub">${mostDisputed?`${mostDisputed.e1} vs ${mostDisputed.e2} · ${disputedSub}`:disputedSub}</div></div></div></div><div class="curve-card"><div class="curve-head"><div><div class="curve-title">Paris placés</div><div class="curve-sub">Variation sur chaque pari réglé</div></div><div class="curve-value">${pendingCount} en attente</div></div><div class="finance-list">${financeRows}</div></div></div><div class="stats-bars"><div class="bar-card"><div class="stats-title">Baromètre points</div>${scoreBars}</div><div class="bar-card"><div class="stats-title">Baromètre précision</div>${accuracyBars}</div></div>${evoChart}<div class="stats-table-wrap"><div class="stats-table-head"><div class="stats-table-title">Tableau de performance</div><div class="stats-table-note">Précision moyenne : ${avgAccuracy}%</div></div><div class="stats-table-scroll"><table class="stats-table"><thead><tr><th>#</th><th>Participant</th><th>Pts</th><th>Saisis</th><th>Bons</th><th>Faux</th><th>Sans vote</th><th>Précision</th><th>Couverture</th></tr></thead><tbody>${tableRows}</tbody></table></div></div><div style="height:16px"></div>`;
 }
 
 function scoreOf(id){return scoreMap[id]||{s1:"",s2:""};}
