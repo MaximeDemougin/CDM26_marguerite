@@ -991,6 +991,7 @@ let placedBetMap={};
 let tieChoiceMap={};
 let customColorMap={};
 let contractSignatures={};
+const FIFA_RANKS={"Argentine":1,"Espagne":2,"France":3,"Angleterre":4,"Portugal":5,"Brésil":6,"Maroc":7,"Pays-Bas":8,"Belgique":9,"Allemagne":10,"Croatie":11,"Colombie":13,"Mexique":14,"Sénégal":15,"Uruguay":16,"États-Unis":17,"Japon":18,"Suisse":19,"Iran":20,"Turquie":22,"Équateur":23,"Autriche":24,"Corée du Sud":25,"Australie":27,"Algérie":28,"Égypte":29,"Canada":30,"Norvège":31,"Côte d'Ivoire":33,"Panama":34,"Suède":38,"Rép. tchèque":40,"Paraguay":41,"Écosse":42,"Tunisie":45,"RD Congo":46,"Ouzbékistan":50,"Qatar":56,"Irak":57,"Afrique du Sud":60,"Arabie saoudite":61,"Jordanie":63,"Bosnie-Herzég.":64,"Cap-Vert":67,"Ghana":73,"Curaçao":82,"Haïti":83,"Nouvelle-Zélande":85};
 let scoreSaveTimers={};
 let matchsSeeded=false;
 try{coteMap=JSON.parse(localStorage.getItem("cdm26_cotes")||"{}");}catch{coteMap={};}
@@ -1750,14 +1751,39 @@ function groupTables(){
     t1.j++;t2.j++;t1.gf+=a;t1.ga+=b;t2.gf+=b;t2.ga+=a;t1.d=t1.gf-t1.ga;t2.d=t2.gf-t2.ga;
     if(a>b)t1.pts+=3;else if(b>a)t2.pts+=3;else{t1.pts++;t2.pts++;}
   });
+  // FIFA WC2026 tiebreaker: H2H pts → H2H GD → H2H GF → overall GD → overall GF → alphabetical
+  const h2h=(g,tset)=>{
+    const h={};tset.forEach(t=>{h[t]={pts:0,gf:0,ga:0};});
+    MG.filter(m=>m.g===g&&tset.has(m.e1)&&tset.has(m.e2)).forEach(m=>{
+      const s=scoreOf(m.id);if(s.s1===""||s.s2==="")return;
+      const a=Number(s.s1),b=Number(s.s2);if(Number.isNaN(a)||Number.isNaN(b))return;
+      h[m.e1].gf+=a;h[m.e1].ga+=b;h[m.e2].gf+=b;h[m.e2].ga+=a;
+      if(a>b)h[m.e1].pts+=3;else if(b>a)h[m.e2].pts+=3;else{h[m.e1].pts++;h[m.e2].pts++;}
+    });
+    return h;
+  };
+  const fifaSort=(g,arr)=>{
+    if(arr.length<=1)return arr;
+    const byPts={};arr.forEach(t=>{(byPts[t.pts]=byPts[t.pts]||[]).push(t);});
+    return Object.keys(byPts).sort((a,b)=>b-a).flatMap(pts=>{
+      const grp=byPts[pts];if(grp.length===1)return grp;
+      const tset=new Set(grp.map(t=>t.team));
+      const hh=h2h(g,tset);
+      grp.sort((a,b)=>{
+        const ha=hh[a.team],hb=hh[b.team];
+        return hb.pts-ha.pts||(hb.gf-hb.ga)-(ha.gf-ha.ga)||hb.gf-ha.gf||b.d-a.d||b.gf-a.gf||(FIFA_RANKS[a.team]||999)-(FIFA_RANKS[b.team]||999)||a.team.localeCompare(b.team);
+      });
+      return grp;
+    });
+  };
   const sorted={};
-  Object.keys(groups).sort().forEach(g=>{sorted[g]=Object.values(groups[g]).sort((a,b)=>b.pts-a.pts||b.d-a.d||b.gf-a.gf||a.team.localeCompare(b.team));});
+  Object.keys(groups).sort().forEach(g=>{sorted[g]=fifaSort(g,Object.values(groups[g]));});
   return sorted;
 }
 function buildKnockoutProjection(tables){
   const first={},second={},third=[];
   Object.keys(tables).forEach(g=>{const arr=tables[g];if(arr[0])first[g]=arr[0].team;if(arr[1])second[g]=arr[1].team;if(arr[2])third.push({group:g,...arr[2]});});
-  const bestThirdEntries=third.sort((a,b)=>b.pts-a.pts||b.d-a.d||b.gf-a.gf||a.team.localeCompare(b.team)).slice(0,8);
+  const bestThirdEntries=third.sort((a,b)=>b.pts-a.pts||b.d-a.d||b.gf-a.gf||(FIFA_RANKS[a.team]||999)-(FIFA_RANKS[b.team]||999)||a.team.localeCompare(b.team)).slice(0,8);
   const bestThirdRanking=bestThirdEntries.map(x=>x.team);
   const ctx={first,second,bestThirdEntries,usedThirdGroups:new Set(),winners:{},losers:{}};
   const fixtures=MKO.map(m=>{
