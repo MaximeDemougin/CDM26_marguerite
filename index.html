@@ -1669,7 +1669,7 @@ function renderStatsRich(sc){
     // Prepend 0 so each curve starts at the bottom-left before match 1
     const evoSeries=PARTICIPANTS.map((p,pi)=>{let c=0;return [0,...evoPlayed.map(m=>{const r=results[m.id];const pk=(votes[m.id]||[])[pi];if(r&&pk===r)c++;return c;})];});
     const evoMax=Math.max(...evoSeries.flat(),1);
-    const EW=720,EH=230,epx=36,ept=14,epb=2,epR=70,en=evoSeries[0].length;
+    const EW=720,EH=230,epx=36,ept=14,epb=2,epR=104,en=evoSeries[0].length;
     const esx=i=>en<=1?EW/2:epx+(EW-epx-epR)*(i/(en-1));
     const esy=v=>EH-epb-(v/evoMax)*(EH-ept-epb);
     // Smooth bezier path
@@ -1687,7 +1687,7 @@ function renderStatsRich(sc){
     const endPts=PARTICIPANTS.map((p,i)=>({p,i,col:themeForPronostiqueur(p).accent,val:evoSeries[i][en-1],rawY:esy(evoSeries[i][en-1])})).sort((a,b)=>a.rawY-b.rawY);
     endPts.forEach(pt=>{pt.labelY=pt.rawY;});
     for(let k=1;k<endPts.length;k++){if(endPts[k].labelY<endPts[k-1].labelY+17)endPts[k].labelY=endPts[k-1].labelY+17;}
-    const edots=endPts.map(pt=>`<circle cx="${esx(en-1).toFixed(1)}" cy="${pt.rawY.toFixed(1)}" r="5.5" fill="${pt.col}" stroke="#fff" stroke-width="2.5"/><text x="${(EW-epR+10).toFixed(1)}" y="${pt.labelY.toFixed(1)}" dy="4" fill="${pt.col}" font-size="13" font-weight="700" font-family="system-ui,-apple-system,sans-serif">${pt.p} ${pt.val}</text>`).join('');
+     const edots=endPts.map(pt=>`<circle cx="${esx(en-1).toFixed(1)}" cy="${pt.rawY.toFixed(1)}" r="5.5" fill="${pt.col}" stroke="#fff" stroke-width="2.5"/><text x="${(EW-epR+10).toFixed(1)}" y="${pt.labelY.toFixed(1)}" dy="4" fill="${pt.col}" font-size="12" font-weight="700" font-family="system-ui,-apple-system,sans-serif">${pt.p} ${pt.val}</text>`).join('');
     const xLabels='';
     // Legend
     const elegend=PARTICIPANTS.map((p,i)=>{const col=themeForPronostiqueur(p).accent;const val=evoSeries[i][en-1];return `<div style="display:flex;align-items:center;gap:6px"><span style="width:20px;height:3px;border-radius:2px;background:${col};flex-shrink:0;display:inline-block"></span><span style="font-size:11px;color:var(--dim)">${p}</span><span style="font-size:11px;font-weight:700;color:${col}">${val}</span></div>`;}).join('');
