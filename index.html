@@ -401,7 +401,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .kpi-info:hover{background:color-mix(in oklab,var(--fr) 28%, #e8eef6)}
 .kpi-tip{position:fixed;z-index:1000;max-width:240px;background:#0d1525;color:#fff;font-size:11px;font-weight:500;line-height:1.45;letter-spacing:0;text-transform:none;padding:9px 12px;border-radius:9px;box-shadow:0 10px 28px rgba(0,0,0,.24);pointer-events:none}
 .stats-bars{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px}
-.evo-grid{display:grid;grid-template-columns:3fr 1.3fr;gap:10px;margin:0 18px 10px}
+.evo-grid{display:grid;grid-template-columns:2fr 1.3fr;gap:10px;margin:0 18px 10px}
 @media (max-width:980px){.evo-grid{grid-template-columns:1fr}}
 .bar-card{border:none;background:#ffffff;border-radius:14px;padding:14px 16px;overflow:hidden;box-shadow:0 12px 28px rgba(15,29,49,.14),0 0 0 1px rgba(255,255,255,.74) inset}
 .bar-row{display:grid;grid-template-columns:116px 1fr 58px;gap:12px;align-items:center;padding:8px 0;box-shadow:inset 0 1px 0 color-mix(in oklab,var(--line2) 55%, transparent)}
@@ -1669,7 +1669,7 @@ function renderStatsRich(sc){
     // Prepend 0 so each curve starts at the bottom-left before match 1
     const evoSeries=PARTICIPANTS.map((p,pi)=>{let c=0;return [0,...evoPlayed.map(m=>{const r=results[m.id];const pk=(votes[m.id]||[])[pi];if(r&&pk===r)c++;return c;})];});
     const evoMax=Math.max(...evoSeries.flat(),1);
-    const EW=900,EH=230,epx=36,ept=14,epb=2,epR=70,en=evoSeries[0].length;
+    const EW=720,EH=230,epx=36,ept=14,epb=2,epR=70,en=evoSeries[0].length;
     const esx=i=>en<=1?EW/2:epx+(EW-epx-epR)*(i/(en-1));
     const esy=v=>EH-epb-(v/evoMax)*(EH-ept-epb);
     // Smooth bezier path
