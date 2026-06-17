@@ -1236,8 +1236,9 @@ function renderRegles(){
     </div>
   </div>`;
 }
-function renderMatchs(sc){
-  const phases=["Groupes","1/16","1/8","Quart","Demi","FINALE"];
+// Sélection + filtres (phase / groupe / date / équipe / recherche) — partagé par
+// le rendu complet et la mise à jour partielle de la liste (sans recréer la barre de recherche)
+function currentMatches(){
   let matches;
   if(filterPhase==="Groupes"){
     matches=filterGroupe==="Tous"?MG:filterGroupe==="France"?MG.filter(m=>m.fr):MG.filter(m=>m.g===filterGroupe);
@@ -1247,6 +1248,20 @@ function renderMatchs(sc){
       .filter(m=>m.round===filterPhase)
       .map(m=>({id:m.id,date:m.date,h:m.h,t:m.round,e1:m.e1,e2:m.e2,fr:false}));
   }
+  // Dates disponibles dans la sélection courante (avant filtre date)
+  const dates=[...new Set(matches.map(m=>m.date))];
+  // Applique le filtre date s'il est actif et présent dans la sélection
+  if(filterDate!=="Toutes" && dates.includes(filterDate)) matches=matches.filter(m=>m.date===filterDate);
+  if(filterTeam!=="Toutes") matches=matches.filter(m=>m.e1===filterTeam||m.e2===filterTeam);
+  if(filterSearch.trim()){
+    const q=filterSearch.trim().toLowerCase();
+    matches=matches.filter(m=>`${m.e1} ${m.e2} ${m.g||""} ${m.t||""}`.toLowerCase().includes(q));
+  }
+  return {matches,dates};
+}
+function renderMatchs(sc){
+  const phases=["Groupes","1/16","1/8","Quart","Demi","FINALE"];
+  const {matches,dates}=currentMatches();
   const groups=["Tous","France",...[...new Set(MG.map(m=>m.g))].sort()];
   const isRealTeam=name=>!(
     name.startsWith("1er Gr.")||
@@ -1257,22 +1272,19 @@ function renderMatchs(sc){
   );
   const teams=["Toutes",...[...new Set(ALL.flatMap(m=>[m.e1,m.e2]).filter(isRealTeam))].sort((a,b)=>a.localeCompare(b))];
 
-  // Dates disponibles dans la sélection courante (avant filtre date)
-  const dates=[...new Set(matches.map(m=>m.date))];
-  // Applique le filtre date s'il est actif et présent dans la sélection
-  if(filterDate!=="Toutes" && dates.includes(filterDate)) matches=matches.filter(m=>m.date===filterDate);
-  if(filterTeam!=="Toutes") matches=matches.filter(m=>m.e1===filterTeam||m.e2===filterTeam);
-  if(filterSearch.trim()){
-    const q=filterSearch.trim().toLowerCase();
-    matches=matches.filter(m=>`${m.e1} ${m.e2} ${m.g||""} ${m.t||""}`.toLowerCase().includes(q));
-  }
-
   let html=`<div class="scroller" style="${pronostiqueurVoteStyle(me)}">${phases.map(p=>`<button class="chip ${filterPhase===p?'on':''}" onclick="setPhase('${p}')">${p==="Groupes"?"Phase de groupes":p==="FINALE"?"Finale":p}</button>`).join('')}</div>${filterPhase==="Groupes"?`<div class="scroller sub" style="${pronostiqueurVoteStyle(me)}">${groups.map(g=>`<button class="chip ${filterGroupe===g?'on':''}" onclick="setGroupe('${g}')">${g==="Tous"?"Tous":g==="France"?"France":"Gr. "+g}</button>`).join('')}</div>`:''}`;
   html+=`<div class="filterbar"><input class="searchbox" type="search" placeholder="Rechercher un match ou une équipe" value="${filterSearch}" oninput="setFilterSearch(this.value)"><select class="teamsel" onchange="setFilterTeam(this.value)">${teams.map(t=>`<option value="${t}" ${filterTeam===t?'selected':''}>${t==="Toutes"?"Toutes les équipes":t}</option>`).join('')}</select></div>`;
 
   // Barre de filtre par date
   html+=`<div class="datebar"><span class="datebar-lbl">📅 Aller à</span><select class="datesel" onchange="setFilterDate(this.value)"><option value="Toutes" ${filterDate==="Toutes"?'selected':''}>Toutes les dates</option>${dates.map(d=>`<option value="${d}" ${filterDate===d?'selected':''}>${dayLabel(d)}</option>`).join('')}</select>${filterDate!=="Toutes"?`<button class="datereset" onclick="setFilterDate('Toutes')">✕</button>`:''}</div>`;
 
+  // La liste des matchs est isolée dans #matchlist pour pouvoir la rafraîchir
+  // seule (recherche) sans recréer la barre de recherche => focus/clavier conservés
+  html+=`<div id="matchlist">${matchListHtml(sc,matches)}</div>`;
+  return html;
+}
+function matchListHtml(sc,matches){
+  let html='';
   // Regroupement par jour
   const days=[];const byDay={};
   matches.forEach(m=>{const lbl=dayLabel(m.date);if(!byDay[lbl]){byDay[lbl]=[];days.push(lbl);}byDay[lbl].push(m);});
@@ -1280,7 +1292,6 @@ function renderMatchs(sc){
   if(sectionLabel!=="Par journée"){
     html+=`<div class="slabel"><span class="slabel-text">${sectionLabel}</span><span class="slabel-line"></span><span class="slabel-count">${matches.length} matchs</span></div>`;
   }
-
   days.forEach(lbl=>{
     const dayMatches=byDay[lbl];
     const done=dayMatches.filter(m=>results[m.id]).length;
@@ -1898,6 +1909,9 @@ window.setPronostiqueurColor=function(name,value){if(!/^#[0-9a-fA-F]{6}$/.test(S
 window.resetPronostiqueurColor=function(name){delete customColorMap[name];localStorage.setItem("cdm26_custom_colors",JSON.stringify(customColorMap));if(me===name)applyPronostiqueurTheme(me);render();setSync("busy");savePronostiqueurColorDb(name,null).then(()=>{setSync("ok");showBanner(null);}).catch(e=>{setSync("off");showBanner("Échec de l'enregistrement de la couleur — base injoignable.");console.error(e);});};
 // Repliage : on ne redessine QUE le contenu, en préservant la position de scroll
 function renderMatchsOnly(){const sc=computeScores();const c=document.getElementById("content");const y=c.scrollTop;c.innerHTML=renderMatchs(sc);c.scrollTop=y;}
+// Rafraîchit UNIQUEMENT la liste des matchs (sans toucher à la barre de recherche),
+// pour ne pas perdre le focus de l'input pendant la saisie (clavier mobile).
+function renderMatchListOnly(){const ml=document.getElementById("matchlist");if(!ml){renderMatchsOnly();return;}const sc=computeScores();const {matches}=currentMatches();ml.innerHTML=matchListHtml(sc,matches);}
 window.toggleDay=function(lbl){openDays[lbl]=!openDays[lbl];renderMatchsOnly();};
 window.setFilterDate=function(d){filterDate=d;
   if(tab==="matchs"){
@@ -2053,7 +2067,7 @@ window.goToMatch=function(id){
 };
 window.setPhase=function(p){filterPhase=p;render();};
 window.setGroupe=function(g){filterGroupe=g;render();};
-window.setFilterSearch=function(v){filterSearch=v;renderMatchsOnly();};
+window.setFilterSearch=function(v){filterSearch=v;renderMatchListOnly();};
 window.setFilterTeam=function(v){filterTeam=v;renderMatchsOnly();};
 
 // Rafraîchit les données puis redessine SANS casser le scroll ni les sections ouvertes
