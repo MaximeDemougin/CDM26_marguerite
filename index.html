@@ -1024,6 +1024,8 @@ function isPastDay(d){const dt=matchDate(d);const today=new Date();today.setHour
 // État repliage. Par défaut : tout replié sauf cas particuliers gérés au render.
 let openDays={};       // clé = libellé du jour -> true si déplié
 let collapseInit=false;
+let lastDataSig="";    // signature des données affichées : évite de reconstruire la liste (et le micro-scroll) quand rien n'a changé
+function dataSignature(){try{return JSON.stringify([votes,results,scoreMap,coteMap,placedBetMap,tieChoiceMap,customColorMap,contractSignatures]);}catch(e){return String(Math.random());}}
 let filterDate="Toutes"; // filtre par date (jj/mm) ou "Toutes"
 let autoCollapsed={};    // journées déjà repliées automatiquement (une seule fois)
 const PRONOSTIQUEUR_THEMES={
@@ -1126,7 +1128,7 @@ function majorityCandidates(mv){const c={};mv.forEach(v=>{if(v)c[v]=(c[v]||0)+1;
 function getMajority(mv,sc,id){const w=majorityCandidates(mv);if(!w.length)return null;if(w.length===1)return w[0];const forced=tieChoiceMap[id];return forced&&w.includes(forced)?forced:null;}
 
 function centerCompetitionBracket(){const b=document.querySelector('.bracket-wrap');if(!b)return;b.scrollLeft=Math.max(0,Math.round((b.scrollWidth-b.clientWidth)/2));}
-function render(){renderWho();const sc=computeScores();renderBoard(sc);renderContent(sc);if(tab==="competition")requestAnimationFrame(centerCompetitionBracket);}
+function render(){renderWho();const sc=computeScores();renderBoard(sc);renderContent(sc);if(tab==="competition")requestAnimationFrame(centerCompetitionBracket);lastDataSig=dataSignature();}
 function updateMatchCard(id){
   const el=document.getElementById("match-"+id);
   const m=ALL.find(x=>x.id===id);
@@ -1134,6 +1136,7 @@ function updateMatchCard(id){
   const tmp=document.createElement("div");
   tmp.innerHTML=matchCard(m,computeScores());
   el.replaceWith(tmp.firstElementChild);
+  lastDataSig=dataSignature();
 }
 const WC26_PALETTE=["#5B2D8C","#D7282F","#FF5A1E","#A4D233","#2D5CE6","#B79CE4","#F8A29A","#63E0BE"];
 function renderWho(){const who=document.getElementById("who"),subtitle=document.getElementById("who-subtitle");if(tab!=="matchs"){who.innerHTML="";who.style.display="none";if(subtitle)subtitle.style.display="none";return;}who.style.display="block";if(subtitle)subtitle.style.display="block";const currentColor=me?(customColorMap[me]||themeForPronostiqueur(me).accent):null;const swatches=WC26_PALETTE.map(c=>`<button class="who-swatch${currentColor&&c.toLowerCase()===currentColor.toLowerCase()?' on':''}" style="background:${c}" title="${c}" onclick="setPronostiqueurColor('${me}','${c}');this.closest('details').removeAttribute('open');render()"></button>`).join('');const picker=me?`<div class="who-tools"><details class="who-menu"><summary class="who-menu-btn"><span class="who-menu-dot" style="background:${currentColor}"></span>Couleurs</summary><div class="who-menu-pop"><span class="who-color-label">Couleur de ${me}</span><div class="who-swatches">${swatches}</div><button class="who-reset" onclick="resetPronostiqueurColor('${me}')">Réinitialiser</button></div></details></div>`:'';who.innerHTML=`<div class="who">${PARTICIPANTS.map(p=>`<button class="who-btn ${me===p?'on':''}" style="${pronostiqueurVoteStyle(p)}" onclick="setMe('${p}')">${p}</button>`).join('')}</div>${picker}`;}
@@ -2000,7 +2003,7 @@ window.clearContractSignature=async function(name){
 window.setPronostiqueurColor=function(name,value){if(!/^#[0-9a-fA-F]{6}$/.test(String(value||"")))return;customColorMap[name]=value;localStorage.setItem("cdm26_custom_colors",JSON.stringify(customColorMap));if(me===name)applyPronostiqueurTheme(me);render();setSync("busy");savePronostiqueurColorDb(name,value).then(()=>{setSync("ok");showBanner(null);}).catch(e=>{setSync("off");showBanner("Échec de l'enregistrement de la couleur — base injoignable.");console.error(e);});};
 window.resetPronostiqueurColor=function(name){delete customColorMap[name];localStorage.setItem("cdm26_custom_colors",JSON.stringify(customColorMap));if(me===name)applyPronostiqueurTheme(me);render();setSync("busy");savePronostiqueurColorDb(name,null).then(()=>{setSync("ok");showBanner(null);}).catch(e=>{setSync("off");showBanner("Échec de l'enregistrement de la couleur — base injoignable.");console.error(e);});};
 // Repliage : on ne redessine QUE le contenu, en préservant la position de scroll
-function renderMatchsOnly(){const sc=computeScores();const c=document.getElementById("content");const y=c.scrollTop;c.innerHTML=renderMatchs(sc);c.scrollTop=y;}
+function renderMatchsOnly(){const sc=computeScores();const c=document.getElementById("content");const y=c.scrollTop;c.innerHTML=renderMatchs(sc);c.scrollTop=y;lastDataSig=dataSignature();}
 // Rafraîchit UNIQUEMENT la liste des matchs (sans toucher à la barre de recherche),
 // pour ne pas perdre le focus de l'input pendant la saisie (clavier mobile).
 function renderMatchListOnly(){const ml=document.getElementById("matchlist");if(!ml){renderMatchsOnly();return;}const sc=computeScores();const {matches}=currentMatches();ml.innerHTML=matchListHtml(sc,matches);}
@@ -2167,7 +2170,10 @@ async function softRefresh(){
   const c=document.getElementById("content");
   const y=c?c.scrollTop:0,wy=window.scrollY;
   await loadAll();
-  if(tab==="matchs"){const sc=computeScores();renderWho();renderBoard(sc);c.innerHTML=renderMatchs(sc);c.scrollTop=y;}
+  // Si les données n'ont pas changé (ex. écho temps réel de notre propre vote),
+  // on NE reconstruit PAS la liste : évite le flash / micro-scroll pendant qu'on interagit.
+  if(dataSignature()===lastDataSig)return;
+  if(tab==="matchs"){const sc=computeScores();renderWho();renderBoard(sc);c.innerHTML=renderMatchs(sc);c.scrollTop=y;lastDataSig=dataSignature();}
   else render();
   window.scrollTo(0,wy);
 }
@@ -2206,7 +2212,7 @@ function subscribeRealtime(){
 applyPronostiqueurTheme(me);
 refresh();
 subscribeRealtime();
-setInterval(refresh,20000); // filet de sécurité si le temps réel se coupe
+setInterval(softRefresh,20000); // filet de sécurité si le temps réel se coupe (ne reconstruit que si les données ont changé)
 </script>
 </body>
 </html>
