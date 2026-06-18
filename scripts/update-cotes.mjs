@@ -128,8 +128,16 @@ async function fetchOdds() {
   return res.json();
 }
 
+// Clé service Supabase : on accepte plusieurs noms de secret courants
+function serviceKey() {
+  return process.env.SUPABASE_SERVICE_KEY
+    || process.env.SUPABASE_SERVICE_ROLE_KEY
+    || process.env.SUPABASE_KEY
+    || '';
+}
+
 function supaHeaders() {
-  const k = process.env.SUPABASE_SERVICE_KEY;
+  const k = serviceKey();
   return { apikey: k, Authorization: `Bearer ${k}`, 'Content-Type': 'application/json' };
 }
 
@@ -147,9 +155,9 @@ async function upsertCotes(rows) {
 async function main() {
   const offline = process.env.ODDS_FIXTURE_FILE || process.env.MATCHS_FIXTURE_FILE;
   if (!offline) {
-    for (const v of ['ODDS_API_KEY', 'SUPABASE_URL', 'SUPABASE_SERVICE_KEY']) {
-      if (!process.env[v]) throw new Error(`Variable d'environnement manquante : ${v}`);
-    }
+    if (!process.env.ODDS_API_KEY) throw new Error("Secret manquant : ODDS_API_KEY");
+    if (!process.env.SUPABASE_URL) throw new Error("Secret manquant : SUPABASE_URL");
+    if (!serviceKey()) throw new Error("Secret manquant : la clé service Supabase (SUPABASE_SERVICE_KEY, ou SUPABASE_SERVICE_ROLE_KEY / SUPABASE_KEY) — vérifie le nom exact du secret côté GitHub");
   }
   const [matchs, events] = await Promise.all([fetchMatchs(), fetchOdds()]);
   console.log(`[in] ${matchs.length} matchs en base · ${events.length} événements de cotes`);
