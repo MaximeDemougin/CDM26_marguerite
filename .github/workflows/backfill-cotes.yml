@@ -1,9 +1,9 @@
 name: Backfill cotes (CDM26)
 
-# Remplissage des cotes historiques WC2026 depuis OddsPortal.
+# Remplissage des cotes des matchs déjà joués depuis scripts/backfill-data.csv.
 # - selftest : hors-ligne sur les fixtures d'exemple (aucun secret requis)
-# - dry-run  : scrape OddsPortal, affiche sans écrire (nécessite les secrets Supabase)
-# - live     : scrape et écrit dans Supabase
+# - dry-run  : lit le CSV + le calendrier Supabase, affiche sans écrire
+# - live     : lit le CSV et écrit dans Supabase
 #
 # Secrets : SUPABASE_URL · SUPABASE_SERVICE_KEY
 
@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "selftest (hors-ligne) · dry-run (scrape sans écriture) · live (écrit en base)"
+        description: "selftest (hors-ligne) · dry-run (CSV sans écriture) · live (écrit en base)"
         type: choice
         default: selftest
         options:
@@ -42,7 +42,7 @@ jobs:
           case "${{ github.event.inputs.mode }}" in
             selftest)
               MATCHS_FIXTURE_FILE=scripts/exemple-matchs.json \
-              ODDS_PORTAL_FIXTURE_FILE=scripts/exemple-backfill.json \
+              BACKFILL_CSV=scripts/exemple-backfill.csv \
               DRY_RUN=1 node scripts/backfill-cotes.mjs | tee out.log ;;
             dry-run)
               node scripts/backfill-cotes.mjs --dry-run | tee out.log ;;
