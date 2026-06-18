@@ -21,8 +21,8 @@ on:
           - live
   # Planification quotidienne automatique (mode live : récupère et écrit en base).
   schedule:
-    - cron: "0 8 * * *"    # 08:00 Paris (été) · 07:00 (hiver)
-    - cron: "0 17 * * *"   # 16:00 Paris (été) · 15:00 (hiver)
+    - cron: "0 6 * * *"    # 08:00 Paris (été) · 07:00 (hiver)
+    - cron: "0 14 * * *"   # 16:00 Paris (été) · 15:00 (hiver)
 
 permissions:
   contents: read
