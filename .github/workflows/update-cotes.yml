@@ -19,7 +19,8 @@ on:
           - selftest
           - dry-run
           - live
-  # Planification quotidienne automatique (mode live : récupère et écrit en base).
+  # Planification automatique 2×/jour (mode live : récupère et écrit en base).
+  # GitHub utilise UTC ; heures données en heure de Paris (CEST = UTC+2 l'été).
   schedule:
     - cron: "0 6 * * *"    # 08:00 Paris (été) · 07:00 (hiver)
     - cron: "0 14 * * *"   # 16:00 Paris (été) · 15:00 (hiver)
