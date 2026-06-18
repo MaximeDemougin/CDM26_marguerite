@@ -1001,6 +1001,7 @@ let filterSearch="",filterTeam="Toutes";
 let me=localStorage.getItem("cdm26_me")||null;
 let scoreMap={};
 let coteMap={};
+let marketOddsMap={};  // cotes de marché 1/N/2 (meilleures dispo) par match, scrapées via The Odds API -> table Supabase cotes_marche
 let placedBetMap={};
 let tieChoiceMap={};
 let customColorMap={};
@@ -1025,7 +1026,7 @@ function isPastDay(d){const dt=matchDate(d);const today=new Date();today.setHour
 let openDays={};       // clé = libellé du jour -> true si déplié
 let collapseInit=false;
 let lastDataSig="";    // signature des données affichées : évite de reconstruire la liste (et le micro-scroll) quand rien n'a changé
-function dataSignature(){try{return JSON.stringify([votes,results,scoreMap,coteMap,placedBetMap,tieChoiceMap,customColorMap,contractSignatures]);}catch(e){return String(Math.random());}}
+function dataSignature(){try{return JSON.stringify([votes,results,scoreMap,coteMap,marketOddsMap,placedBetMap,tieChoiceMap,customColorMap,contractSignatures]);}catch(e){return String(Math.random());}}
 let filterDate="Toutes"; // filtre par date (jj/mm) ou "Toutes"
 let autoCollapsed={};    // journées déjà repliées automatiquement (une seule fois)
 const PRONOSTIQUEUR_THEMES={
@@ -1065,8 +1066,11 @@ async function loadAll(){
   setSync("busy");
   try{
     await ensureMatchsRows();
-    const [pr,ma]=await Promise.all([db.from("pronostics").select("*"),db.from("matchs").select("id,resultat,score_dom,score_ext")]);
+    const [pr,ma,co]=await Promise.all([db.from("pronostics").select("*"),db.from("matchs").select("id,resultat,score_dom,score_ext"),db.from("cotes_marche").select("*")]);
     if(pr.error)throw pr.error;if(ma.error)throw ma.error;
+    // Cotes de marché (table optionnelle alimentée par la routine quotidienne) : on tolère son absence
+    marketOddsMap={};
+    if(co&&!co.error&&Array.isArray(co.data)){co.data.forEach(row=>{marketOddsMap[row.match_id]={c1:row.cote_1,b1:row.book_1,cn:row.cote_n,bn:row.book_n,c2:row.cote_2,b2:row.book_2,at:row.maj_le};});}
     const localColors={...customColorMap};
     const remoteColorMap={};
     const remoteSignatureState={};
@@ -1739,6 +1743,18 @@ function renderStatsRich(sc){
 
   // Détail par match : score, pronostic de chacun, retenu, cote, pari & gain — tout regroupé (+ export CSV)
   const pickTd=(m,v)=>{if(!v)return `<td style="text-align:center;color:var(--faint)">–</td>`;const r=results[m.id];const ok=r&&v===r,ko=r&&v!==r;const c=ok?'var(--ok)':ko?'var(--ko)':'var(--ink)';return `<td style="text-align:center;color:${c};font-weight:${ok?'800':'600'}">${v}</td>`;};
+  // Cellule « Cotes marché » : meilleures cotes 1/N/2 (chacune avec son bookmaker en infobulle). Issue réelle surlignée.
+  const oddsFmt=v=>v==null||v===''||isNaN(Number(v))?null:Number(v).toFixed(2);
+  const marketCell=(m)=>{
+    const o=marketOddsMap[m.id];
+    if(!o||(o.c1==null&&o.cn==null&&o.c2==null))return `<td style="text-align:center;color:var(--faint)">–</td>`;
+    const r=results[m.id];
+    const pill=(lbl,v,bk)=>{const f=oddsFmt(v);if(f==null)return `<span style="color:var(--faint)">${lbl}&nbsp;–</span>`;const hot=r&&r===lbl;const tip=`${bk?String(bk).replace(/"/g,'')+' — ':''}meilleure cote ${lbl==='1'?'domicile':lbl==='N'?'nul':'extérieur'}`;return `<span title="${tip}" style="display:inline-block;padding:1px 5px;border-radius:6px;font-weight:${hot?'800':'600'};${hot?'background:color-mix(in oklab,var(--ok) 16%,white);color:var(--ok)':''}">${lbl}&nbsp;${f}</span>`;};
+    return `<td style="text-align:center;white-space:nowrap;font-size:11px">${pill('1',o.c1,o.b1)} ${pill('N',o.cn,o.bn)} ${pill('2',o.c2,o.b2)}</td>`;
+  };
+  let oddsLastAt=null;Object.values(marketOddsMap).forEach(o=>{if(o&&o.at){const t=new Date(o.at).getTime();if(!isNaN(t)&&(oddsLastAt==null||t>oddsLastAt))oddsLastAt=t;}});
+  const oddsCount=Object.keys(marketOddsMap).length;
+  const oddsNote=oddsCount?` · <b>Cotes marché</b> : meilleures 1/N/2${oddsLastAt?`, maj ${new Date(oddsLastAt).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})}`:''}`:'';
   const matchPartHead=PARTICIPANTS.map(p=>{const col=themeForPronostiqueur(p).accent;return `<th style="text-align:center"><div>${p}</div><div class="th-leg"><span class="th-dot" style="background:${col}"></span></div></th>`;}).join('');
   const matchTableRows=ALL.slice().sort((a,b)=>a.id-b.id).map(m=>{
     const s=scoreOf(m.id);const sStr=(s.s1!==""&&s.s2!=="")?`${s.s1}–${s.s2}`:'–';
@@ -1748,9 +1764,9 @@ function renderStatsRich(sc){
     const gainStr=gain!=null?`${gain>0?'+':''}${gain.toFixed(2)} €`:(placed?'en attente':'–');
     const gainStyle=gain!=null?(gain>0?'color:var(--ok);font-weight:700':'color:var(--ko);font-weight:700'):'color:var(--faint)';
     const phase=m.g?`Gr. ${m.g}`:(m.t||'–');
-    return `<tr class="match-row" onclick="goToMatch(${m.id})" title="Voir ${m.e1} vs ${m.e2} dans l'onglet Matchs"><td style="font-weight:800">M${String(m.id).padStart(2,'0')}</td><td style="white-space:nowrap">${m.date}</td><td style="white-space:nowrap">${phase}</td><td style="white-space:nowrap">${m.e1} <span style="color:var(--faint)">v</span> ${m.e2}</td>${PARTICIPANTS.map((p,i)=>pickTd(m,mv[i])).join('')}<td style="text-align:center;font-weight:700">${maj||'–'}</td><td style="text-align:center;white-space:nowrap;font-weight:700">${sStr}</td><td style="text-align:center;${r?'font-weight:800':'color:var(--faint)'}">${r||'–'}</td><td style="text-align:center">${cote||'–'}</td><td style="text-align:center">${placed?'<span style="color:var(--ok);font-weight:800">✓</span>':'<span style="color:var(--faint)">–</span>'}</td><td style="text-align:right;${gainStyle};white-space:nowrap">${gainStr}</td></tr>`;
+    return `<tr class="match-row" onclick="goToMatch(${m.id})" title="Voir ${m.e1} vs ${m.e2} dans l'onglet Matchs"><td style="font-weight:800">M${String(m.id).padStart(2,'0')}</td><td style="white-space:nowrap">${m.date}</td><td style="white-space:nowrap">${phase}</td><td style="white-space:nowrap">${m.e1} <span style="color:var(--faint)">v</span> ${m.e2}</td>${PARTICIPANTS.map((p,i)=>pickTd(m,mv[i])).join('')}<td style="text-align:center;font-weight:700">${maj||'–'}</td><td style="text-align:center;white-space:nowrap;font-weight:700">${sStr}</td><td style="text-align:center;${r?'font-weight:800':'color:var(--faint)'}">${r||'–'}</td><td style="text-align:center">${cote||'–'}</td>${marketCell(m)}<td style="text-align:center">${placed?'<span style="color:var(--ok);font-weight:800">✓</span>':'<span style="color:var(--faint)">–</span>'}</td><td style="text-align:right;${gainStyle};white-space:nowrap">${gainStr}</td></tr>`;
   }).join('');
-  const matchDetailTable=`<div class="stats-table-wrap"><div class="stats-table-head"><div class="stats-table-title">Détail par match</div><button class="csv-btn" onclick="exportMatchesCsv()"><span style="font-size:13px">⬇</span> Export CSV / Excel</button></div><div style="padding:7px 16px;font-size:10px;color:var(--dim);background:#f6f9fd;box-shadow:inset 0 -1px 0 var(--line2)"><b>1</b> = domicile · <b>N</b> = nul · <b>2</b> = extérieur · cellule verte = prono gagnant · « Retenu » = vote majoritaire · cliquez une ligne pour ouvrir le match</div><div class="stats-table-scroll tall"><table class="stats-table" style="min-width:1080px"><thead><tr><th>#</th><th>Date</th><th>Phase</th><th>Match</th>${matchPartHead}<th>Retenu</th><th>Score</th><th>Rés</th><th>Cote</th><th>Pari</th><th>Gain</th></tr></thead><tbody>${matchTableRows}</tbody></table></div></div>`;
+  const matchDetailTable=`<div class="stats-table-wrap"><div class="stats-table-head"><div class="stats-table-title">Détail par match</div><button class="csv-btn" onclick="exportMatchesCsv()"><span style="font-size:13px">⬇</span> Export CSV / Excel</button></div><div style="padding:7px 16px;font-size:10px;color:var(--dim);background:#f6f9fd;box-shadow:inset 0 -1px 0 var(--line2)"><b>1</b> = domicile · <b>N</b> = nul · <b>2</b> = extérieur · cellule verte = prono gagnant · « Retenu » = vote majoritaire · cliquez une ligne pour ouvrir le match${oddsNote}</div><div class="stats-table-scroll tall"><table class="stats-table" style="min-width:1240px"><thead><tr><th>#</th><th>Date</th><th>Phase</th><th>Match</th>${matchPartHead}<th>Retenu</th><th>Score</th><th>Rés</th><th>Cote</th><th style="text-align:center">Cotes marché<div class="th-leg" style="font-weight:600;color:var(--faint)">1 / N / 2</div></th><th>Pari</th><th>Gain</th></tr></thead><tbody>${matchTableRows}</tbody></table></div></div>`;
 
   return `<div class="slabel"><span class="slabel-text">Vue d'ensemble</span><span class="slabel-line"></span><span class="slabel-count">${total}/${ALL.length} joués</span></div><div class="stats-hero"><div class="stats-panel"><div class="stats-title">Tempo du tournoi</div><div class="hero-score"><div class="hero-big">${total}<small>matchs</small></div><div class="hero-sub">${playedPct}% de la compétition a été jouée. ${leader.name} mène actuellement avec ${leader.points} point${leader.points>1?'s':''}.</div></div>${tempoProgressBar}<div class="hero-grid" style="margin-top:12px"><div class="hero-kpi"><div class="hero-kpi-val ${streakCls}">${streak||'—'}</div><div class="hero-kpi-lbl">Série en cours</div><div class="hero-kpi-sub">${streakSub}</div></div><div class="hero-kpi"><div class="hero-kpi-val">${accordRate}%</div><div class="hero-kpi-lbl">Taux d'accord</div><div class="hero-kpi-sub">${unanimousCount} match${unanimousCount>1?'s':''} à vote unanime</div></div><div class="hero-kpi"><div class="hero-kpi-val">${mostDisputed?`M${String(mostDisputed.id).padStart(2,'0')}`:'—'}</div><div class="hero-kpi-lbl">Plus disputé</div><div class="hero-kpi-sub">${mostDisputed?`${mostDisputed.e1} vs ${mostDisputed.e2}`:'aucun'}</div></div><div class="hero-kpi"><div class="hero-kpi-val ${leadGap>0?'pos':''}">${total?(leadGap>0?`+${leadGap}`:'='):'—'}</div><div class="hero-kpi-lbl">Écart en tête</div><div class="hero-kpi-sub">${total&&second2?(leadGap>0?`${leader.name} devant ${second2.name}`:`${leader.name} ex æquo`):'tournoi à venir'}</div></div><div class="hero-kpi"><div class="hero-kpi-val">${scoredMatches.length?goalsPerMatch.toFixed(1):'—'}</div><div class="hero-kpi-lbl">Buts / match</div><div class="hero-kpi-sub">${scoredMatches.length?`${totalGoals} but${totalGoals>1?'s':''} en ${scoredMatches.length} match${scoredMatches.length>1?'s':''}`:'aucun score saisi'}</div></div><div class="hero-kpi"><div class="hero-kpi-val">${wildest?`M${String(wildest.id).padStart(2,'0')}`:'—'}</div><div class="hero-kpi-lbl">Match le + fou</div><div class="hero-kpi-sub">${wildest?`${wildest.e1} ${scoreOf(wildest.id).s1}-${scoreOf(wildest.id).s2} ${wildest.e2}`:'aucun score saisi'}</div></div></div></div><div class="stats-panel"><div class="stats-title">Signaux clés</div><div class="hero-grid"><div class="hero-kpi"><div class="hero-kpi-val">${bestAccuracy}%</div><div class="hero-kpi-lbl">Meilleure précision</div><div class="hero-kpi-sub">pic individuel actuel</div></div><div class="hero-kpi"><div class="hero-kpi-val ${betAll.settled<0?'neg':betAll.settled>0?'pos':''}">${betAll.settled.toFixed(2)} €</div><div class="hero-kpi-lbl">Bilan paris<span class="kpi-info" data-tip="Si chacun des ${betAll.count} paris placés avait été gagné à sa cote, on aurait empoché ${dreamStr} (chaque pari gagné rapporte 4 × cote − 4 €)." onmouseenter="kpiTipShow(this)" onmouseleave="kpiTipHide()" onclick="kpiTipToggle(event,this)">?</span></div><div class="hero-kpi-sub"><span style="color:${betAll.settled<0?'var(--ko)':betAll.settled>0?'var(--ok)':'inherit'};font-weight:600">${(betAll.settled/4).toFixed(2)} €</span> / joueur · ${betAll.count} paris<br><span style="color:var(--ok);font-weight:700">${dreamStr}</span> si tout passait</div></div><div class="hero-kpi"><div class="hero-kpi-val ${roiCls}">${roiStr}</div><div class="hero-kpi-lbl">ROI paris</div><div class="hero-kpi-sub">${settledCount} réglé${settledCount>1?'s':''} · ${totalStake} € misés</div></div><div class="hero-kpi"><div class="hero-kpi-val">${avgCote}</div><div class="hero-kpi-lbl">Cote moyenne</div><div class="hero-kpi-sub">${betCotes.length} cote${betCotes.length>1?'s':''} renseignée${betCotes.length>1?'s':''}</div></div><div class="hero-kpi"><div class="hero-kpi-val ${maxGainCls}">${maxGainStr}</div><div class="hero-kpi-lbl">Gain max possible<span class="kpi-info" data-tip="${maxGainTip}" onmouseenter="kpiTipShow(this)" onmouseleave="kpiTipHide()" onclick="kpiTipToggle(event,this)">?</span></div><div class="hero-kpi-sub">${maxGainPP}</div></div><div class="hero-kpi"><div class="hero-kpi-val ${maxLossAllCls}">${maxLossAllStr}</div><div class="hero-kpi-lbl">Perte max restante<span class="kpi-info" data-tip="${maxLossAllTip}" onmouseenter="kpiTipShow(this)" onmouseleave="kpiTipHide()" onclick="kpiTipToggle(event,this)">?</span></div><div class="hero-kpi-sub">${maxLossAllPP}</div></div></div></div></div><div class="finance-grid"><div class="curve-card"><div class="curve-head"><div><div class="curve-title">Courbe du bilan cumulé</div><div class="curve-sub">Évolution match après match des paris réellement placés</div></div><div class="curve-value ${betAll.settled<0?'neg':betAll.settled>0?'pos':''}">${betAll.settled.toFixed(2)} €</div></div>${newFinanceSvg}<div class="curve-labels"><span>Départ</span><span>${financePoints.length?`${financePoints.length} paris réglés`:'aucun pari réglé'}</span></div><div class="accord-grid"><div class="accord-item"><div class="accord-val">${accordRate}%</div><div class="accord-lbl">Taux d'accord</div><div class="accord-sub">${unanimousCount} match${unanimousCount>1?'s':''} à vote unanime sur ${playedSorted.length}</div></div><div class="accord-item"><div class="accord-val">${mostDisputed?`M${String(mostDisputed.id).padStart(2,'0')}`:'—'}</div><div class="accord-lbl">Plus disputé</div><div class="accord-sub">${mostDisputed?`${mostDisputed.e1} vs ${mostDisputed.e2} · ${disputedSub}`:disputedSub}</div></div></div></div><div class="curve-card"><div class="curve-head"><div><div class="curve-title">Paris placés</div><div class="curve-sub">${settledCount} réglé${settledCount>1?'s':''} · ${pendingCount} en attente · défilez pour tout voir</div></div><div class="curve-value">${betAll.count} pari${betAll.count>1?'s':''}</div></div><div class="finance-list">${financeRows}</div></div></div><div class="stats-bars"><div class="bar-card"><div class="stats-title">Baromètre points</div>${scoreBars}</div><div class="bar-card"><div class="stats-title">Baromètre précision</div>${accuracyBars}</div></div>${evoChart}<div class="stats-table-wrap"><div class="stats-table-head"><div class="stats-table-title">Tableau de performance</div><div class="stats-table-note">Précision moyenne : ${avgAccuracy}%</div></div><div class="stats-table-scroll"><table class="stats-table"><thead><tr><th>#</th><th>Participant</th><th>Pts</th><th>Saisis</th><th>Bons</th><th>Faux</th><th>Sans vote</th><th>Précision</th><th>Couverture</th></tr></thead><tbody>${tableRows}</tbody></table></div></div>${matchDetailTable}<div style="height:16px"></div>`;
 }
@@ -1783,7 +1799,8 @@ window.exportMatchesCsv=function(){
   const sep=';';
   const esc=v=>{const s=String(v==null?'':v);return /[";\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;};
   const outcome=(m,v)=>v==="1"?m.e1:v==="2"?m.e2:v==="N"?"Nul":"";
-  const header=["Match","Date","Phase","Domicile","Extérieur","Score","Résultat",...PARTICIPANTS,"Retenu","Cote","Pari placé","Gain (€)"];
+  const num=v=>v==null||v===''||isNaN(Number(v))?"":Number(v).toFixed(2).replace('.',',');
+  const header=["Match","Date","Phase","Domicile","Extérieur","Score","Résultat",...PARTICIPANTS,"Retenu","Cote","Cote 1","Book 1","Cote N","Book N","Cote 2","Book 2","Cotes maj","Pari placé","Gain (€)"];
   const lines=[header];
   ALL.slice().sort((a,b)=>a.id-b.id).forEach(m=>{
     const s=scoreOf(m.id);
@@ -1794,10 +1811,14 @@ window.exportMatchesCsv=function(){
     const placed=betPlaced(m.id);
     const gain=placed&&r?gainForMatch(m.id,maj,r):null;
     const phase=m.g?`Groupe ${m.g}`:(m.t||"");
+    const o=marketOddsMap[m.id]||{};
+    const oAt=o.at?new Date(o.at).toLocaleDateString('fr-FR'):"";
     lines.push([
       `M${String(m.id).padStart(2,'0')}`,m.date||"",phase,m.e1||"",m.e2||"",sStr,outcome(m,r),
       ...PARTICIPANTS.map((p,i)=>outcome(m,mv[i])),
-      outcome(m,maj),(coteOf(m.id)||"").replace('.',','),placed?"Oui":"Non",
+      outcome(m,maj),(coteOf(m.id)||"").replace('.',','),
+      num(o.c1),o.b1||"",num(o.cn),o.bn||"",num(o.c2),o.b2||"",oAt,
+      placed?"Oui":"Non",
       gain!=null?gain.toFixed(2).replace('.',','):""
     ]);
   });
