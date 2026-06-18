@@ -2081,8 +2081,10 @@ window.setCoteDraft=function(id,val,el){
   if(!cleaned)delete coteMap[id];
   localStorage.setItem("cdm26_cotes",JSON.stringify(coteMap));
   if(el&&el.value!==cleaned)el.value=cleaned;
-  if(tab==="matchs")renderMatchsOnly();
-  else render();
+  if(tab==="matchs"){
+    renderMatchsOnly();
+    if(!el){requestAnimationFrame(()=>{const inp=document.querySelector(`#match-${id} .odds-in`);if(inp)inp.scrollIntoView({block:"nearest",behavior:"smooth"});});}
+  }else render();
   setSync("busy");
   saveCoteDb(id,cleaned).then(()=>{setSync("ok");showBanner(null);}).catch(e=>{setSync("off");showBanner("Échec de l'enregistrement — base injoignable.");console.error(e);});
 };
@@ -2194,6 +2196,8 @@ window.goToMatch=function(id){
   if(nav)nav.classList.add("on");
   document.querySelector(".app").classList.toggle("wide",false);
   render();
+  const _cnt=document.getElementById("content");
+  if(_cnt)_cnt.scrollTop=0;
   requestAnimationFrame(()=>{
     const target=document.getElementById(`match-${id}`);
     if(target)target.scrollIntoView({block:"start",behavior:"smooth"});
