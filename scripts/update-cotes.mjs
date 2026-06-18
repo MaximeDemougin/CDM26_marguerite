@@ -132,7 +132,9 @@ async function fetchOdds() {
   if (process.env.ODDS_FIXTURE_FILE) return JSON.parse(fs.readFileSync(process.env.ODDS_FIXTURE_FILE, 'utf8'));
   const sport = process.env.ODDS_SPORT_KEY || 'soccer_fifa_world_cup';
   const regions = process.env.ODDS_REGIONS || 'eu,uk';
-  const url = `https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${process.env.ODDS_API_KEY}&regions=${regions}&markets=h2h&oddsFormat=decimal`;
+  // commenceTimeFrom = maintenant pour exclure les matchs déjà commencés (cotes live indésirables)
+  const from = encodeURIComponent(new Date().toISOString());
+  const url = `https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${process.env.ODDS_API_KEY}&regions=${regions}&markets=h2h&oddsFormat=decimal&commenceTimeFrom=${from}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`The Odds API ${res.status} ${await res.text()}`);
   const remaining = res.headers.get('x-requests-remaining');
@@ -172,8 +174,11 @@ async function main() {
     if (!process.env.SUPABASE_URL) throw new Error("Secret manquant : SUPABASE_URL");
     if (!serviceKey()) throw new Error("Secret manquant : la clé service Supabase (SUPABASE_SERVICE_KEY, ou SUPABASE_SERVICE_ROLE_KEY / SUPABASE_KEY) — vérifie le nom exact du secret côté GitHub");
   }
-  const [matchs, events] = await Promise.all([fetchMatchs(), fetchOdds()]);
-  console.log(`[in] ${matchs.length} matchs en base · ${events.length} événements de cotes`);
+  const [matchs, rawEvents] = await Promise.all([fetchMatchs(), fetchOdds()]);
+  const now = Date.now();
+  const events = rawEvents.filter(ev => !ev.commence_time || new Date(ev.commence_time).getTime() > now);
+  const liveSkipped = rawEvents.length - events.length;
+  console.log(`[in] ${matchs.length} matchs en base · ${events.length} événements de cotes${liveSkipped ? ` (${liveSkipped} live ignorés)` : ''}`);
   const { rows, matched, unmatched } = buildRows(matchs, events);
   console.log(`[match] ${rows.length} matchs associés`);
   matched.forEach(l => console.log('  ✓ ' + l));
