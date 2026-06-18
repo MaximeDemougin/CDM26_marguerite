@@ -50,21 +50,34 @@ export function buildEnToFr(map = TEAMS_FR_EN) {
 
 export const pairKey = (a, b) => [a, b].sort().join(' :: ');
 
-// ── Meilleures cotes 1/N/2 d'un événement The Odds API ─────────────────────────
+// ── Cotes 1/N/2 d'un événement — Pinnacle en priorité, sinon meilleure cote ───
 export function bestOdds(event) {
   const home = event.home_team, away = event.away_team;
   let c1 = null, b1 = null, cn = null, bn = null, c2 = null, b2 = null;
+  let p1 = null, pn = null, p2 = null; // cotes Pinnacle
   for (const bk of event.bookmakers || []) {
     const mk = (bk.markets || []).find(m => m.key === 'h2h');
     if (!mk) continue;
+    const isPinnacle = /pinnacle/i.test(bk.title);
     for (const o of mk.outcomes || []) {
       const price = Number(o.price);
       if (!isFinite(price)) continue;
-      if (o.name === home) { if (c1 == null || price > c1) { c1 = price; b1 = bk.title; } }
-      else if (o.name === away) { if (c2 == null || price > c2) { c2 = price; b2 = bk.title; } }
-      else if (/^(draw|tie|nul)/i.test(o.name)) { if (cn == null || price > cn) { cn = price; bn = bk.title; } }
+      if (o.name === home) {
+        if (isPinnacle) p1 = price;
+        if (c1 == null || price > c1) { c1 = price; b1 = bk.title; }
+      } else if (o.name === away) {
+        if (isPinnacle) p2 = price;
+        if (c2 == null || price > c2) { c2 = price; b2 = bk.title; }
+      } else if (/^(draw|tie|nul)/i.test(o.name)) {
+        if (isPinnacle) pn = price;
+        if (cn == null || price > cn) { cn = price; bn = bk.title; }
+      }
     }
   }
+  // Préférer Pinnacle si disponible pour chaque issue
+  if (p1 != null) { c1 = p1; b1 = 'Pinnacle'; }
+  if (pn != null) { cn = pn; bn = 'Pinnacle'; }
+  if (p2 != null) { c2 = p2; b2 = 'Pinnacle'; }
   return { home: { c: c1, b: b1 }, away: { c: c2, b: b2 }, draw: { c: cn, b: bn } };
 }
 
