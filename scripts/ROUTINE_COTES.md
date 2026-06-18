@@ -108,6 +108,28 @@ Claude complète le dictionnaire tout seul et la routine continue de tourner.
 
 ---
 
+## 6. Lancer à la demande & récupérer le résultat (GitHub Actions)
+
+Le workflow **`.github/workflows/update-cotes.yml`** permet de **lancer la routine d'un
+clic** et d'en **lire le résultat**, sans dépendre d'une session ouverte.
+
+- **Lancer** : GitHub → onglet **Actions** → *Cotes marché (CDM26)* → **Run workflow**,
+  puis choisis le mode :
+  - `selftest` — exécution hors-ligne sur les fixtures d'exemple, **aucun secret requis**
+    (sert à vérifier que la mécanique tourne) ;
+  - `dry-run` — appelle vraiment The Odds API mais **n'écrit pas** en base ;
+  - `live` — récupère **et écrit** dans `cotes_marche`.
+- **Résultat** : ouvre le run → le **résumé** affiche la sortie complète (matchs associés,
+  non associés, quota API). Le log est aussi téléchargeable en artefact `cotes-log`.
+
+Pour `dry-run`/`live`, ajoute les 3 secrets dans **Settings → Secrets and variables →
+Actions** : `ODDS_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`.
+
+> La planification quotidienne reste gérée par le **déclencheur Claude Code web** (§5).
+> Si tu préfères tout faire ici, décommente le bloc `schedule:` du workflow (mode `live`).
+
+---
+
 ## Détails techniques
 
 - **Aucune dépendance npm** : `update-cotes.mjs` utilise `fetch` (Node ≥ 18) et l'API

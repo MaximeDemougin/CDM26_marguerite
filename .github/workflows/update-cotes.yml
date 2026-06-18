@@ -1,0 +1,81 @@
+name: Cotes marché (CDM26)
+
+# Lance la routine de récupération des cotes et publie le résultat dans le résumé du run.
+# - selftest : exécution hors-ligne sur les fixtures d'exemple (aucun secret requis)
+# - dry-run  : appelle vraiment l'API mais n'écrit rien en base (nécessite les secrets)
+# - live     : récupère et écrit dans Supabase (nécessite les secrets)
+#
+# Secrets à définir dans GitHub (Settings → Secrets and variables → Actions) pour dry-run/live :
+#   ODDS_API_KEY · SUPABASE_URL · SUPABASE_SERVICE_KEY
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "selftest (hors-ligne) · dry-run (API sans écriture) · live (écrit en base)"
+        type: choice
+        default: selftest
+        options:
+          - selftest
+          - dry-run
+          - live
+  # Planification quotidienne optionnelle (sinon : déclencheur Claude Code web).
+  # schedule:
+  #   - cron: "0 6 * * *"   # 06:00 UTC chaque jour -> mode live
+
+permissions:
+  contents: read
+
+jobs:
+  cotes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Déterminer le mode
+        id: mode
+        run: |
+          MODE="${{ github.event.inputs.mode }}"
+          [ -z "$MODE" ] && MODE="live"   # exécution planifiée -> live
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "Mode retenu : $MODE"
+
+      - name: Lancer la routine cotes
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          set -o pipefail
+          case "${{ steps.mode.outputs.mode }}" in
+            selftest)
+              MATCHS_FIXTURE_FILE=scripts/exemple-matchs.json \
+              ODDS_FIXTURE_FILE=scripts/exemple-odds.json \
+              DRY_RUN=1 node scripts/update-cotes.mjs | tee out.log ;;
+            dry-run)
+              node scripts/update-cotes.mjs --dry-run | tee out.log ;;
+            *)
+              node scripts/update-cotes.mjs | tee out.log ;;
+          esac
+
+      - name: Publier le résultat dans le résumé
+        if: always()
+        run: |
+          {
+            echo "### Routine cotes — mode \`${{ steps.mode.outputs.mode }}\`"
+            echo ""
+            echo '```'
+            cat out.log 2>/dev/null || echo "(aucune sortie)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Archiver le log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cotes-log
+          path: out.log
+          if-no-files-found: ignore
