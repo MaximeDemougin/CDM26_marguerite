@@ -232,8 +232,9 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .odds-box{display:flex;align-items:center;min-height:var(--ctrl-h);min-width:132px;justify-content:center;border:none;background:transparent;padding:0;box-shadow:none}
 .odds-in{width:100%;padding:0 11px;border:1px solid rgba(30,45,140,.22);border-radius:0 9px 0 9px;background:#fff;color:var(--ink);font-family:var(--font-cond);font-weight:900;font-size:15px;text-align:center;height:var(--ctrl-h);box-shadow:0 2px 6px rgba(30,45,140,.10);-moz-appearance:textfield;appearance:textfield}
 .odds-in:focus{outline:none;border-color:var(--wc-blue);box-shadow:0 0 0 2px rgba(45,92,230,.18)}
-.market-odds{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:center;margin:2px 0 10px;padding-bottom:10px;border-bottom:1px dashed rgba(30,45,140,.16)}
+.market-odds{display:grid;grid-template-columns:118px minmax(0,1fr) auto;column-gap:10px;align-items:center;margin:2px 0 10px;padding-bottom:10px;border-bottom:1px dashed rgba(30,45,140,.16)}
 .mo-lbl{font-family:var(--font-cond);font-size:11px;font-weight:800;letter-spacing:1.5px;color:var(--dim);text-transform:uppercase}
+.mo-pills{display:flex;gap:7px;width:min(100%,560px);justify-self:center}
 .mo-pill{display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(30,45,140,.22);background:#fff;border-radius:999px;padding:4px 11px;font-size:13px;font-weight:700;color:var(--ink);cursor:pointer;transition:transform .14s,box-shadow .14s,border-color .14s;box-shadow:0 2px 6px rgba(30,45,140,.08);font-variant-numeric:tabular-nums}
 .mo-pill:hover{border-color:var(--fr);box-shadow:0 4px 11px rgba(45,92,230,.18);transform:translateY(-1px)}
 .mo-pill .mo-k{font-family:var(--font-cond);font-weight:900;color:var(--fr);letter-spacing:.5px}
@@ -308,6 +309,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
   .tname{font-size:13px}
   .vs{padding:5px 10px;margin:0 6px}
   .vrow{grid-template-columns:104px minmax(0,1fr) 104px}
+  .market-odds{grid-template-columns:104px minmax(0,1fr) auto}
   .vname{width:auto}
   .vopts{width:100%}
   .retenu{gap:10px}
@@ -344,6 +346,8 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
   .vs{order:3;width:auto;margin:6px auto 0;text-align:center}
   .vbtn{font-size:10px;padding:6px 6px}
   .vrow{grid-template-columns:1fr;row-gap:5px}
+  .market-odds{grid-template-columns:1fr;row-gap:4px}
+  .mo-pills{justify-self:start;width:100%}
   .m-score,.odds-box,.bet-toggle,.reset-toggle,.gain-pill{width:100%;min-width:0;justify-content:center}
   .retenu-row{width:100%}
   .retenu-row.scoreline{flex-direction:column;align-items:stretch}
@@ -1377,7 +1381,7 @@ function matchCard(m,sc){
     const fmt=v=>v==null||v===''||isNaN(Number(v))?null:Number(v).toFixed(2);
     const pill=(k,v,bk)=>{const fv=fmt(v);if(fv==null)return `<span class="mo-pill" style="opacity:.45;cursor:default"><span class="mo-k">${k}</span><span class="mo-v">–</span></span>`;const cls=real===k?'mo-pill res':maj===k?'mo-pill hot':'mo-pill';const tip=`${bk?String(bk).replace(/"/g,'&quot;')+' · ':''}cliquer pour utiliser cette cote (${fv})`;return `<button type="button" class="${cls}" title="${tip}" onclick="setCoteDraft(${m.id},'${fv}')"><span class="mo-k">${k}</span><span class="mo-v">${fv}</span></button>`;};
     const at=mo.at?`<span class="mo-at">maj ${new Date(mo.at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})}</span>`:'';
-    return `<div class="market-odds"><span class="mo-lbl">Cotes marché</span>${pill('1',mo.c1,mo.b1)}${pill('N',mo.cn,mo.bn)}${pill('2',mo.c2,mo.b2)}${at}</div>`;
+    return `<div class="market-odds"><span class="mo-lbl">Cotes marché</span><div class="mo-pills">${pill('1',mo.c1,mo.b1)}${pill('N',mo.cn,mo.bn)}${pill('2',mo.c2,mo.b2)}</div>${at}</div>`;
   })():'';
   const gainValue=gainForMatch(m.id,maj,real);
   const gainLabel=gainValue==null?"Gain : —":`${placed?(real?"Bilan":"En jeu"):(real?"Simu":"Potentiel")} : ${gainValue.toFixed(2)} €`;
