@@ -4,6 +4,28 @@
 
 ---
 
+## [2026-06-18] — Cotes marché : fiabilité, backfill & stats financières 📊
+
+### Cotes de marché
+
+- **Priorité Pinnacle** : `update-cotes.mjs` préfère désormais les cotes Pinnacle (le bookmaker le plus sharp du marché) ; si Pinnacle n'est pas dispo sur un match, on tombe sur la meilleure cote tous bookmakers confondus.
+- **Filtre anti-live** : l'API est appelée avec `commenceTimeFrom=maintenant` pour n'obtenir que les matchs à venir. Un filtre local en double-sécurité écarte tout événement dont `commence_time` est déjà passé, et loggue le nombre d'événements live ignorés.
+- **Planification 2×/jour** : le cron GitHub Actions tourne désormais à **08h00** et **16h00** heure de Paris (06:00 et 14:00 UTC) au lieu d'une seule fois par jour.
+- **Backfill des matchs joués** : nouveau script `scripts/backfill-cotes.mjs` + workflow `backfill-cotes.yml`. Permet d'alimenter `cotes_marche` pour les matchs déjà disputés à partir d'un fichier CSV (`backfill-data.csv`) avec les colonnes `HomeTeam;AwayTeam;date;home_max;draw_max;away_max`. 28 matchs des phases de poules (11–18 juin) ont été importés.
+
+### UI — Carte match
+
+- **Affichage des cotes** : le bloc « Cotes marché » est aligné à gauche (comme le titre « Choix des pronostics ») ; les pills 1 / N / 2 ont la forme iconique `0 7px 0 7px` de l'appli, sont centrées et compactes.
+- **Heure de mise à jour** : la date+heure de dernière maj est affichée directement collée au label (ex. *Cotes marché · maj 18/06 14:32*), plus dans un coin isolé.
+
+### Stats — Courbe d'évolution
+
+- **Toggle Pronos / Finance** : deux boutons dans le header de la courbe permettent de switcher entre :
+  - **Pronos** — courbe cumulative des bons pronostics par joueur (mode par défaut).
+  - **Finance** — bilan individuel simulé : chaque joueur « mise » 4 € sur son propre pick à la cote marché disponible. Gain affiché en euros, tooltip adapté, légende mise à jour au switch.
+
+---
+
 ## [2026-06-17] — Table « Détail par match » niveau pro 🗂️
 
 - **En-tête figé** : la ligne des titres de colonnes reste collée en haut quand tu scrolles dans la table (comme un *figer les volets* dans Excel).
