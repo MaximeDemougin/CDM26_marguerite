@@ -479,6 +479,10 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .curve-point{fill:#fff;stroke:var(--fr);stroke-width:2}
 .curve-point.alt{stroke:#2f7a5a}
 .curve-labels{display:flex;justify-content:space-between;gap:10px;margin-top:8px;font-size:10px;color:var(--faint);font-weight:700;letter-spacing:.7px;text-transform:uppercase}
+.evo-tabs{display:flex;gap:3px}
+.evo-tab{font-family:var(--font-cond);font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;padding:3px 9px;border-radius:0 4px 0 4px;border:1.5px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.45);cursor:pointer;transition:all .15s}
+.evo-tab.on{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.6)}
+.evo-tab:hover:not(.on){background:rgba(255,255,255,.09);color:rgba(255,255,255,.7)}
 .finance-list{display:grid;gap:6px;margin-top:4px;max-height:340px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(30,45,140,.2) transparent;padding-right:2px}
 .accord-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line2)}
 .accord-item{background:var(--paper);border-radius:10px;padding:10px 12px}
@@ -1380,8 +1384,8 @@ function matchCard(m,sc){
   const moRow=(mo&&(mo.c1!=null||mo.cn!=null||mo.c2!=null))?(()=>{
     const fmt=v=>v==null||v===''||isNaN(Number(v))?null:Number(v).toFixed(2);
     const pill=(k,v,bk)=>{const fv=fmt(v);if(fv==null)return `<span class="mo-pill" style="opacity:.45;cursor:default"><span class="mo-k">${k}</span><span class="mo-v">–</span></span>`;const cls=real===k?'mo-pill res':maj===k?'mo-pill hot':'mo-pill';const tip=`${bk?String(bk).replace(/"/g,'&quot;')+' · ':''}cliquer pour utiliser cette cote (${fv})`;return `<button type="button" class="${cls}" title="${tip}" onclick="setCoteDraft(${m.id},'${fv}')"><span class="mo-k">${k}</span><span class="mo-v">${fv}</span></button>`;};
-    const at=mo.at?(()=>{const d=new Date(mo.at);return `<span class="mo-at">maj ${d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})} ${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</span>`;})():'';
-    return `<div class="market-odds"><span class="mo-lbl">Cotes marché</span><div class="mo-pills">${pill('1',mo.c1,mo.b1)}${pill('N',mo.cn,mo.bn)}${pill('2',mo.c2,mo.b2)}</div>${at}</div>`;
+    const at=mo.at?(()=>{const d=new Date(mo.at);return ` <span class="mo-at">· maj ${d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})} ${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</span>`;})():'';
+    return `<div class="market-odds"><span class="mo-lbl">Cotes marché${at}</span><div class="mo-pills">${pill('1',mo.c1,mo.b1)}${pill('N',mo.cn,mo.bn)}${pill('2',mo.c2,mo.b2)}</div></div>`;
   })():'';
   const gainValue=gainForMatch(m.id,maj,real);
   const gainLabel=gainValue==null?"Gain : —":`${placed?(real?"Bilan":"En jeu"):(real?"Simu":"Potentiel")} : ${gainValue.toFixed(2)} €`;
@@ -1406,7 +1410,8 @@ function evoHover(e,svg){
   if(ch){ch.setAttribute('x1',xPos);ch.setAttribute('x2',xPos);ch.removeAttribute('display');}
   const tt=svg.parentElement.querySelector('.evo-tt');
   if(!tt)return;
-  const series=JSON.parse(svg.dataset.series);
+  const mode=svg.dataset.mode||'prono';
+  const series=JSON.parse(mode==='fin'?svg.dataset.finseries:svg.dataset.series);
   const matches=JSON.parse(svg.dataset.matches);
   const names=JSON.parse(svg.dataset.names);
   const colors=JSON.parse(svg.dataset.colors);
@@ -1414,7 +1419,8 @@ function evoHover(e,svg){
   let html=`<div style="font-weight:700;color:var(--ink);font-size:12px">${m.id}</div><div style="color:var(--dim);font-size:10px;margin-bottom:7px">${m.e1} · ${m.e2}</div>`;
   [...names].sort((a,b)=>series[names.indexOf(b)][idx]-series[names.indexOf(a)][idx]).forEach(name=>{
     const i=names.indexOf(name);const val=series[i][idx];
-    html+=`<div style="display:flex;align-items:center;gap:7px;margin-top:4px"><span style="width:8px;height:8px;border-radius:50%;background:${colors[i]};flex-shrink:0"></span><span style="color:var(--dim)">${name}</span><span style="margin-left:auto;font-weight:700;color:${colors[i]};padding-left:12px">${val}</span></div>`;
+    const valStr=mode==='fin'?`${val>=0?'+':''}${val.toFixed(1)} €`:String(val);
+    html+=`<div style="display:flex;align-items:center;gap:7px;margin-top:4px"><span style="width:8px;height:8px;border-radius:50%;background:${colors[i]};flex-shrink:0"></span><span style="color:var(--dim)">${name}</span><span style="margin-left:auto;font-weight:700;color:${colors[i]};padding-left:12px">${valStr}</span></div>`;
   });
   tt.innerHTML=html;
   const pxX=xPos/EW*rect.width;
@@ -1426,6 +1432,24 @@ function evoLeave(svg){
   const ch=svg.querySelector('.evo-ch');if(ch)ch.setAttribute('display','none');
   const tt=svg.parentElement.querySelector('.evo-tt');if(tt)tt.style.display='none';
 }
+window.evoSetMode=function(btn){
+  const card=btn.closest('.bar-card');
+  const svg=card.querySelector('svg');
+  const mode=btn.dataset.mode;
+  card.querySelectorAll('.evo-tab').forEach(t=>t.classList.toggle('on',t.dataset.mode===mode));
+  svg.querySelector('#evo-g-prono').style.display=mode==='prono'?'block':'none';
+  svg.querySelector('#evo-g-fin').style.display=mode==='fin'?'block':'none';
+  svg.dataset.mode=mode;
+  const titleEl=card.querySelector('#evo-title');
+  if(titleEl)titleEl.textContent=mode==='fin'?'Bilan financier individuel':'Évolution des bons pronos';
+  const legendEl=card.querySelector('#evo-legend');
+  if(!legendEl)return;
+  const series=JSON.parse(mode==='fin'?svg.dataset.finseries:svg.dataset.series);
+  const names=JSON.parse(svg.dataset.names);
+  const colors=JSON.parse(svg.dataset.colors);
+  const last=series[0].length-1;
+  legendEl.innerHTML=names.map((p,i)=>{const col=colors[i];const val=series[i][last];const valStr=mode==='fin'?`${val>=0?'+':''}${val.toFixed(1)} €`:String(val);return `<div style="display:flex;align-items:center;gap:6px"><span style="width:20px;height:3px;border-radius:2px;background:${col};flex-shrink:0;display:inline-block"></span><span style="font-size:11px;color:var(--dim)">${p}</span><span style="font-size:11px;font-weight:700;color:${col}">${valStr}</span></div>`;}).join('');
+};
 function finHover(e,svg){
   const n=+svg.dataset.n,FW=+svg.dataset.fw,FH=+svg.dataset.fh,fpx=+svg.dataset.fpx;
   const rect=svg.getBoundingClientRect();
@@ -1707,40 +1731,44 @@ function renderStatsRich(sc){
   const evoPlayed=ALL.filter(m=>results[m.id]).sort((a,b)=>a.id-b.id);
   let evoChart='';
   if(evoPlayed.length>=2){
-    // Prepend 0 so each curve starts at the bottom-left before match 1
-    const evoSeries=PARTICIPANTS.map((p,pi)=>{let c=0;return [0,...evoPlayed.map(m=>{const r=results[m.id];const pk=(votes[m.id]||[])[pi];if(r&&pk===r)c++;return c;})];});
+    const evoSeries=PARTICIPANTS.map((p,pi)=>{let c=0;return[0,...evoPlayed.map(m=>{const r=results[m.id];const pk=(votes[m.id]||[])[pi];if(r&&pk===r)c++;return c;})];});
     const evoMax=Math.max(...evoSeries.flat(),1);
     const EW=720,EH=230,epx=36,ept=14,epb=2,epR=104,en=evoSeries[0].length;
     const esx=i=>en<=1?EW/2:epx+(EW-epx-epR)*(i/(en-1));
     const esy=v=>EH-epb-(v/evoMax)*(EH-ept-epb);
-    // Smooth bezier path
-    const smoothD=ser=>{const pts=ser.map((v,j)=>[esx(j),esy(v)]);if(pts.length<2)return`M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;let d=`M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;for(let k=1;k<pts.length;k++){const[px,py]=pts[k-1];const[cx,cy]=pts[k];const mx=((px+cx)/2).toFixed(1);d+=` C${mx},${py.toFixed(1)} ${mx},${cy.toFixed(1)} ${cx.toFixed(1)},${cy.toFixed(1)}`;}return d;};
-    // Grid lines + Y labels — skip 0, start from yStep
+    const makeSmoothD=(ser,yFn)=>{const pts=ser.map((v,j)=>[esx(j),yFn(v)]);if(pts.length<2)return`M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;let d=`M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;for(let k=1;k<pts.length;k++){const[px,py]=pts[k-1];const[cx,cy]=pts[k];const mx=((px+cx)/2).toFixed(1);d+=` C${mx},${py.toFixed(1)} ${mx},${cy.toFixed(1)} ${cx.toFixed(1)},${cy.toFixed(1)}`;}return d;};
+    // Prono grid + lines
     const yStep=evoMax<=6?1:evoMax<=12?2:3;
-    let gridSvg=``;
+    let gridSvg='';
     for(let v=yStep;v<=evoMax;v+=yStep){const gy=esy(v).toFixed(1);gridSvg+=`<line x1="${epx}" y1="${gy}" x2="${EW-epR}" y2="${gy}" stroke="rgba(30,45,140,.07)" stroke-width="1"/><text x="${(epx-8).toFixed(1)}" y="${gy}" dy="3.5" fill="#c0c8d8" font-size="13" text-anchor="end" font-family="system-ui,-apple-system,sans-serif">${v}</text>`;}
-    const defs='';
-    const areas='';
-    // Lines (smooth)
-    const elines=PARTICIPANTS.map((p,i)=>{const col=themeForPronostiqueur(p).accent;return `<path d="${smoothD(evoSeries[i])}" fill="none" stroke="${col}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;}).join('');
-    const smallDots='';
-    // End dots + name labels with collision avoidance (sorted top→bottom)
+    const elines=PARTICIPANTS.map((p,i)=>{const col=themeForPronostiqueur(p).accent;return `<path d="${makeSmoothD(evoSeries[i],esy)}" fill="none" stroke="${col}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;}).join('');
     const endPts=PARTICIPANTS.map((p,i)=>({p,i,col:themeForPronostiqueur(p).accent,val:evoSeries[i][en-1],rawY:esy(evoSeries[i][en-1])})).sort((a,b)=>a.rawY-b.rawY);
     endPts.forEach(pt=>{pt.labelY=pt.rawY;});
     for(let k=1;k<endPts.length;k++){if(endPts[k].labelY<endPts[k-1].labelY+17)endPts[k].labelY=endPts[k-1].labelY+17;}
-     const edots=endPts.map(pt=>`<circle cx="${esx(en-1).toFixed(1)}" cy="${pt.rawY.toFixed(1)}" r="5.5" fill="${pt.col}" stroke="#fff" stroke-width="2.5"/><text x="${(EW-epR+10).toFixed(1)}" y="${pt.labelY.toFixed(1)}" dy="4" fill="${pt.col}" font-size="12" font-weight="700" font-family="system-ui,-apple-system,sans-serif">${pt.p} ${pt.val}</text>`).join('');
-    const xLabels='';
-    // Legend
-    const elegend=PARTICIPANTS.map((p,i)=>{const col=themeForPronostiqueur(p).accent;const val=evoSeries[i][en-1];return `<div style="display:flex;align-items:center;gap:6px"><span style="width:20px;height:3px;border-radius:2px;background:${col};flex-shrink:0;display:inline-block"></span><span style="font-size:11px;color:var(--dim)">${p}</span><span style="font-size:11px;font-weight:700;color:${col}">${val}</span></div>`;}).join('');
-    // Crosshair
+    const edots=endPts.map(pt=>`<circle cx="${esx(en-1).toFixed(1)}" cy="${pt.rawY.toFixed(1)}" r="5.5" fill="${pt.col}" stroke="#fff" stroke-width="2.5"/><text x="${(EW-epR+10).toFixed(1)}" y="${pt.labelY.toFixed(1)}" dy="4" fill="${pt.col}" font-size="12" font-weight="700" font-family="system-ui,-apple-system,sans-serif">${pt.p} ${pt.val}</text>`).join('');
+    // Financial series — chaque joueur parie 4€ sur son propre pick aux cotes marché
+    const finSeries=PARTICIPANTS.map((p,pi)=>{let c=0;return[0,...evoPlayed.map(m=>{const r=results[m.id];const pk=(votes[m.id]||[])[pi];if(!r||!pk)return c;const mo=marketOddsMap[m.id];let cote=null;if(mo){if(pk==='1')cote=Number(mo.c1);else if(pk==='2')cote=Number(mo.c2);else if(pk==='N')cote=Number(mo.cn);}if(cote==null||!Number.isFinite(cote)||cote<=0)return c;c+=pk===r?4*cote-4:-4;return c;})];});
+    const finMin=Math.min(0,...finSeries.flat());
+    const finMax=Math.max(0,...finSeries.flat(),1);
+    const esyFin=v=>EH-epb-((v-finMin)/Math.max(finMax-finMin,0.01))*(EH-ept-epb);
+    const finRange=finMax-finMin;
+    const finStep=finRange<=5?1:finRange<=10?2:finRange<=20?4:finRange<=50?10:20;
+    let gridSvgFin=`<line x1="${epx}" y1="${esyFin(0).toFixed(1)}" x2="${EW-epR}" y2="${esyFin(0).toFixed(1)}" stroke="rgba(30,45,140,.18)" stroke-width="1" stroke-dasharray="4,3"/>`;
+    for(let v=Math.ceil(finMin/finStep)*finStep;v<=finMax;v+=finStep){if(Math.abs(v)<0.01)continue;const gy=esyFin(v).toFixed(1);const lbl=`${v>0?'+':''}${v}€`;gridSvgFin+=`<line x1="${epx}" y1="${gy}" x2="${EW-epR}" y2="${gy}" stroke="rgba(30,45,140,.07)" stroke-width="1"/><text x="${(epx-5).toFixed(1)}" y="${gy}" dy="3.5" fill="#c0c8d8" font-size="11" text-anchor="end" font-family="system-ui,-apple-system,sans-serif">${lbl}</text>`;}
+    const finLines=PARTICIPANTS.map((p,i)=>{const col=themeForPronostiqueur(p).accent;return `<path d="${makeSmoothD(finSeries[i],esyFin)}" fill="none" stroke="${col}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;}).join('');
+    const finEndPts=PARTICIPANTS.map((p,i)=>({p,i,col:themeForPronostiqueur(p).accent,val:finSeries[i][en-1],rawY:esyFin(finSeries[i][en-1])})).sort((a,b)=>a.rawY-b.rawY);
+    finEndPts.forEach(pt=>{pt.labelY=pt.rawY;});
+    for(let k=1;k<finEndPts.length;k++){if(finEndPts[k].labelY<finEndPts[k-1].labelY+17)finEndPts[k].labelY=finEndPts[k-1].labelY+17;}
+    const finEdots=finEndPts.map(pt=>{const v=pt.val;const valStr=`${v>=0?'+':''}${v.toFixed(1)}€`;return `<circle cx="${esx(en-1).toFixed(1)}" cy="${pt.rawY.toFixed(1)}" r="5.5" fill="${pt.col}" stroke="#fff" stroke-width="2.5"/><text x="${(EW-epR+10).toFixed(1)}" y="${pt.labelY.toFixed(1)}" dy="4" fill="${pt.col}" font-size="12" font-weight="700" font-family="system-ui,-apple-system,sans-serif">${pt.p} ${valStr}</text>`;}).join('');
+    // Crosshair + legends
     const crosshair=`<line class="evo-ch" x1="0" y1="${ept}" x2="0" y2="${EH-epb}" stroke="rgba(30,45,140,.2)" stroke-width="1.5" stroke-dasharray="5,3" display="none"/>`;
-    // JSON data (escape single quotes)
     const esc=s=>JSON.stringify(s).replace(/'/g,"&#39;");
     const matchesJson=esc([{id:'Départ',e1:'',e2:''},...evoPlayed.map(m=>({id:`M${String(m.id).padStart(2,'0')}`,e1:m.e1,e2:m.e2}))]);
     const namesJson=esc(PARTICIPANTS);
     const colorsJson=esc(PARTICIPANTS.map(p=>themeForPronostiqueur(p).accent));
     const seriesJson=esc(evoSeries);
-    // Companion card: recent form + ranking
+    const finSeriesJson=esc(finSeries);
+    const elegend=PARTICIPANTS.map((p,i)=>{const col=themeForPronostiqueur(p).accent;const val=evoSeries[i][en-1];return `<div style="display:flex;align-items:center;gap:6px"><span style="width:20px;height:3px;border-radius:2px;background:${col};flex-shrink:0;display:inline-block"></span><span style="font-size:11px;color:var(--dim)">${p}</span><span style="font-size:11px;font-weight:700;color:${col}">${val}</span></div>`;}).join('');
     const formN=Math.min(5,en);
     const recentM2=evoPlayed.slice(-formN);
     const companionRows=stats.map((s,rank)=>{
@@ -1751,7 +1779,7 @@ function renderStatsRich(sc){
       return `<div style="display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid rgba(30,45,140,.06)"><span style="font-size:16px;width:22px;text-align:center;flex-shrink:0">${med}</span><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;color:${col};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div><div style="font-size:10px;color:var(--dim);margin-top:2px;white-space:nowrap">${s.correct} bons · ${s.accuracy}%</div></div><div style="display:flex;gap:3px;flex-shrink:0;align-items:center">${dots}</div></div>`;
     }).join('');
     const companion=`<div class="bar-card" style="display:flex;flex-direction:column"><div class="stats-title">Forme récente</div><div style="padding:0 2px;flex:1">${companionRows}</div><div style="font-size:10px;color:var(--dim);padding-top:8px;border-top:1px solid rgba(30,45,140,.06)">Derniers ${formN} matchs disputés</div></div>`;
-    evoChart=`<div class="evo-grid"><div class="bar-card" style="display:flex;flex-direction:column"><div class="stats-title">Évolution des bons pronos</div><div style="position:relative;flex:1;min-height:120px"><svg viewBox="0 0 ${EW} ${EH}" style="position:absolute;top:6px;left:0;width:100%;height:calc(100% - 6px);display:block;cursor:crosshair" preserveAspectRatio="none" data-n="${en}" data-ew="${EW}" data-eh="${EH}" data-epx="${epx}" data-epr="${epR}" data-ept="${ept}" data-epb="${epb}" data-series='${seriesJson}' data-matches='${matchesJson}' data-names='${namesJson}' data-colors='${colorsJson}' onmousemove="evoHover(event,this)" onmouseleave="evoLeave(this)">${defs}${gridSvg}${areas}${elines}${edots}${xLabels}${crosshair}</svg><div class="evo-tt" style="display:none;position:absolute;pointer-events:none;background:#fff;border-radius:10px;padding:10px 14px;box-shadow:0 8px 24px rgba(0,0,0,.14),0 0 0 1px rgba(30,45,140,.08);font-size:11px;z-index:20;min-width:130px"></div></div></div>${companion}</div>`;
+    evoChart=`<div class="evo-grid"><div class="bar-card" style="display:flex;flex-direction:column"><div class="stats-title" style="display:flex;justify-content:space-between;align-items:center"><span id="evo-title">Évolution des bons pronos</span><div class="evo-tabs"><button class="evo-tab on" data-mode="prono" onclick="evoSetMode(this)">Pronos</button><button class="evo-tab" data-mode="fin" onclick="evoSetMode(this)">Finance</button></div></div><div style="position:relative;flex:1;min-height:120px"><svg viewBox="0 0 ${EW} ${EH}" style="position:absolute;top:6px;left:0;width:100%;height:calc(100% - 6px);display:block;cursor:crosshair" preserveAspectRatio="none" data-n="${en}" data-ew="${EW}" data-eh="${EH}" data-epx="${epx}" data-epr="${epR}" data-ept="${ept}" data-epb="${epb}" data-mode="prono" data-series='${seriesJson}' data-finseries='${finSeriesJson}' data-matches='${matchesJson}' data-names='${namesJson}' data-colors='${colorsJson}' onmousemove="evoHover(event,this)" onmouseleave="evoLeave(this)"><g id="evo-g-prono">${gridSvg}${elines}${edots}</g><g id="evo-g-fin" style="display:none">${gridSvgFin}${finLines}${finEdots}</g>${crosshair}</svg><div class="evo-tt" style="display:none;position:absolute;pointer-events:none;background:#fff;border-radius:10px;padding:10px 14px;box-shadow:0 8px 24px rgba(0,0,0,.14),0 0 0 1px rgba(30,45,140,.08);font-size:11px;z-index:20;min-width:130px"></div></div><div id="evo-legend" style="display:flex;flex-wrap:wrap;gap:10px;padding:6px 0 2px">${elegend}</div></div>${companion}</div>`;
   }
 
   // Stats croustillantes (carte Tempo) : course en tête, buts marqués, match le plus fou
