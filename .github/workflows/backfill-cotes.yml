@@ -1,0 +1,70 @@
+name: Backfill cotes (CDM26)
+
+# Remplissage des cotes historiques WC2026 depuis OddsPortal.
+# - selftest : hors-ligne sur les fixtures d'exemple (aucun secret requis)
+# - dry-run  : scrape OddsPortal, affiche sans écrire (nécessite les secrets Supabase)
+# - live     : scrape et écrit dans Supabase
+#
+# Secrets : SUPABASE_URL · SUPABASE_SERVICE_KEY
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "selftest (hors-ligne) · dry-run (scrape sans écriture) · live (écrit en base)"
+        type: choice
+        default: selftest
+        options:
+          - selftest
+          - dry-run
+          - live
+
+permissions:
+  contents: read
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Lancer le backfill
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          set -o pipefail
+          case "${{ github.event.inputs.mode }}" in
+            selftest)
+              MATCHS_FIXTURE_FILE=scripts/exemple-matchs.json \
+              ODDS_PORTAL_FIXTURE_FILE=scripts/exemple-backfill.json \
+              DRY_RUN=1 node scripts/backfill-cotes.mjs | tee out.log ;;
+            dry-run)
+              node scripts/backfill-cotes.mjs --dry-run | tee out.log ;;
+            *)
+              node scripts/backfill-cotes.mjs | tee out.log ;;
+          esac
+
+      - name: Publier le résultat dans le résumé
+        if: always()
+        run: |
+          {
+            echo "### Backfill cotes — mode \`${{ github.event.inputs.mode }}\`"
+            echo ""
+            echo '```'
+            cat out.log 2>/dev/null || echo "(aucune sortie)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Archiver le log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backfill-log
+          path: out.log
+          if-no-files-found: ignore
