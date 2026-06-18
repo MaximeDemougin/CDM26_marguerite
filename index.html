@@ -1381,7 +1381,7 @@ function matchCard(m,sc){
   const moRow=(mo&&(mo.c1!=null||mo.cn!=null||mo.c2!=null))?(()=>{
     const fmt=v=>v==null||v===''||isNaN(Number(v))?null:Number(v).toFixed(2);
     const pill=(k,v,bk)=>{const fv=fmt(v);if(fv==null)return `<span class="mo-pill" style="opacity:.45;cursor:default"><span class="mo-k">${k}</span><span class="mo-v">–</span></span>`;const cls=real===k?'mo-pill res':maj===k?'mo-pill hot':'mo-pill';const tip=`${bk?String(bk).replace(/"/g,'&quot;')+' · ':''}cliquer pour utiliser cette cote (${fv})`;return `<button type="button" class="${cls}" title="${tip}" onclick="setCoteDraft(${m.id},'${fv}')"><span class="mo-k">${k}</span><span class="mo-v">${fv}</span></button>`;};
-    const at=mo.at?`<span class="mo-at">maj ${new Date(mo.at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})}</span>`:'';
+    const at=mo.at?(()=>{const d=new Date(mo.at);return `<span class="mo-at">maj ${d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})} ${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</span>`;})():'';
     return `<div class="market-odds"><span class="mo-lbl">Cotes marché</span><div class="mo-pills">${pill('1',mo.c1,mo.b1)}${pill('N',mo.cn,mo.bn)}${pill('2',mo.c2,mo.b2)}</div>${at}</div>`;
   })():'';
   const gainValue=gainForMatch(m.id,maj,real);
