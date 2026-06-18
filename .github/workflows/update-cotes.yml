@@ -19,9 +19,9 @@ on:
           - selftest
           - dry-run
           - live
-  # Planification quotidienne optionnelle (sinon : déclencheur Claude Code web).
-  # schedule:
-  #   - cron: "0 6 * * *"   # 06:00 UTC chaque jour -> mode live
+  # Planification quotidienne automatique (mode live : récupère et écrit en base).
+  schedule:
+    - cron: "0 6 * * *"   # tous les jours à 06:00 UTC
 
 permissions:
   contents: read

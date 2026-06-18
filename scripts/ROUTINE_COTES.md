@@ -90,10 +90,26 @@ connues — c'est normal).
 
 ---
 
-## 5. Planifier la routine (Claude Code web)
+## 5. Planification quotidienne (GitHub Actions — automatique)
 
-Crée un **déclencheur planifié quotidien** sur ce dépôt depuis Claude Code web
-(voir la doc : https://code.claude.com/docs/en/claude-code-on-the-web), avec ce prompt :
+La routine tourne **chaque jour automatiquement** via le cron du workflow
+`.github/workflows/update-cotes.yml` :
+
+```yaml
+schedule:
+  - cron: "0 6 * * *"   # tous les jours à 06:00 UTC (mode live)
+```
+
+Une exécution planifiée n'a pas de paramètre `mode` → elle passe en **`live`** et écrit
+dans `cotes_marche`. Il suffit d'avoir posé les 3 secrets (§3 / §6). Pour changer l'heure,
+modifie l'expression cron ; pour suspendre, recommente le bloc `schedule:`.
+
+### Alternative : déclencheur Claude Code web
+
+Si tu préfères que ce soit **Claude** qui lance la routine (utile car il peut compléter le
+dictionnaire d'équipes tout seul), crée à la place un déclencheur planifié depuis Claude
+Code web (doc : https://code.claude.com/docs/en/claude-code-on-the-web) avec ce prompt —
+et dans ce cas recommente le `schedule:` du workflow pour éviter un double passage :
 
 > **Routine cotes CDM26.** Exécute `node scripts/update-cotes.mjs`.
 > Si des matchs apparaissent en « non associés » à cause d'un **alias d'équipe inconnu**
@@ -102,7 +118,7 @@ Crée un **déclencheur planifié quotidien** sur ce dépôt depuis Claude Code 
 > uniquement si tu as modifié le dictionnaire. Termine par un court résumé : nombre de
 > cotes mises à jour, et la liste des éventuels matchs non associés restants.
 
-C'est là tout l'intérêt d'une **routine Claude** plutôt qu'un simple script : quand une
+C'est là tout l'intérêt d'une **routine Claude** plutôt qu'un simple cron : quand une
 nouvelle équipe se qualifie pour les phases finales, ou que l'API change un libellé,
 Claude complète le dictionnaire tout seul et la routine continue de tourner.
 
@@ -125,8 +141,8 @@ clic** et d'en **lire le résultat**, sans dépendre d'une session ouverte.
 Pour `dry-run`/`live`, ajoute les 3 secrets dans **Settings → Secrets and variables →
 Actions** : `ODDS_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`.
 
-> La planification quotidienne reste gérée par le **déclencheur Claude Code web** (§5).
-> Si tu préfères tout faire ici, décommente le bloc `schedule:` du workflow (mode `live`).
+> La planification quotidienne automatique passe aussi par ce workflow (cron, §5).
+> Le `workflow_dispatch` ci-dessus sert en plus à lancer la routine **à la demande**.
 
 ---
 
