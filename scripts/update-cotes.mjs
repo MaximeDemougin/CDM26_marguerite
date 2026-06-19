@@ -133,7 +133,8 @@ async function fetchOdds() {
   const sport = process.env.ODDS_SPORT_KEY || 'soccer_fifa_world_cup';
   const regions = process.env.ODDS_REGIONS || 'eu,uk';
   // commenceTimeFrom = maintenant pour exclure les matchs déjà commencés (cotes live indésirables)
-  const from = encodeURIComponent(new Date().toISOString());
+  // Format requis par l'API : YYYY-MM-DDTHH:MM:SSZ (sans millisecondes)
+  const from = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
   const url = `https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${process.env.ODDS_API_KEY}&regions=${regions}&markets=h2h&oddsFormat=decimal&commenceTimeFrom=${from}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`The Odds API ${res.status} ${await res.text()}`);
