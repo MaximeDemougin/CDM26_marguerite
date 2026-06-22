@@ -611,7 +611,9 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .past-group{border:none;background:#ffffff;border-radius:12px;padding:10px 12px;box-shadow:0 10px 22px rgba(15,29,49,.13),0 0 0 1px rgba(255,255,255,.74) inset}
 .past-group-title{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
 .past-rows{display:grid}
-.past-row{display:grid;grid-template-columns:auto minmax(0,1fr) 68px minmax(0,1fr) 72px;align-items:center;gap:8px;padding:7px 0;width:100%;border:none;background:none;font:inherit;text-align:left;cursor:pointer;border-radius:8px;transition:background .15s,transform .15s}
+.past-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:0;padding:7px 0;width:100%;border:none;background:none;font:inherit;text-align:left;cursor:pointer;border-radius:8px;transition:background .15s,transform .15s}
+.past-left{display:flex;align-items:center;gap:8px;min-width:0;padding-right:8px}
+.past-right{display:flex;align-items:center;gap:8px;justify-content:flex-end;min-width:0;padding-left:8px}
 .past-row+.past-row{box-shadow:inset 0 1px 0 color-mix(in oklab,var(--line2) 45%, transparent)}
 .past-row:hover{background:color-mix(in oklab,var(--paper) 62%, white);transform:translateY(-1px)}
 .past-row:focus-visible{outline:none;box-shadow:0 0 0 2px color-mix(in oklab,var(--fr) 24%, transparent),inset 0 1px 0 color-mix(in oklab,var(--line2) 45%, transparent)}
@@ -629,21 +631,15 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .past-team.r{justify-content:flex-end;text-align:right}
 .past-team.win{color:var(--ok)}
 .past-team span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.past-score{font-size:14px;font-weight:900;color:var(--ink);letter-spacing:.4px;display:flex;align-items:center;justify-content:center;gap:4px}
+.past-score{font-size:14px;font-weight:900;color:var(--ink);letter-spacing:.4px;display:flex;align-items:center;justify-content:center;gap:4px;flex-shrink:0}
 .past-mode{font-size:9px;font-weight:800;font-family:var(--font-cond);letter-spacing:.5px;color:rgba(45,92,230,.7);background:rgba(45,92,230,.08);border-radius:3px;padding:1px 4px;display:inline-block}
 .past-row.pending .past-score{color:var(--faint)}
 .past-row.pending .past-status{background:color-mix(in oklab,var(--line2) 56%, white);color:#5a708b}
 @media (max-width:760px){
   .past-phases{gap:14px;padding:0 14px 12px}
   .past-results{grid-template-columns:1fr;gap:10px}
-  .past-row{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"time home status" "away away score" "badges badges badges";gap:6px 8px}
-  .past-row .past-when{grid-area:time}
-  .past-row .past-team:first-of-type{grid-area:home}
-  .past-row .past-team.r{grid-area:away;justify-content:flex-start;text-align:left}
-  .past-row .past-score{grid-area:score;justify-self:end}
-  .past-row .past-status{grid-area:status;justify-self:end}
-  .past-row .past-badges{grid-area:badges;justify-content:center}
-  .past-row .past-id{display:none}
+  .past-left,.past-right{gap:5px;padding-left:4px;padding-right:4px}
+  .past-when{font-size:9px}
 }
 
 /* Bracket connectors: show how two matches feed the next round */
@@ -880,7 +876,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
           <div class="subtitle" id="who-subtitle">Choisis qui tu es pour pronostiquer&nbsp;:</div>
         </div>
       </div>
-      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.7</span></div>
+      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.8</span></div>
     </div>
     <div class="who" id="who"></div>
   </div>
@@ -1596,7 +1592,7 @@ function renderCompetition(){
         const pickBadge=!placed?"":`<span class=\"past-pick ${pickClass}\">${pickLabel} : ${pickValue}</span>`;
         const statusBadge=statusLabel?`<span class=\"past-status\">${statusLabel}</span>`:"";
         const badgesBlock=pickBadge?`<span class=\"past-badges\">${pickBadge}</span>`:"";
-        return `<button class="past-row ${done?"":"pending"}" onclick="goToMatch(${fm.id})"><span class="past-when">${fm.h}</span><span class="past-team ${win1?"win":""}">${flagImg(fm.e1,"flag-sm")}<span>${fm.e1}</span></span><span class="past-score">${scoreLabel}${modeTag}</span><span class="past-team r ${win2?"win":""}">${flagImg(fm.e2,"flag-sm")}<span>${fm.e2}</span></span>${statusBadge}${badgesBlock}</button>`;
+        return `<button class="past-row ${done?"":"pending"}" onclick="goToMatch(${fm.id})"><span class="past-left"><span class="past-when">${fm.h}</span><span class="past-team ${win1?"win":""}">${flagImg(fm.e1,"flag-sm")}<span>${fm.e1}</span></span></span><span class="past-score">${scoreLabel}${modeTag}</span><span class="past-right"><span class="past-team r ${win2?"win":""}">${flagImg(fm.e2,"flag-sm")}<span>${fm.e2}</span></span>${statusBadge}</span>${badgesBlock}</button>`;
         }).join('');
         return `<div class="past-group"><div class="past-group-title">${groupLabel}</div><div class="past-rows">${rows}</div></div>`;
       }).join('');
