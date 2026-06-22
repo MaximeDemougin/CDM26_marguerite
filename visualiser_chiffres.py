@@ -3,17 +3,54 @@ import numpy as np
 from lire_score import ancrage_blindé, trouver_rangees_chiffres
 
 
-def trouver_rect_chiffre(cellule_gray):
-    """Retourne le bounding rect du contenu sombre dans la cellule, ou None."""
-    _, bin_img = cv2.threshold(cellule_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+def detecter_digits_par_contours(bande_gray, nb_attendus=3):
+    """
+    Trouve les bounding boxes des chiffres dans une bande en cherchant
+    les grands composants connexes, plutôt qu'en découpant en tiers égaux.
+    Retourne une liste de (x, y, w, h) triés par x, dans les coordonnées de la bande.
+    """
+    _, bin_img = cv2.threshold(bande_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     if np.mean(bin_img) < 127:
         bin_img = cv2.bitwise_not(bin_img)
-    # Chiffre = pixels sombres
-    contenu = cv2.bitwise_not(bin_img)
-    coords = cv2.findNonZero(contenu)
-    if coords is None:
-        return None
-    return cv2.boundingRect(coords)
+
+    # Chiffres = pixels sombres
+    inv = cv2.bitwise_not(bin_img)
+
+    # Fermeture légère pour relier les segments d'un même chiffre
+    kernel = np.ones((5, 3), np.uint8)
+    fermé = cv2.morphologyEx(inv, cv2.MORPH_CLOSE, kernel)
+
+    contours, _ = cv2.findContours(fermé, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    h_bande, w_bande = bande_gray.shape
+    aire_min = (h_bande * w_bande) / (nb_attendus * 12)  # au moins ~8% de la surface d'une cellule
+
+    boites = []
+    for c in contours:
+        x, y, w, h = cv2.boundingRect(c)
+        aire = cv2.contourArea(c)
+        # Filtrer le bruit (trop petit) et les artefacts de bord (trop large)
+        if aire > aire_min and w < w_bande * 0.6 and h > h_bande * 0.25:
+            boites.append((x, y, w, h))
+
+    # Fusionner les boites qui se chevauchent horizontalement (segments d'un même chiffre)
+    boites = sorted(boites, key=lambda b: b[0])
+    fusionnées = []
+    for b in boites:
+        bx, by, bw, bh = b
+        if fusionnées and bx < fusionnées[-1][0] + fusionnées[-1][2] + 8:
+            px, py, pw, ph = fusionnées[-1]
+            nx = min(px, bx)
+            ny = min(py, by)
+            nw = max(px + pw, bx + bw) - nx
+            nh = max(py + ph, by + bh) - ny
+            fusionnées[-1] = (nx, ny, nw, nh)
+        else:
+            fusionnées.append(b)
+
+    # Garder les nb_attendus plus grandes boites
+    fusionnées = sorted(fusionnées, key=lambda b: b[2] * b[3], reverse=True)[:nb_attendus]
+    return sorted(fusionnées, key=lambda b: b[0])
 
 
 def visualiser_chiffres(chemin_image, nb_cols=3):
@@ -29,47 +66,36 @@ def visualiser_chiffres(chemin_image, nb_cols=3):
     roi = img[py:py + ph, px:px + pw]
     roi_gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
 
-    rangees, bandes_sombres, _ = trouver_rangees_chiffres(roi_gray)
+    rangees, _, _ = trouver_rangees_chiffres(roi_gray)
 
     debug = img.copy()
     labels = ["VISITEUR", "CLUB"]
-    couleurs = [(0, 220, 0), (0, 80, 255)]  # vert / orange
+    couleurs = [(0, 220, 0), (0, 80, 255)]
 
     for idx, (y1, y2) in enumerate(rangees[:2]):
         couleur = couleurs[idx]
         bande_gray = roi_gray[y1 + 3:y2, :]
-        h_bande, w_bande = bande_gray.shape
-        largeur_col = w_bande // nb_cols
 
-        for col in range(nb_cols):
-            cx1 = col * largeur_col
-            cx2 = cx1 + largeur_col
-            cellule = bande_gray[:, cx1:cx2]
+        boites = detecter_digits_par_contours(bande_gray, nb_attendus=nb_cols)
 
-            rect_chiffre = trouver_rect_chiffre(cellule)
+        for col, (bx, by, bw, bh) in enumerate(boites):
+            abs_x1 = px + bx
+            abs_y1 = py + y1 + 3 + by
+            abs_x2 = abs_x1 + bw
+            abs_y2 = abs_y1 + bh
 
-            # Rectangle de la colonne (fond semi-transparent)
-            abs_x1 = px + cx1
-            abs_y1 = py + y1 + 3
-            abs_x2 = px + cx2
-            abs_y2 = py + y2
+            # Fond semi-transparent
             overlay = debug.copy()
             cv2.rectangle(overlay, (abs_x1, abs_y1), (abs_x2, abs_y2), couleur, -1)
-            cv2.addWeighted(overlay, 0.12, debug, 0.88, 0, debug)
-            cv2.rectangle(debug, (abs_x1, abs_y1), (abs_x2, abs_y2), couleur, 1)
+            cv2.addWeighted(overlay, 0.15, debug, 0.85, 0, debug)
 
-            # Rectangle serré autour du chiffre détecté
-            if rect_chiffre is not None:
-                rx, ry, rw, rh = rect_chiffre
-                cv2.rectangle(debug,
-                               (abs_x1 + rx, abs_y1 + ry),
-                               (abs_x1 + rx + rw, abs_y1 + ry + rh),
-                               couleur, 2)
+            # Contour du rectangle
+            cv2.rectangle(debug, (abs_x1, abs_y1), (abs_x2, abs_y2), couleur, 2)
 
             # Numéro de colonne
             cv2.putText(debug, str(col + 1),
-                        (abs_x1 + 4, abs_y1 + 14),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.45, couleur, 1)
+                        (abs_x1 + 3, abs_y1 + 13),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.4, couleur, 1)
 
         # Label de la rangée
         cv2.putText(debug, labels[idx],
