@@ -26,6 +26,46 @@ def _candidats_depuis_kernel(thresh, kernel, min_w=200, min_h=20):
             if cv2.boundingRect(c)[2] > min_w and cv2.boundingRect(c)[3] > min_h]
 
 
+def _affiner_redressement(roi):
+    """
+    Corrige l'inclinaison résiduelle d'un ROI après warpPerspective.
+    Détecte l'angle des bandes horizontales (VISITEUR/CLUB) par Hough
+    et applique une micro-rotation corrective.
+    """
+    gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+    _, inv = cv2.threshold(gray, 80, 255, cv2.THRESH_BINARY_INV)
+    edges = cv2.Canny(inv, 30, 100)
+
+    h, w = roi.shape[:2]
+    lines = cv2.HoughLinesP(edges, 1, np.pi / 180, threshold=35,
+                             minLineLength=w // 6, maxLineGap=15)
+    if lines is None:
+        return roi
+
+    angles = []
+    for line in lines:
+        x1, y1, x2, y2 = line[0]
+        dx = x2 - x1
+        if abs(dx) < 5:
+            continue
+        angle = np.degrees(np.arctan2(y2 - y1, x2 - x1))
+        if abs(angle) < 20:          # lignes quasi-horizontales uniquement
+            angles.append(angle)
+
+    if len(angles) < 3:
+        return roi
+
+    # En coords image, angle>0 = pente CW ; correction = rotation inverse
+    correction = -float(np.median(angles))
+    if abs(correction) < 0.4:        # moins de 0.4° — pas la peine
+        return roi
+
+    M = cv2.getRotationMatrix2D((w / 2, h / 2), correction, 1.0)
+    return cv2.warpAffine(roi, M, (w, h),
+                          flags=cv2.INTER_LINEAR,
+                          borderMode=cv2.BORDER_REPLICATE)
+
+
 def detecter_et_redresser(img):
     """
     Détecte le panneau de score et retourne un ROI redressé à plat.
@@ -95,7 +135,7 @@ def detecter_et_redresser(img):
     ], dtype=np.float32)
     M = cv2.getPerspectiveTransform(coins, dst)
     roi = cv2.warpPerspective(img, M, (W + 2 * PAD, H + 2 * PAD))
-    return roi
+    return _affiner_redressement(roi)
 
 
 # Alias pour compatibilité avec visualiser_chiffres.py
