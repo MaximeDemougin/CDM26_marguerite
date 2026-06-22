@@ -105,6 +105,34 @@ def detecter_digits_par_projection(bande_bgr, nb_attendus=3):
     return boites
 
 
+def boites_depuis_colonnes_ref(bande_bgr, colonnes_x):
+    """
+    Étant donné des colonnes de référence [(x1,x2), ...] issues de VISITEUR,
+    cherche le chiffre dans chaque colonne pour la bande courante (CLUB).
+    """
+    bande_propre = masquer_marqueurs(bande_bgr)
+    bande_gray = cv2.cvtColor(bande_propre, cv2.COLOR_BGR2GRAY)
+    _, bin_img = cv2.threshold(bande_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    if np.mean(bin_img) < 127:
+        bin_img = cv2.bitwise_not(bin_img)
+    inv = cv2.bitwise_not(bin_img)
+
+    boites = []
+    for x1, x2 in colonnes_x:
+        col_slice = inv[:, x1:x2]
+        lignes = np.where(col_slice.sum(axis=1) > col_slice.shape[1] * 0.08)[0]
+        cols  = np.where(col_slice.sum(axis=0) > 0)[0]
+        if len(lignes) == 0 or len(cols) == 0:
+            boites.append((x1, 0, x2 - x1, inv.shape[0]))
+            continue
+        rx = x1 + int(cols[0])
+        rw = int(cols[-1]) - int(cols[0]) + 1
+        ry = int(lignes[0])
+        rh = int(lignes[-1]) - ry + 1
+        boites.append((rx, ry, rw, rh))
+    return boites
+
+
 def visualiser_chiffres(chemin_image, nb_cols=3):
     img = cv2.imread(chemin_image)
     if img is None:
@@ -124,11 +152,23 @@ def visualiser_chiffres(chemin_image, nb_cols=3):
     labels = ["VISITEUR", "CLUB"]
     couleurs = [(0, 220, 0), (0, 80, 255)]
 
+    colonnes_ref = None   # colonnes x détectées sur VISITEUR, réutilisées pour CLUB
+
     for idx, (y1, y2) in enumerate(rangees[:2]):
         couleur = couleurs[idx]
-        bande_bgr  = roi[y1 + 3:y2, :]
+        bande_bgr = roi[y1 + 3:y2, :]
 
-        boites = detecter_digits_par_projection(bande_bgr, nb_attendus=nb_cols)
+        if idx == 0:
+            # VISITEUR : détection libre
+            boites = detecter_digits_par_projection(bande_bgr, nb_attendus=nb_cols)
+            # Mémoriser les colonnes x pour CLUB
+            colonnes_ref = [(bx, bx + bw) for bx, _, bw, _ in boites]
+        else:
+            # CLUB : on force les mêmes colonnes x que VISITEUR
+            if colonnes_ref:
+                boites = boites_depuis_colonnes_ref(bande_bgr, colonnes_ref)
+            else:
+                boites = detecter_digits_par_projection(bande_bgr, nb_attendus=nb_cols)
 
         for col, (bx, by, bw, bh) in enumerate(boites):
             abs_x1 = px + bx
@@ -136,15 +176,10 @@ def visualiser_chiffres(chemin_image, nb_cols=3):
             abs_x2 = abs_x1 + bw
             abs_y2 = abs_y1 + bh
 
-            # Fond semi-transparent
             overlay = debug.copy()
             cv2.rectangle(overlay, (abs_x1, abs_y1), (abs_x2, abs_y2), couleur, -1)
             cv2.addWeighted(overlay, 0.15, debug, 0.85, 0, debug)
-
-            # Contour du rectangle
             cv2.rectangle(debug, (abs_x1, abs_y1), (abs_x2, abs_y2), couleur, 2)
-
-            # Numéro de colonne
             cv2.putText(debug, str(col + 1),
                         (abs_x1 + 3, abs_y1 + 13),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.4, couleur, 1)
