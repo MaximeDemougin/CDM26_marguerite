@@ -3,6 +3,10 @@ import numpy as np
 import pytesseract
 
 
+# ---------------------------------------------------------------------------
+# Détection du panneau
+# ---------------------------------------------------------------------------
+
 def ancrage_blindé(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     _, thresh = cv2.threshold(gray, 90, 255, cv2.THRESH_BINARY_INV)
@@ -18,22 +22,12 @@ def ancrage_blindé(img):
 
 
 def trouver_rangees_chiffres(roi_gray):
-    """
-    Stratégie : les bandeaux VISITEUR / CLUB sont des bandes sombres.
-    On les détecte, puis les zones de chiffres sont les espaces clairs juste en dessous.
-    Retourne une liste de (y_debut, y_fin) pour chaque rangée de chiffres.
-    """
     h_img = roi_gray.shape[0]
-
-    # Profil : proportion de pixels sombres par ligne
     _, dark = cv2.threshold(roi_gray, 80, 255, cv2.THRESH_BINARY_INV)
     profil = dark.mean(axis=1)
-
-    # Bandes sombres = bandeaux texte (VISITEUR / CLUB)
     seuil_sombre = max(20.0, profil.max() * 0.25)
     in_dark = profil > seuil_sombre
 
-    # Trouve les intervalles de bandes sombres
     bandes_sombres = []
     debut = None
     for i, val in enumerate(in_dark):
@@ -46,100 +40,198 @@ def trouver_rangees_chiffres(roi_gray):
     if debut is not None and h_img - debut > 5:
         bandes_sombres.append((debut, h_img))
 
-    # Les zones de chiffres sont les espaces clairs ENTRE les bandes sombres.
-    # Délimitation : fin de la bande courante → début de la bande suivante.
     rangees = []
     for i, (_, fin) in enumerate(bandes_sombres):
         debut_suivant = bandes_sombres[i + 1][0] if i + 1 < len(bandes_sombres) else h_img
-        hauteur = debut_suivant - fin
-        if hauteur > 10:
+        if debut_suivant - fin > 10:
             rangees.append((fin, debut_suivant))
 
     return rangees, bandes_sombres, profil
 
 
-def binariser_cellule(cellule_gray):
-    """Binarise une cellule : retourne une image binaire fond blanc / chiffre noir."""
-    h, w = cellule_gray.shape
+# ---------------------------------------------------------------------------
+# Segmentation des chiffres par projection verticale
+# ---------------------------------------------------------------------------
+
+def masquer_marqueurs(bande_bgr):
+    """Efface les marqueurs roses/magenta (points de keypoints) en blanc."""
+    hsv = cv2.cvtColor(bande_bgr, cv2.COLOR_BGR2HSV)
+    masque1 = cv2.inRange(hsv, (140, 80, 80), (180, 255, 255))
+    masque2 = cv2.inRange(hsv, (0,   80, 80), (10,  255, 255))
+    masque = cv2.bitwise_or(masque1, masque2)
+    résultat = bande_bgr.copy()
+    résultat[masque > 0] = (255, 255, 255)
+    return résultat
+
+
+def etendue_verticale(inv_slice):
+    """Retourne (y_debut, hauteur) du bloc de lignes le plus dense et continu."""
+    h, w = inv_slice.shape
+    if w == 0:
+        return 0, h
+    densite = inv_slice.sum(axis=1) / 255
+    if densite.max() == 0:
+        return 0, h
+    seuil = densite.max() * 0.15
+    active = densite > seuil
+    segments = []
+    debut = None
+    for i, v in enumerate(active):
+        if v and debut is None:
+            debut = i
+        elif not v and debut is not None:
+            segments.append((debut, i))
+            debut = None
+    if debut is not None:
+        segments.append((debut, h))
+    if not segments:
+        return 0, h
+    y1, y2 = max(segments, key=lambda s: s[1] - s[0])
+    return y1, y2 - y1
+
+
+def _binariser(bande_bgr):
+    propre = masquer_marqueurs(bande_bgr)
+    gray = cv2.cvtColor(propre, cv2.COLOR_BGR2GRAY)
+    _, bin_img = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    if np.mean(bin_img) < 127:
+        bin_img = cv2.bitwise_not(bin_img)
+    return cv2.bitwise_not(bin_img)   # inv : chiffre = blanc
+
+
+def detecter_digits_par_projection(bande_bgr, nb_attendus=3):
+    """Segmente les chiffres par projection verticale. Retourne [(x,y,w,h), ...]."""
+    inv = _binariser(bande_bgr)
+    projection = inv.sum(axis=0) / 255
+    proj_lissée = np.convolve(projection, np.ones(3) / 3, mode='same')
+
+    seuil = proj_lissée.max() * 0.06
+    est_chiffre = proj_lissée > seuil
+
+    segments = []
+    debut = None
+    for i, val in enumerate(est_chiffre):
+        if val and debut is None:
+            debut = i
+        elif not val and debut is not None:
+            segments.append((debut, i))
+            debut = None
+    if debut is not None:
+        segments.append((debut, len(est_chiffre)))
+    if not segments:
+        return []
+
+    fusionnés = [list(segments[0])]
+    for x1, x2 in segments[1:]:
+        if x1 - fusionnés[-1][1] < 3:
+            fusionnés[-1][1] = x2
+        else:
+            fusionnés.append([x1, x2])
+
+    h_bande, w_bande = inv.shape
+    largeur_max = w_bande / nb_attendus * 1.4
+    segments_finaux = []
+    for x1, x2 in fusionnés:
+        if x2 - x1 > largeur_max:
+            creux = int(np.argmin(proj_lissée[x1:x2])) + x1
+            if x1 < creux < x2 - 1:
+                segments_finaux += [[x1, creux], [creux, x2]]
+                continue
+        segments_finaux.append([x1, x2])
+
+    marge = int(w_bande * 0.05)
+    segments_finaux = [s for s in segments_finaux if s[0] >= marge and s[1] <= w_bande - marge]
+
+    if len(segments_finaux) > nb_attendus:
+        segments_finaux = sorted(segments_finaux, key=lambda s: s[1] - s[0], reverse=True)[:nb_attendus]
+        segments_finaux = sorted(segments_finaux, key=lambda s: s[0])
+
+    boites = []
+    for x1, x2 in segments_finaux:
+        ry, rh = etendue_verticale(inv[:, x1:x2])
+        boites.append((x1, ry, x2 - x1, rh))
+    return boites
+
+
+def boites_depuis_colonnes_ref(bande_bgr, colonnes_x):
+    """Pour CLUB : cherche les chiffres dans les mêmes colonnes x que VISITEUR."""
+    inv = _binariser(bande_bgr)
+    h_bande, w_bande = inv.shape
+
+    boites = []
+    for x1_ref, x2_ref in colonnes_x:
+        marge = 20
+        x1 = max(0, x1_ref - marge)
+        x2 = min(w_bande, x2_ref + marge)
+
+        proj_col = inv[:, x1:x2].sum(axis=0) / 255
+        actives = proj_col > h_bande * 0.15
+
+        centre_ref = (x1_ref + x2_ref) / 2
+        segs = []
+        debut = None
+        for i, val in enumerate(actives):
+            if val and debut is None:
+                debut = i
+            elif not val and debut is not None:
+                segs.append((x1 + debut, x1 + i))
+                debut = None
+        if debut is not None:
+            segs.append((x1 + debut, x1 + len(actives)))
+
+        segs = [(s1, s2) for s1, s2 in segs if s2 - s1 > 3]
+        if not segs:
+            boites.append((x1_ref, 0, x2_ref - x1_ref, h_bande))
+            continue
+
+        sx1, sx2 = min(segs, key=lambda s: abs((s[0] + s[1]) / 2 - centre_ref))
+        ry, rh = etendue_verticale(inv[:, sx1:sx2])
+        boites.append((sx1, ry, sx2 - sx1, rh))
+    return boites
+
+
+# ---------------------------------------------------------------------------
+# Lecture OCR d'une cellule
+# ---------------------------------------------------------------------------
+
+def lire_cellule(cellule_bgr):
+    """
+    Lit un chiffre dans une cellule BGR.
+    Détecte le '1' par aspect ratio, utilise Tesseract pour les autres.
+    """
+    propre = masquer_marqueurs(cellule_bgr)
+    gray = cv2.cvtColor(propre, cv2.COLOR_BGR2GRAY)
+    h, w = gray.shape
     scale = max(1, 80 // h)
-    grande = cv2.resize(cellule_gray, (w * scale, h * scale), interpolation=cv2.INTER_CUBIC)
+    grande = cv2.resize(gray, (w * scale, h * scale), interpolation=cv2.INTER_CUBIC)
     _, bin_img = cv2.threshold(grande, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     if np.mean(bin_img) < 127:
         bin_img = cv2.bitwise_not(bin_img)
-    return bin_img
 
-
-def ratio_contenu(bin_img):
-    """
-    Retourne le rapport largeur/hauteur du contenu (pixels sombres) dans la cellule.
-    Un '1' est très étroit (ratio < 0.35), un '0' est large (ratio > 0.5).
-    """
-    contenu = cv2.bitwise_not(bin_img)  # chiffre = blanc
+    # Détection du '1' par aspect ratio
+    contenu = cv2.bitwise_not(bin_img)
     coords = cv2.findNonZero(contenu)
-    if coords is None:
-        return None
-    _, _, w, h = cv2.boundingRect(coords)
-    return w / h if h > 0 else 1.0
+    if coords is not None:
+        _, _, cw, ch = cv2.boundingRect(coords)
+        if ch > 0 and cw / ch < 0.38:
+            return "1"
 
-
-def lire_cellule(cellule_gray, idx, label):
-    """Lit un chiffre : détecte d'abord le '1' par forme, puis appelle Tesseract."""
-    bin_img = binariser_cellule(cellule_gray)
-
-    # Détection du '1' par aspect ratio (très fiable : le '1' est ~3x plus étroit que le '0')
-    ratio = ratio_contenu(bin_img)
-    if ratio is not None and ratio < 0.38:
-        cv2.imwrite(f"debug_cellule_{label}_{idx}.jpg", bin_img)
-        return "1"
-
-    # Pour les autres chiffres, Tesseract avec marge
-    img_ocr = cv2.copyMakeBorder(bin_img, 10, 10, 10, 10,
-                                  cv2.BORDER_CONSTANT, value=255)
-    cv2.imwrite(f"debug_cellule_{label}_{idx}.jpg", img_ocr)
-
+    # Tesseract pour les autres chiffres
+    img_ocr = cv2.copyMakeBorder(bin_img, 10, 10, 10, 10, cv2.BORDER_CONSTANT, value=255)
     for psm in (8, 10, 13):
-        config = f"--psm {psm} --oem 3 -c tessedit_char_whitelist=0123456789"
-        texte = pytesseract.image_to_string(img_ocr, config=config).strip()
+        texte = pytesseract.image_to_string(
+            img_ocr,
+            config=f"--psm {psm} --oem 3 -c tessedit_char_whitelist=0123456789"
+        ).strip()
         chiffres = [c for c in texte if c.isdigit()]
         if chiffres:
             return chiffres[0]
     return "?"
 
 
-def segmenter_colonnes(bande_gray, nb_cols=3, label=""):
-    """Lit chaque chiffre individuellement."""
-    bande_gray = bande_gray[3:, :]  # ignorer résidu du bandeau au-dessus
-    h, w = bande_gray.shape
-    largeur_col = w // nb_cols
-    return [lire_cellule(bande_gray[:, i * largeur_col:(i + 1) * largeur_col], i, label)
-            for i in range(nb_cols)]
-
-
-def sauver_profil_debug(profil, bandes_sombres, rangees, chemin="debug_profil.png"):
-    """Sauvegarde une image du profil vertical avec annotations."""
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    import matplotlib.patches as mpatches
-
-    fig, ax = plt.subplots(figsize=(10, 4))
-    ax.plot(profil, label="Profil sombre (moyenne par ligne)")
-    for (y1, y2) in bandes_sombres:
-        ax.axvspan(y1, y2, alpha=0.3, color="red", label="Bandeau sombre")
-    for (y1, y2) in rangees:
-        ax.axvspan(y1, y2, alpha=0.3, color="green", label="Zone chiffres")
-    handles = [
-        mpatches.Patch(color="red", alpha=0.5, label="Bandeau sombre (VISITEUR/CLUB)"),
-        mpatches.Patch(color="green", alpha=0.5, label="Zone chiffres détectée"),
-    ]
-    ax.legend(handles=handles)
-    ax.set_xlabel("Ligne y dans le ROI")
-    ax.set_ylabel("Intensité sombre moyenne")
-    ax.set_title("Profil vertical du ROI")
-    plt.tight_layout()
-    plt.savefig(chemin)
-    plt.close()
-
+# ---------------------------------------------------------------------------
+# Point d'entrée principal
+# ---------------------------------------------------------------------------
 
 def lire_score(chemin_image, nb_cols=3):
     img = cv2.imread(chemin_image)
@@ -150,69 +242,60 @@ def lire_score(chemin_image, nb_cols=3):
     if rect is None:
         raise RuntimeError("Panneau non détecté.")
 
-    x, y, w, h = rect
-    roi = img[y:y + h, x:x + w]
+    px, py, pw, ph = rect
+    roi = img[py:py + ph, px:px + pw]
     roi_gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
 
-    # Sauvegarde intermédiaire 1 : ROI brut
-    cv2.imwrite("debug_1_roi.jpg", roi)
-
-    rangees, bandes_sombres, profil = trouver_rangees_chiffres(roi_gray)
-
-    # Sauvegarde intermédiaire 2 : ROI annoté (bandes sombres + zones chiffres)
-    roi_annote = cv2.cvtColor(roi_gray, cv2.COLOR_GRAY2BGR)
-    for (y1, y2) in bandes_sombres:
-        cv2.rectangle(roi_annote, (0, y1), (roi_annote.shape[1], y2), (0, 0, 200), 2)
-    for (y1, y2) in rangees:
-        cv2.rectangle(roi_annote, (0, y1), (roi_annote.shape[1], y2), (0, 200, 0), 2)
-    cv2.imwrite("debug_2_roi_annote.jpg", roi_annote)
-
-    # Sauvegarde intermédiaire 3 : profil vertical
-    try:
-        sauver_profil_debug(profil, bandes_sombres, rangees, "debug_3_profil.png")
-    except ImportError:
-        pass  # matplotlib optionnel
-
+    rangees, bandes_sombres, _ = trouver_rangees_chiffres(roi_gray)
     if len(rangees) < 2:
-        raise RuntimeError(
-            f"Seulement {len(rangees)} rangée(s) de chiffres détectée(s) (attendu 2).\n"
-            f"  Bandes sombres trouvées : {bandes_sombres}\n"
-            f"  Consultez debug_1_roi.jpg et debug_2_roi_annote.jpg pour diagnostiquer."
-        )
+        raise RuntimeError(f"Seulement {len(rangees)} rangée(s) détectée(s), attendu 2.")
 
     labels = ["VISITEUR", "CLUB"]
     score = {}
     debug = img.copy()
+    colonnes_ref = None
 
     for idx, (y1, y2) in enumerate(rangees[:2]):
-        bande = roi_gray[y1:y2, :]
-        # Sauvegarde intermédiaire 4/5 : chaque bande de chiffres
-        cv2.imwrite(f"debug_4_bande_{labels[idx].lower()}.jpg", bande)
-        chiffres = segmenter_colonnes(bande, nb_cols, label=labels[idx])
+        bande_bgr = roi[y1 + 3:y2, :]
+
+        if idx == 0:
+            boites = detecter_digits_par_projection(bande_bgr, nb_attendus=nb_cols)
+            colonnes_ref = [(bx, bx + bw) for bx, _, bw, _ in boites]
+        else:
+            boites = (boites_depuis_colonnes_ref(bande_bgr, colonnes_ref)
+                      if colonnes_ref
+                      else detecter_digits_par_projection(bande_bgr, nb_attendus=nb_cols))
+
+        chiffres = []
+        couleur = (0, 220, 0) if idx == 0 else (0, 80, 255)
+        for bx, by, bw, bh in boites:
+            cellule = bande_bgr[by:by + bh, bx:bx + bw]
+            chiffre = lire_cellule(cellule)
+            chiffres.append(chiffre)
+
+            # Dessin debug
+            ax1, ay1 = px + bx, py + y1 + 3 + by
+            cv2.rectangle(debug, (ax1, ay1), (ax1 + bw, ay1 + bh), couleur, 2)
+            cv2.putText(debug, chiffre, (ax1 + 3, ay1 - 4),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, couleur, 2)
+
         score[labels[idx]] = chiffres
+        cv2.putText(debug, f"{labels[idx]}: {' | '.join(chiffres)}",
+                    (px + 2, py + y1 - 4),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, couleur, 2)
 
-        cv2.rectangle(debug,
-                      (x, y + y1), (x + w, y + y2),
-                      (0, 255, 0) if idx == 0 else (0, 0, 255), 2)
-        texte_score = " | ".join(chiffres)
-        cv2.putText(debug, f"{labels[idx]}: {texte_score}",
-                    (x + 5, y + y1 - 5),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7,
-                    (0, 255, 0) if idx == 0 else (0, 0, 255), 2)
-
-    cv2.imwrite("debug_5_resultat_final.jpg", debug)
+    cv2.imwrite("score_resultat.jpg", debug)
     return score
 
 
 if __name__ == "__main__":
     import sys
-
     chemin = sys.argv[1] if len(sys.argv) > 1 else "score_brut_cropped_terrain1_2025-07-11_13-30-15.jpg"
     try:
         score = lire_score(chemin)
         print("=== Score détecté ===")
         for equipe, chiffres in score.items():
             print(f"  {equipe} : {' | '.join(chiffres)}")
-        print("Débogage sauvegardé dans score_debug.jpg")
+        print("Résultat sauvegardé dans score_resultat.jpg")
     except Exception as e:
         print(f"Erreur : {e}")
