@@ -58,42 +58,56 @@ def trouver_rangees_chiffres(roi_gray):
     return rangees, bandes_sombres, profil
 
 
-def preparer_cellule(cellule_gray):
-    """
-    Prétraitement d'une cellule contenant un seul chiffre.
-    On agrandit, on binarise avec Otsu, on s'assure que le fond est blanc.
-    Pas de CLAHE : il crée des artefacts sur les chiffres fins (le '1' devient '4').
-    """
+def binariser_cellule(cellule_gray):
+    """Binarise une cellule : retourne une image binaire fond blanc / chiffre noir."""
     h, w = cellule_gray.shape
-    # Agrandir jusqu'à ~80 px de haut pour Tesseract
     scale = max(1, 80 // h)
     grande = cv2.resize(cellule_gray, (w * scale, h * scale), interpolation=cv2.INTER_CUBIC)
-    # Binarisation Otsu
     _, bin_img = cv2.threshold(grande, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    # Garantir fond blanc (Tesseract préfère texte sombre sur fond clair)
     if np.mean(bin_img) < 127:
         bin_img = cv2.bitwise_not(bin_img)
-    # Marge blanche autour pour éviter que le chiffre touche le bord
-    bin_img = cv2.copyMakeBorder(bin_img, 10, 10, 10, 10,
-                                  cv2.BORDER_CONSTANT, value=255)
     return bin_img
 
 
-def segmenter_colonnes(bande_gray, nb_cols=3):
-    """Lit chaque chiffre individuellement (--psm 10 = caractère unique)."""
+def ratio_contenu(bin_img):
+    """
+    Retourne le rapport largeur/hauteur du contenu (pixels sombres) dans la cellule.
+    Un '1' est très étroit (ratio < 0.35), un '0' est large (ratio > 0.5).
+    """
+    contenu = cv2.bitwise_not(bin_img)  # chiffre = blanc
+    coords = cv2.findNonZero(contenu)
+    if coords is None:
+        return None
+    _, _, w, h = cv2.boundingRect(coords)
+    return w / h if h > 0 else 1.0
+
+
+def lire_cellule(cellule_gray, idx, label):
+    """Lit un chiffre : détecte d'abord le '1' par forme, puis appelle Tesseract."""
+    bin_img = binariser_cellule(cellule_gray)
+
+    # Détection du '1' par aspect ratio (très fiable : le '1' est ~3x plus étroit que le '0')
+    ratio = ratio_contenu(bin_img)
+    if ratio is not None and ratio < 0.38:
+        cv2.imwrite(f"debug_cellule_{label}_{idx}.jpg", bin_img)
+        return "1"
+
+    # Pour les autres chiffres, Tesseract avec marge
+    img_ocr = cv2.copyMakeBorder(bin_img, 10, 10, 10, 10,
+                                  cv2.BORDER_CONSTANT, value=255)
+    cv2.imwrite(f"debug_cellule_{label}_{idx}.jpg", img_ocr)
+    config = "--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789"
+    texte = pytesseract.image_to_string(img_ocr, config=config).strip()
+    return texte[0] if texte and texte[0].isdigit() else "?"
+
+
+def segmenter_colonnes(bande_gray, nb_cols=3, label=""):
+    """Lit chaque chiffre individuellement."""
+    bande_gray = bande_gray[3:, :]  # ignorer résidu du bandeau au-dessus
     h, w = bande_gray.shape
-    # Ignorer les 3 premiers pixels (résidu possible du bandeau texte au-dessus)
-    bande_gray = bande_gray[3:, :]
     largeur_col = w // nb_cols
-    chiffres = []
-    for i in range(nb_cols):
-        cellule = bande_gray[:, i * largeur_col:(i + 1) * largeur_col]
-        img = preparer_cellule(cellule)
-        cv2.imwrite(f"debug_cellule_{i}.jpg", img)
-        config = "--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789"
-        texte = pytesseract.image_to_string(img, config=config).strip()
-        chiffres.append(texte[0] if texte and texte[0].isdigit() else "?")
-    return chiffres
+    return [lire_cellule(bande_gray[:, i * largeur_col:(i + 1) * largeur_col], i, label)
+            for i in range(nb_cols)]
 
 
 def sauver_profil_debug(profil, bandes_sombres, rangees, chemin="debug_profil.png"):
@@ -169,7 +183,7 @@ def lire_score(chemin_image, nb_cols=3):
         bande = roi_gray[y1:y2, :]
         # Sauvegarde intermédiaire 4/5 : chaque bande de chiffres
         cv2.imwrite(f"debug_4_bande_{labels[idx].lower()}.jpg", bande)
-        chiffres = segmenter_colonnes(bande, nb_cols)
+        chiffres = segmenter_colonnes(bande, nb_cols, label=labels[idx])
         score[labels[idx]] = chiffres
 
         cv2.rectangle(debug,
