@@ -3,24 +3,42 @@ import numpy as np
 from lire_score import ancrage_blindé, trouver_rangees_chiffres
 
 
-def etendue_verticale(inv_slice, seuil_ratio=0.20):
+def etendue_verticale(inv_slice):
     """
-    Retourne (y_debut, hauteur) du contenu dense dans une tranche inv.
-    seuil_ratio : fraction minimale de pixels sombres par ligne pour être comptée.
-    Ignore les lignes sparse en haut/bas (résidus de texte, bruit).
+    Retourne (y_debut, hauteur) du bloc de lignes le plus dense et continu
+    dans une tranche binaire inversée (chiffre = blanc).
+    Stratégie : projection de lignes → segment continu le plus haut.
     """
     h, w = inv_slice.shape
     if w == 0:
         return 0, h
-    lignes = np.where(inv_slice.sum(axis=1) / 255 > w * seuil_ratio)[0]
-    if len(lignes) == 0:
-        # Fallback : on prend les lignes les plus denses (top 70 %)
-        densite = inv_slice.sum(axis=1) / 255
-        seuil_fallback = np.percentile(densite[densite > 0], 30) if densite.max() > 0 else 0
-        lignes = np.where(densite > seuil_fallback)[0]
-    if len(lignes) == 0:
+
+    densite = inv_slice.sum(axis=1) / 255   # nb pixels sombres par ligne
+    if densite.max() == 0:
         return 0, h
-    return int(lignes[0]), int(lignes[-1]) - int(lignes[0]) + 1
+
+    # Seuil adaptatif : 15 % du max de densité de la colonne
+    seuil = densite.max() * 0.15
+    active = densite > seuil
+
+    # Trouver tous les segments continus de lignes actives
+    segments = []
+    debut = None
+    for i, v in enumerate(active):
+        if v and debut is None:
+            debut = i
+        elif not v and debut is not None:
+            segments.append((debut, i))
+            debut = None
+    if debut is not None:
+        segments.append((debut, h))
+
+    if not segments:
+        return 0, h
+
+    # Prendre le segment le plus haut (le plus grand nombre de lignes)
+    y1, y2 = max(segments, key=lambda s: s[1] - s[0])
+    return y1, y2 - y1
 
 
 def masquer_marqueurs(bande_bgr):
