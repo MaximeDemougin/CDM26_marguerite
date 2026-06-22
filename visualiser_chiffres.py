@@ -17,18 +17,18 @@ def detecter_digits_par_contours(bande_gray, nb_attendus=3):
 
     inv = cv2.bitwise_not(bin_img)
 
-    # Fermeture pour relier les segments d'un même chiffre
-    kernel = np.ones((5, 3), np.uint8)
+    # Fermeture VERTICALE uniquement : relie les segments d'un même chiffre
+    # sans souder les chiffres adjacents entre eux
+    kernel = np.ones((7, 1), np.uint8)
     fermé = cv2.morphologyEx(inv, cv2.MORPH_CLOSE, kernel)
 
     contours, _ = cv2.findContours(fermé, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     h_bande, w_bande = bande_gray.shape
 
-    # Seuils très permissifs — on veut attraper le '1' fin
-    aire_min = h_bande * 3          # au moins 3 px de haut × 1 px de large
-    h_min = h_bande * 0.20          # au moins 20 % de la hauteur de la bande
-    w_max = w_bande * 0.65          # pas plus large que 65 % de la bande
+    aire_min = h_bande * 3
+    h_min = h_bande * 0.20
+    w_max = w_bande * 0.65
 
     blobs = []
     for c in contours:
@@ -40,20 +40,7 @@ def detecter_digits_par_contours(bande_gray, nb_attendus=3):
     if not blobs:
         return []
 
-    # Fusionner les blobs qui se chevauchent horizontalement (ex : chiffre en 2 morceaux)
-    blobs = sorted(blobs, key=lambda b: b[0])
-    fusionnés = []
-    for b in blobs:
-        bx, by, bw, bh = b
-        if fusionnés and bx < fusionnés[-1][0] + fusionnés[-1][2] + 6:
-            px, py2, pw, ph = fusionnés[-1]
-            nx = min(px, bx)
-            ny = min(py2, by)
-            nw = max(px + pw, bx + bw) - nx
-            nh = max(py2 + ph, by + bh) - ny
-            fusionnés[-1] = (nx, ny, nw, nh)
-        else:
-            fusionnés.append(b)
+    # Pas de fusion horizontale : on laisse les chiffres séparés
 
     # Diviser la largeur en nb_attendus zones et prendre le meilleur blob par zone
     zone_w = w_bande / nb_attendus
@@ -61,11 +48,9 @@ def detecter_digits_par_contours(bande_gray, nb_attendus=3):
     for i in range(nb_attendus):
         zone_x1 = i * zone_w
         zone_x2 = (i + 1) * zone_w
-        # Blobs dont le centre est dans cette zone
-        candidats = [b for b in fusionnés
+        candidats = [b for b in blobs
                      if zone_x1 <= b[0] + b[2] / 2 < zone_x2]
         if candidats:
-            # Prendre le plus grand
             meilleur = max(candidats, key=lambda b: b[2] * b[3])
             résultat.append(meilleur)
 
