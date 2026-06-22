@@ -85,8 +85,12 @@ def detecter_et_redresser(img, debug_dir=None):
         cv2.drawContours(vis_contour, [contour], -1, (0, 255, 0), 2)
         _dbg("dsk2_contour.jpg", vis_contour)
 
-    hull_pts = cv2.convexHull(contour).reshape(-1, 2)
-    coins = _ordonner_coins(hull_pts)
+    # minAreaRect sur le hull : toujours exactement 4 coins bien placés,
+    # robuste à la rotation, pas sensible à l'irrégularité du blob.
+    hull = cv2.convexHull(contour)
+    rect = cv2.minAreaRect(hull)
+    pts = cv2.boxPoints(rect)
+    coins = _ordonner_coins(pts)
     tl, tr, br, bl = coins
 
     W = int(max(np.linalg.norm(tr - tl), np.linalg.norm(br - bl)))
