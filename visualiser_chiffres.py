@@ -3,58 +3,68 @@ import numpy as np
 from lire_score import ancrage_blindé, trouver_rangees_chiffres
 
 
-def detecter_digits_par_contours(bande_gray, nb_attendus=3):
+def detecter_digits_par_projection(bande_gray, nb_attendus=3):
     """
-    Trouve les bounding boxes des chiffres dans une bande.
-    Stratégie : on collecte tous les blobs significatifs, puis on divise
-    la largeur en nb_attendus zones et on prend le meilleur blob dans chaque zone.
-    Cela évite de rater le '1' (petite aire) ou les chiffres en bord de bande.
-    Retourne une liste de (x, y, w, h) triés par x, dans les coords de la bande.
+    Segmente les chiffres par projection verticale (somme de pixels sombres
+    par colonne). Trouve les vallées entre chiffres sans morphologie.
+    Retourne une liste de (x, y, w, h) dans les coordonnées de la bande.
     """
     _, bin_img = cv2.threshold(bande_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     if np.mean(bin_img) < 127:
         bin_img = cv2.bitwise_not(bin_img)
 
-    inv = cv2.bitwise_not(bin_img)
+    inv = cv2.bitwise_not(bin_img)           # pixels sombres = blanc
+    projection = inv.sum(axis=0) / 255       # nb de pixels sombres par colonne
 
-    # Fermeture VERTICALE uniquement : relie les segments d'un même chiffre
-    # sans souder les chiffres adjacents entre eux
-    kernel = np.ones((7, 1), np.uint8)
-    fermé = cv2.morphologyEx(inv, cv2.MORPH_CLOSE, kernel)
+    # Lisser légèrement pour éviter les micro-vallées dans un chiffre
+    kernel_lisse = np.ones(5) / 5
+    proj_lissée = np.convolve(projection, kernel_lisse, mode='same')
 
-    contours, _ = cv2.findContours(fermé, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    seuil = proj_lissée.max() * 0.08         # vallée = < 8 % du maximum
+    est_chiffre = proj_lissée > seuil
 
-    h_bande, w_bande = bande_gray.shape
+    # Extraire les segments continus de colonnes "avec du contenu"
+    segments = []
+    debut = None
+    for i, val in enumerate(est_chiffre):
+        if val and debut is None:
+            debut = i
+        elif not val and debut is not None:
+            segments.append((debut, i))
+            debut = None
+    if debut is not None:
+        segments.append((debut, len(est_chiffre)))
 
-    aire_min = h_bande * 3
-    h_min = h_bande * 0.20
-    w_max = w_bande * 0.65
-
-    blobs = []
-    for c in contours:
-        x, y, w, h = cv2.boundingRect(c)
-        aire = w * h
-        if aire > aire_min and h > h_min and w < w_max:
-            blobs.append((x, y, w, h))
-
-    if not blobs:
+    if not segments:
         return []
 
-    # Pas de fusion horizontale : on laisse les chiffres séparés
+    # Fusionner les segments trop proches (< 4 px de gap)
+    fusionnés = [segments[0]]
+    for x1, x2 in segments[1:]:
+        if x1 - fusionnés[-1][1] < 4:
+            fusionnés[-1] = (fusionnés[-1][0], x2)
+        else:
+            fusionnés.append((x1, x2))
 
-    # Diviser la largeur en nb_attendus zones et prendre le meilleur blob par zone
-    zone_w = w_bande / nb_attendus
-    résultat = []
-    for i in range(nb_attendus):
-        zone_x1 = i * zone_w
-        zone_x2 = (i + 1) * zone_w
-        candidats = [b for b in blobs
-                     if zone_x1 <= b[0] + b[2] / 2 < zone_x2]
-        if candidats:
-            meilleur = max(candidats, key=lambda b: b[2] * b[3])
-            résultat.append(meilleur)
+    # Si trop de segments, garder les nb_attendus les plus larges
+    if len(fusionnés) > nb_attendus:
+        fusionnés = sorted(fusionnés, key=lambda s: s[1] - s[0], reverse=True)[:nb_attendus]
+        fusionnés = sorted(fusionnés, key=lambda s: s[0])
 
-    return sorted(résultat, key=lambda b: b[0])
+    # Construire les bounding boxes (x, y, w, h) dans la bande
+    h_bande = bande_gray.shape[0]
+    boites = []
+    for x1, x2 in fusionnés:
+        # Trouver l'étendue verticale réelle du chiffre dans cette colonne
+        col_slice = inv[:, x1:x2]
+        lignes = np.where(col_slice.sum(axis=1) > 0)[0]
+        if len(lignes) == 0:
+            continue
+        y1_digit = int(lignes[0])
+        y2_digit = int(lignes[-1]) + 1
+        boites.append((x1, y1_digit, x2 - x1, y2_digit - y1_digit))
+
+    return boites
 
 
 def visualiser_chiffres(chemin_image, nb_cols=3):
@@ -80,7 +90,7 @@ def visualiser_chiffres(chemin_image, nb_cols=3):
         couleur = couleurs[idx]
         bande_gray = roi_gray[y1 + 3:y2, :]
 
-        boites = detecter_digits_par_contours(bande_gray, nb_attendus=nb_cols)
+        boites = detecter_digits_par_projection(bande_gray, nb_attendus=nb_cols)
 
         for col, (bx, by, bw, bh) in enumerate(boites):
             abs_x1 = px + bx
