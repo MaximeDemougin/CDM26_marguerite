@@ -31,17 +31,17 @@ def detecter_digits_par_projection(bande_bgr, nb_attendus=3):
     if np.mean(bin_img) < 127:
         bin_img = cv2.bitwise_not(bin_img)
 
-    inv = cv2.bitwise_not(bin_img)           # pixels sombres = blanc
-    projection = inv.sum(axis=0) / 255       # nb de pixels sombres par colonne
+    inv = cv2.bitwise_not(bin_img)
+    projection = inv.sum(axis=0) / 255
 
-    # Lisser légèrement pour éviter les micro-vallées dans un chiffre
-    kernel_lisse = np.ones(5) / 5
+    # Lissage minimal (3 px) pour ne pas combler les vallées étroites
+    kernel_lisse = np.ones(3) / 3
     proj_lissée = np.convolve(projection, kernel_lisse, mode='same')
 
-    seuil = proj_lissée.max() * 0.08         # vallée = < 8 % du maximum
+    seuil = proj_lissée.max() * 0.06
     est_chiffre = proj_lissée > seuil
 
-    # Extraire les segments continus de colonnes "avec du contenu"
+    # Extraire les segments continus
     segments = []
     debut = None
     for i, val in enumerate(est_chiffre):
@@ -56,26 +56,46 @@ def detecter_digits_par_projection(bande_bgr, nb_attendus=3):
     if not segments:
         return []
 
-    # Fusionner les segments trop proches (< 4 px de gap)
-    fusionnés = [segments[0]]
+    # Fusionner les segments trop proches (< 3 px)
+    fusionnés = [list(segments[0])]
     for x1, x2 in segments[1:]:
-        if x1 - fusionnés[-1][1] < 4:
-            fusionnés[-1] = (fusionnés[-1][0], x2)
+        if x1 - fusionnés[-1][1] < 3:
+            fusionnés[-1][1] = x2
         else:
-            fusionnés.append((x1, x2))
+            fusionnés.append([x1, x2])
 
-    # Si trop de segments, garder les nb_attendus les plus larges
-    if len(fusionnés) > nb_attendus:
-        fusionnés = sorted(fusionnés, key=lambda s: s[1] - s[0], reverse=True)[:nb_attendus]
-        fusionnés = sorted(fusionnés, key=lambda s: s[0])
+    h_bande, w_bande = bande_gray.shape
+    largeur_max_digit = w_bande / nb_attendus * 1.4  # un chiffre ne dépasse pas ~1.4× sa part
 
-    # Construire les bounding boxes (x, y, w, h) dans la bande
-    h_bande = bande_gray.shape[0]
-    boites = []
+    # Découper les segments trop larges au minimum local de la projection
+    segments_finaux = []
     for x1, x2 in fusionnés:
-        # Trouver l'étendue verticale réelle du chiffre dans cette colonne
+        if x2 - x1 > largeur_max_digit and x2 - x1 > 2:
+            # Trouver le creux le plus profond à l'intérieur
+            sous_proj = proj_lissée[x1:x2]
+            creux = int(np.argmin(sous_proj)) + x1
+            if creux > x1 and creux < x2 - 1:
+                segments_finaux.append([x1, creux])
+                segments_finaux.append([creux, x2])
+                continue
+        segments_finaux.append([x1, x2])
+
+    # Filtrer les segments hors de la zone utile (les 90 % centraux de la bande)
+    marge = int(w_bande * 0.05)
+    segments_finaux = [s for s in segments_finaux
+                       if s[0] >= marge and s[1] <= w_bande - marge]
+
+    # Garder les nb_attendus segments les plus larges
+    if len(segments_finaux) > nb_attendus:
+        segments_finaux = sorted(segments_finaux, key=lambda s: s[1] - s[0], reverse=True)[:nb_attendus]
+        segments_finaux = sorted(segments_finaux, key=lambda s: s[0])
+
+    # Construire les bounding boxes avec extent vertical serré
+    boites = []
+    for x1, x2 in segments_finaux:
         col_slice = inv[:, x1:x2]
-        lignes = np.where(col_slice.sum(axis=1) > 0)[0]
+        # Exiger au moins 10 % de pixels sombres dans la ligne pour l'étendue verticale
+        lignes = np.where(col_slice.sum(axis=1) > col_slice.shape[1] * 0.1)[0]
         if len(lignes) == 0:
             continue
         y1_digit = int(lignes[0])
