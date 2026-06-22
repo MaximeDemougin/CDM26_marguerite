@@ -78,9 +78,16 @@ def detecter_et_redresser(img):
         W, H = H, W
         coins = _ordonner_coins(np.array([tr, br, bl, tl]))
 
-    dst = np.array([[0, 0], [W - 1, 0], [W - 1, H - 1], [0, H - 1]], dtype=np.float32)
+    # Marges autour du panneau : évite de rogner les chiffres en bord de ROI
+    PAD = 14
+    dst = np.array([
+        [PAD,         PAD        ],
+        [W - 1 + PAD, PAD        ],
+        [W - 1 + PAD, H - 1 + PAD],
+        [PAD,         H - 1 + PAD],
+    ], dtype=np.float32)
     M = cv2.getPerspectiveTransform(coins, dst)
-    roi = cv2.warpPerspective(img, M, (W, H))
+    roi = cv2.warpPerspective(img, M, (W + 2 * PAD, H + 2 * PAD))
     return roi
 
 
