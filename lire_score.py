@@ -19,44 +19,53 @@ def _ordonner_coins(pts):
                     dtype=np.float32)
 
 
+def _candidats_depuis_kernel(thresh, kernel, min_w=200, min_h=20):
+    closed = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+    contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    return [(c, cv2.boundingRect(c)) for c in contours
+            if cv2.boundingRect(c)[2] > min_w and cv2.boundingRect(c)[3] > min_h]
+
+
 def detecter_et_redresser(img):
     """
     Détecte le panneau de score et retourne un ROI redressé à plat.
-    Corrige translations, rotations et légères perspectives.
-    Retourne None si aucun panneau trouvé.
+    Essaie plusieurs noyaux morphologiques pour être robuste à la rotation.
     """
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # Léger flou pour réduire le bruit avant seuillage
+    gray = cv2.GaussianBlur(gray, (3, 3), 0)
     _, thresh = cv2.threshold(gray, 90, 255, cv2.THRESH_BINARY_INV)
-    kernel = np.ones((10, 40), np.uint8)
-    closed = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-    contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    candidats = [(c, cv2.boundingRect(c)) for c in contours]
-    candidats = [(c, r) for c, r in candidats if r[2] > 200 and r[3] > 20]
+    # Kernels par ordre de préférence :
+    # horizontal (fonctionne bien à 0°) → carré large (robuste jusqu'à ±20°)
+    kernels = [
+        np.ones((10, 40), np.uint8),   # horizontal — optimal à 0°
+        np.ones((20, 20), np.uint8),   # carré — robuste en rotation
+        np.ones((25, 25), np.uint8),   # plus grand si panneau plus éloigné
+    ]
+
+    candidats = []
+    for k in kernels:
+        candidats = _candidats_depuis_kernel(thresh, k)
+        if candidats:
+            break
+
     if not candidats:
         return None
 
-    # Contour le plus haut dans l'image (le panneau est en haut du mur)
     contour = sorted(candidats, key=lambda x: x[1][1])[0][0]
 
-    # Essayer une approximation en quadrilatère (4 coins exacts)
     peri = cv2.arcLength(contour, True)
     approx = cv2.approxPolyDP(contour, 0.02 * peri, True)
 
-    if len(approx) == 4:
-        pts = approx.reshape(4, 2)
-    else:
-        # Fallback : rectangle orienté minimal (robuste aux formes irrégulières)
-        pts = cv2.boxPoints(cv2.minAreaRect(contour))
+    pts = approx.reshape(-1, 2) if len(approx) == 4 else cv2.boxPoints(cv2.minAreaRect(contour))
 
     coins = _ordonner_coins(pts)
     tl, tr, br, bl = coins
 
-    # Dimensions de destination : largeur et hauteur du panneau redressé
     W = int(max(np.linalg.norm(tr - tl), np.linalg.norm(br - bl)))
     H = int(max(np.linalg.norm(bl - tl), np.linalg.norm(br - tr)))
 
-    # Garantir l'orientation paysage
     if W < H:
         W, H = H, W
         coins = _ordonner_coins(np.array([tr, br, bl, tl]))
@@ -256,38 +265,71 @@ def boites_depuis_colonnes_ref(bande_bgr, colonnes_x):
 # Lecture OCR d'une cellule
 # ---------------------------------------------------------------------------
 
+def _est_un(bin_img):
+    """
+    Détecte le chiffre '1' par deux critères combinés :
+    - aspect ratio étroit (largeur/hauteur du contenu < 0.50)
+    - fill rate faible (pixels noirs / aire bbox < 0.40) — un '1' est un trait fin
+    Plus robuste qu'un seuil unique après warpPerspective qui élargit légèrement.
+    """
+    contenu = cv2.bitwise_not(bin_img)
+    coords = cv2.findNonZero(contenu)
+    if coords is None:
+        return False
+    _, _, cw, ch = cv2.boundingRect(coords)
+    if ch == 0:
+        return False
+    ratio = cw / ch
+    fill = np.count_nonzero(contenu) / (cw * ch) if cw * ch > 0 else 1.0
+    return ratio < 0.50 and fill < 0.42
+
+
 def lire_cellule(cellule_bgr):
     """
     Lit un chiffre dans une cellule BGR.
-    Détecte le '1' par aspect ratio, utilise Tesseract pour les autres.
+    Détecte le '1' par forme (aspect + fill rate), Tesseract pour les autres.
     """
+    if cellule_bgr.size == 0:
+        return "?"
+
     propre = masquer_marqueurs(cellule_bgr)
     gray = cv2.cvtColor(propre, cv2.COLOR_BGR2GRAY)
     h, w = gray.shape
-    scale = max(1, 80 // h)
-    grande = cv2.resize(gray, (w * scale, h * scale), interpolation=cv2.INTER_CUBIC)
-    _, bin_img = cv2.threshold(grande, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    if np.mean(bin_img) < 127:
-        bin_img = cv2.bitwise_not(bin_img)
 
-    # Détection du '1' par aspect ratio
-    contenu = cv2.bitwise_not(bin_img)
-    coords = cv2.findNonZero(contenu)
-    if coords is not None:
-        _, _, cw, ch = cv2.boundingRect(coords)
-        if ch > 0 and cw / ch < 0.38:
-            return "1"
+    # Garantir une taille minimale pour Tesseract (min 60px de haut)
+    scale = max(1, 60 // max(h, 1))
+    grande = cv2.resize(gray, (max(w * scale, 30), max(h * scale, 60)),
+                        interpolation=cv2.INTER_CUBIC)
 
-    # Tesseract pour les autres chiffres
-    img_ocr = cv2.copyMakeBorder(bin_img, 10, 10, 10, 10, cv2.BORDER_CONSTANT, value=255)
-    for psm in (8, 10, 13):
-        texte = pytesseract.image_to_string(
-            img_ocr,
-            config=f"--psm {psm} --oem 3 -c tessedit_char_whitelist=0123456789"
-        ).strip()
-        chiffres = [c for c in texte if c.isdigit()]
-        if chiffres:
-            return chiffres[0]
+    _, bin_otsu = cv2.threshold(grande, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    if np.mean(bin_otsu) < 127:
+        bin_otsu = cv2.bitwise_not(bin_otsu)
+
+    if _est_un(bin_otsu):
+        return "1"
+
+    # Essayer aussi le seuillage adaptatif si Otsu donne un mauvais résultat
+    bin_adapt = cv2.adaptiveThreshold(grande, 255,
+                                      cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                      cv2.THRESH_BINARY, 15, 4)
+    if np.mean(bin_adapt) < 127:
+        bin_adapt = cv2.bitwise_not(bin_adapt)
+
+    if _est_un(bin_adapt):
+        return "1"
+
+    # Tesseract : essayer les deux binarisations, garder le premier résultat
+    for bin_img in (bin_otsu, bin_adapt):
+        img_ocr = cv2.copyMakeBorder(bin_img, 10, 10, 10, 10,
+                                     cv2.BORDER_CONSTANT, value=255)
+        for psm in (8, 10, 13):
+            texte = pytesseract.image_to_string(
+                img_ocr,
+                config=f"--psm {psm} --oem 3 -c tessedit_char_whitelist=0123456789"
+            ).strip()
+            chiffres = [c for c in texte if c.isdigit()]
+            if chiffres:
+                return chiffres[0]
     return "?"
 
 
