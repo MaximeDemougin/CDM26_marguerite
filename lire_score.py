@@ -19,17 +19,22 @@ def _ordonner_coins(pts):
                     dtype=np.float32)
 
 
-def _candidats_depuis_kernel(thresh, kernel, min_w=200, min_h=20):
+def _trouver_contour_panneau(thresh, kernel, min_w=150, min_h=50):
+    """Fermeture + extraction du plus grand contour dépassant les seuils."""
     closed = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
     contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    return [(c, cv2.boundingRect(c)) for c in contours
-            if cv2.boundingRect(c)[2] > min_w and cv2.boundingRect(c)[3] > min_h]
+    valides = [(c, cv2.boundingRect(c)) for c in contours
+               if cv2.boundingRect(c)[2] > min_w and cv2.boundingRect(c)[3] > min_h]
+    if not valides:
+        return None, closed
+    # Le panneau est le plus grand blob valide
+    best = max(valides, key=lambda x: cv2.contourArea(x[0]))
+    return best[0], closed
 
 
 def detecter_et_redresser(img, debug_dir=None):
     """
     Détecte le panneau de score et retourne un ROI redressé à plat.
-    Essaie plusieurs noyaux morphologiques pour être robuste à la rotation.
     Si debug_dir est fourni, sauvegarde les étapes internes du deskew.
     """
     import os
@@ -41,65 +46,38 @@ def detecter_et_redresser(img, debug_dir=None):
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # ── Stratégie principale : détecter le panneau BLANC sur fond gris ──────
-    # THRESH_BINARY (non inversé) + OTSU : le panneau blanc devient blanc,
-    # le mur gris devient noir. Fermeture pour boucher les bandes sombres
-    # intérieures (VISITEUR, CLUB) et obtenir un rectangle solide.
-    _, thresh_bright = cv2.threshold(gray, 0, 255,
-                                     cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    # ── Stratégie 1 : panneau BLANC sur fond gris (seuil fixe 200) ──────────
+    # Panneau blanc ~220-250, mur gris ~120-160 → seuil 200 isole le blanc.
+    # Fermeture pour boucher les bandes sombres intérieures (80→60→40 px).
+    _, thresh_bright = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY)
     _dbg("dsk0_thresh.jpg", thresh_bright)
 
-    kernels_bright = [
-        np.ones((35, 35), np.uint8),
-        np.ones((25, 25), np.uint8),
-        np.ones((20, 20), np.uint8),
-    ]
-
-    candidats = []
-    kernel_utilisé = None
-    thresh_utilisé = thresh_bright
-    for k in kernels_bright:
-        candidats = _candidats_depuis_kernel(thresh_bright, k, min_w=150, min_h=50)
-        if candidats:
-            kernel_utilisé = k
+    contour = None
+    closed_dbg = thresh_bright
+    for k_size in (80, 60, 40, 30):
+        k = np.ones((k_size, k_size), np.uint8)
+        c, closed = _trouver_contour_panneau(thresh_bright, k)
+        if c is not None:
+            contour = c
+            closed_dbg = closed
             break
 
-    # ── Fallback : détecter le contenu sombre (ancien comportement) ─────────
-    if not candidats:
+    # ── Stratégie 2 : contenu sombre avec très grand noyau ──────────────────
+    if contour is None:
         _, thresh_dark = cv2.threshold(gray, 90, 255, cv2.THRESH_BINARY_INV)
         _dbg("dsk0b_thresh_dark.jpg", thresh_dark)
-        thresh_utilisé = thresh_dark
-        kernels_dark = [
-            np.ones((10, 40), np.uint8),
-            np.ones((20, 20), np.uint8),
-            np.ones((25, 25), np.uint8),
-            np.ones((35, 35), np.uint8),
-        ]
-        for k in kernels_dark:
-            candidats = _candidats_depuis_kernel(thresh_dark, k)
-            if candidats:
-                kernel_utilisé = k
+        for k_size in (60, 50, 40, 30, 20):
+            k = np.ones((k_size, k_size), np.uint8)
+            c, closed = _trouver_contour_panneau(thresh_dark, k)
+            if c is not None:
+                contour = c
+                closed_dbg = closed
                 break
 
-        if not candidats:
-            _, thresh_otsu_dark = cv2.threshold(gray, 0, 255,
-                                                cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-            _dbg("dsk0c_thresh_otsu_dark.jpg", thresh_otsu_dark)
-            thresh_utilisé = thresh_otsu_dark
-            for k in kernels_dark:
-                candidats = _candidats_depuis_kernel(thresh_otsu_dark, k)
-                if candidats:
-                    kernel_utilisé = k
-                    break
-
-    if not candidats:
+    if contour is None:
         return None
 
-    # Fermeture morphologique avec le kernel retenu
-    closed = cv2.morphologyEx(thresh_utilisé, cv2.MORPH_CLOSE, kernel_utilisé)
-    _dbg("dsk1_closed.jpg", closed)
-
-    contour = sorted(candidats, key=lambda x: x[1][1])[0][0]
+    _dbg("dsk1_closed.jpg", closed_dbg)
 
     # Contour sélectionné sur l'image originale
     if debug_dir:
