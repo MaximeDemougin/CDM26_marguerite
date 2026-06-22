@@ -880,7 +880,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
           <div class="subtitle" id="who-subtitle">Choisis qui tu es pour pronostiquer&nbsp;:</div>
         </div>
       </div>
-      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.4</span></div>
+      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.5</span></div>
     </div>
     <div class="who" id="who"></div>
   </div>
@@ -2071,7 +2071,7 @@ function renderKnockout(fixtures){
   const right=sideFromSemi(102);
   const r3=fixtures.filter(x=>x.round==="3ème place");
   const rf=fixtures.filter(x=>x.round==="FINALE");
-  const card=x=>{const has=x.s1!==""&&x.s2!=="";const a=Number(x.s1),b=Number(x.s2);const w=has&&a!==b?(a>b?"1":"2"):null;const qr=has&&a===b?koQualResult(x.id):null;const kwTeam=qr?qr.winner:null;const kwBadge=qr?`<span class="br-qual">${qr.mode==='tab'?'TAB':'AET'}</span>`:'';return `<div class="br-match" onclick="goToMatch(${x.id})"><div class="br-mhead"><span>M${x.id}</span><span>${x.date} · ${x.h}</span></div><div class="br-team ${(w==="1"||kwTeam==="1")?"win":""}">${labelTeamWithFlag(x.e1)}<span class="br-end"><span class="br-goals">${has?x.s1:""}</span>${kwTeam==="1"?kwBadge:''}</span></div><div class="br-team ${(w==="2"||kwTeam==="2")?"win":""}">${labelTeamWithFlag(x.e2)}<span class="br-end"><span class="br-goals">${has?x.s2:""}</span>${kwTeam==="2"?kwBadge:''}</span></div></div>`;};
+  const card=x=>{const has=x.s1!==""&&x.s2!=="";const a=Number(x.s1),b=Number(x.s2);const w=has&&a!==b?(a>b?"1":"2"):null;const qr=has&&a===b?koQualResult(x.id):null;const kwTeam=qr?qr.winner:null;const kwBadge=qr?`<span class="br-qual">${qr.mode==='tab'?'TAB':'AET'}</span>`:'';return `<div class="br-match" onclick="goToMatch(${x.id})"><div class="br-mhead"><span>M${x.id}</span><span>${x.date} · ${x.h}</span></div><div class="br-team ${(w==="1"||kwTeam==="1")?"win":""}">${labelTeamWithFlag(x.e1)}<span class="br-end">${kwTeam==="1"?kwBadge:''}<span class="br-goals">${has?x.s1:""}</span></span></div><div class="br-team ${(w==="2"||kwTeam==="2")?"win":""}">${labelTeamWithFlag(x.e2)}<span class="br-end">${kwTeam==="2"?kwBadge:''}<span class="br-goals">${has?x.s2:""}</span></span></div></div>`;};
   const col=(title,list,cls)=>`<div class="br-side-col ${cls}"><div class="br-col-title">${title}</div><div class="br-list">${list.length?list.map(card).join(''):"<div class='ko-line'>En attente</div>"}</div></div>`;
   return `<div class="bracket-wrap"><div class="br-main"><div class="br-side left">${col("1/16",left.r16,"r16")}${col("1/8",left.r8,"r8")}${col("Quarts",left.qf,"rqf")}${col("Demi",left.semi,"rsf")}</div><div class="br-center">${col("Finale",rf,"rf")}${col("3e place",r3,"r3")}</div><div class="br-side right">${col("Demi",right.semi,"rsf")}${col("Quarts",right.qf,"rqf")}${col("1/8",right.r8,"r8")}${col("1/16",right.r16,"r16")}</div></div></div>`;
 }
