@@ -109,6 +109,8 @@ def boites_depuis_colonnes_ref(bande_bgr, colonnes_x):
     """
     Étant donné des colonnes de référence [(x1,x2), ...] issues de VISITEUR,
     cherche le chiffre dans chaque colonne pour la bande courante (CLUB).
+    On cherche dans une fenêtre élargie autour de chaque colonne ref (±20 px)
+    pour compenser un léger décalage vertical des rangées.
     """
     bande_propre = masquer_marqueurs(bande_bgr)
     bande_gray = cv2.cvtColor(bande_propre, cv2.COLOR_BGR2GRAY)
@@ -117,19 +119,64 @@ def boites_depuis_colonnes_ref(bande_bgr, colonnes_x):
         bin_img = cv2.bitwise_not(bin_img)
     inv = cv2.bitwise_not(bin_img)
 
+    h_bande, w_bande = inv.shape
+    h_min_digit = h_bande * 0.35    # un chiffre occupe au moins 35% de la hauteur de la bande
+
     boites = []
-    for x1, x2 in colonnes_x:
+    for x1_ref, x2_ref in colonnes_x:
+        # Fenêtre de recherche élargie de ±20 px autour de la colonne ref
+        marge = 20
+        x1 = max(0, x1_ref - marge)
+        x2 = min(w_bande, x2_ref + marge)
+
         col_slice = inv[:, x1:x2]
-        lignes = np.where(col_slice.sum(axis=1) > col_slice.shape[1] * 0.08)[0]
-        cols  = np.where(col_slice.sum(axis=0) > 0)[0]
-        if len(lignes) == 0 or len(cols) == 0:
-            boites.append((x1, 0, x2 - x1, inv.shape[0]))
+        projection_col = col_slice.sum(axis=0) / 255   # pixels sombres par colonne x
+
+        # Trouver les colonnes avec suffisamment de contenu vertical
+        seuil_col = h_bande * 0.15
+        actives = projection_col > seuil_col
+
+        # Trouver le segment de colonnes actives le plus proche du centre ref
+        centre_ref = (x1_ref + x2_ref) / 2
+        segments_actifs = []
+        debut = None
+        for i, val in enumerate(actives):
+            if val and debut is None:
+                debut = i
+            elif not val and debut is not None:
+                segments_actifs.append((x1 + debut, x1 + i))
+                debut = None
+        if debut is not None:
+            segments_actifs.append((x1 + debut, x1 + len(actives)))
+
+        # Filtrer les segments trop petits (sticker) et garder le plus proche du centre
+        segments_valides = [(s1, s2) for s1, s2 in segments_actifs
+                            if s2 - s1 > 3]
+        if not segments_valides:
+            boites.append((x1_ref, 0, x2_ref - x1_ref, h_bande))
             continue
-        rx = x1 + int(cols[0])
-        rw = int(cols[-1]) - int(cols[0]) + 1
+
+        meilleur = min(segments_valides,
+                       key=lambda s: abs((s[0] + s[1]) / 2 - centre_ref))
+        sx1, sx2 = meilleur
+
+        # Étendue verticale dans ce segment
+        seg_slice = inv[:, sx1:sx2]
+        lignes = np.where(seg_slice.sum(axis=1) > seg_slice.shape[1] * 0.08)[0]
+        if len(lignes) == 0:
+            boites.append((sx1, 0, sx2 - sx1, h_bande))
+            continue
+
         ry = int(lignes[0])
         rh = int(lignes[-1]) - ry + 1
-        boites.append((rx, ry, rw, rh))
+
+        # Rejeter si trop petit (sticker ou bruit) : moins de h_min_digit
+        if rh < h_min_digit:
+            # Agrandir à toute la hauteur disponible (c'est probablement un chiffre fin)
+            ry = 0
+            rh = h_bande
+
+        boites.append((sx1, ry, sx2 - sx1, rh))
     return boites
 
 
