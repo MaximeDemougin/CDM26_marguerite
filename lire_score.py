@@ -49,17 +49,34 @@ def detecter_et_redresser(img, debug_dir=None):
 
     # ── Stratégie 1 : panneau BLANC sur fond gris (seuil fixe 200) ──────────
     # Panneau blanc ~220-250, mur gris ~120-160 → seuil 200 isole le blanc.
-    # Fermeture pour boucher les bandes sombres intérieures (max 40 px).
+    # Kernel 70px : comble ABR TAXI (~40px) + VISITEUR (~30px) = ~75px de noir.
+    # Après close : érosion 25px pour supprimer l'autocollant BR (≤50px) sans
+    # toucher au panneau principal, puis minAreaRect sur blob propre.
     _, thresh_bright = cv2.threshold(gray_smooth, 200, 255, cv2.THRESH_BINARY)
     _dbg("dsk0_thresh.jpg", thresh_bright)
 
+    ERODE_SZ = 25
     contour = None
     closed_dbg = thresh_bright
-    for k_size in (40, 30, 20):
+
+    for k_size in (70, 60, 50, 40, 30):
         k = np.ones((k_size, k_size), np.uint8)
-        c, closed = _trouver_contour_panneau(thresh_bright, k)
-        if c is not None:
-            contour = c
+        closed = cv2.morphologyEx(thresh_bright, cv2.MORPH_CLOSE, k)
+        # Érosion pour supprimer protrusions (<2*ERODE_SZ px)
+        eroded = cv2.erode(closed, np.ones((ERODE_SZ, ERODE_SZ), np.uint8))
+        cnts, _ = cv2.findContours(eroded, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        valides = [c for c in cnts
+                   if cv2.boundingRect(c)[2] > 100 and cv2.boundingRect(c)[3] > 40]
+        if valides:
+            contour = max(valides, key=cv2.contourArea)
+            closed_dbg = closed
+            break
+        # Si l'érosion a tout supprimé, essayer sans érosion
+        cnts2, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        valides2 = [c for c in cnts2
+                    if cv2.boundingRect(c)[2] > 150 and cv2.boundingRect(c)[3] > 50]
+        if valides2:
+            contour = max(valides2, key=cv2.contourArea)
             closed_dbg = closed
             break
 
@@ -80,24 +97,18 @@ def detecter_et_redresser(img, debug_dir=None):
 
     _dbg("dsk1_closed.jpg", closed_dbg)
 
-    # Contour sélectionné sur l'image originale
     if debug_dir:
         vis_contour = img.copy()
         cv2.drawContours(vis_contour, [contour], -1, (0, 255, 0), 2)
         _dbg("dsk2_contour.jpg", vis_contour)
 
-    # 4 coins extrêmes du convex hull dans les 4 directions diagonales.
-    # Contrairement à minAreaRect, cette méthode n'est pas perturbée par les
-    # protrusions (autocollant BR, enseigne TR) : chaque protrusion n'affecte
-    # que le coin dans sa direction, pas les 3 autres.
-    hull_pts = cv2.convexHull(contour).reshape(-1, 2).astype(np.float32)
-    centroide = hull_pts.mean(axis=0)
-    coins = []
-    for dx, dy in [(-1, -1), (1, -1), (1, 1), (-1, 1)]:  # TL TR BR BL
-        d = np.array([dx, dy], dtype=np.float32)
-        scores = (hull_pts - centroide) @ d
-        coins.append(hull_pts[int(np.argmax(scores))])
-    coins = np.array(coins, dtype=np.float32)  # [TL, TR, BR, BL]
+    # minAreaRect sur le blob érodé (propre, sans autocollant).
+    # L'érosion a réduit le blob de ERODE_SZ px de chaque côté →
+    # on compense en élargissant les coins de ERODE_SZ + 15px de marge = 40px.
+    hull = cv2.convexHull(contour)
+    rect = cv2.minAreaRect(hull)
+    pts = cv2.boxPoints(rect)
+    coins = _ordonner_coins(pts)
     tl, tr, br, bl = coins
 
     W = int(max(np.linalg.norm(tr - tl), np.linalg.norm(br - bl)))
@@ -105,16 +116,13 @@ def detecter_et_redresser(img, debug_dir=None):
 
     if W < H:
         W, H = H, W
-        coins = np.array([tr, br, bl, tl], dtype=np.float32)
-        tl, tr, br, bl = coins
+        coins = _ordonner_coins(np.array([tr, br, bl, tl]))
 
-    # Élargissement de 20 px vers l'extérieur : le bord blanc externe est
-    # parfois sous le seuil 200 et ne figure pas dans le blob.
-    # Le recadrage post-warp supprime le mur gris inclus en excès.
+    # Expansion 40px : compense l'érosion (25px) + marge bord blanc (15px).
     centroide = coins.mean(axis=0)
     img_h, img_w = img.shape[:2]
     coins = np.array([
-        c + (c - centroide) / max(np.linalg.norm(c - centroide), 1) * 20
+        c + (c - centroide) / max(np.linalg.norm(c - centroide), 1) * 40
         for c in coins
     ], dtype=np.float32)
     coins[:, 0] = np.clip(coins[:, 0], 0, img_w - 1)
