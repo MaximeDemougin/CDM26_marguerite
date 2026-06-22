@@ -55,11 +55,13 @@ def detecter_et_redresser(img, debug_dir=None):
     _, thresh_bright = cv2.threshold(gray_smooth, 200, 255, cv2.THRESH_BINARY)
     _dbg("dsk0_thresh.jpg", thresh_bright)
 
-    ERODE_SZ = 25
+    ERODE_SZ = 40
     contour = None
     closed_dbg = thresh_bright
     # Kernel ellipse (disque) : invariant par rotation → pas de marches en escalier
     # sur les blobs inclinés contrairement au kernel carré.
+    # ERODE_SZ=40 : supprime protrusions ≤80px (autocollant BR ~50px, bandeau
+    # "Toutes distances" TR ~70px qui biaise minAreaRect sur rotation CCW).
     ek = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (ERODE_SZ, ERODE_SZ))
 
     for k_size in (70, 60, 50, 40, 30):
@@ -69,7 +71,7 @@ def detecter_et_redresser(img, debug_dir=None):
         eroded = cv2.erode(closed, ek)
         cnts, _ = cv2.findContours(eroded, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         valides = [c for c in cnts
-                   if cv2.boundingRect(c)[2] > 100 and cv2.boundingRect(c)[3] > 40]
+                   if cv2.boundingRect(c)[2] > 100 and cv2.boundingRect(c)[3] > 25]
         if valides:
             contour = max(valides, key=cv2.contourArea)
             closed_dbg = closed
@@ -121,11 +123,11 @@ def detecter_et_redresser(img, debug_dir=None):
         W, H = H, W
         coins = _ordonner_coins(np.array([tr, br, bl, tl]))
 
-    # Expansion 40px : compense l'érosion (25px) + marge bord blanc (15px).
+    # Expansion 55px : compense l'érosion (40px) + marge bord blanc (15px).
     centroide = coins.mean(axis=0)
     img_h, img_w = img.shape[:2]
     coins = np.array([
-        c + (c - centroide) / max(np.linalg.norm(c - centroide), 1) * 40
+        c + (c - centroide) / max(np.linalg.norm(c - centroide), 1) * 55
         for c in coins
     ], dtype=np.float32)
     coins[:, 0] = np.clip(coins[:, 0], 0, img_w - 1)
