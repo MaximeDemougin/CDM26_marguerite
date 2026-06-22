@@ -8,15 +8,14 @@ import pytesseract
 # ---------------------------------------------------------------------------
 
 def _ordonner_coins(pts):
-    """Ordonne 4 points : top-left, top-right, bottom-right, bottom-left."""
+    """Ordonne 4 points : top-left, top-right, bottom-right, bottom-left.
+    Tri par Y puis X : robuste à la rotation (sum/diff échoue >5°)."""
     pts = pts.astype(np.float32)
-    s = pts.sum(axis=1)
-    d = np.diff(pts, axis=1).flatten()
-    return np.array([pts[np.argmin(s)],   # tl
-                     pts[np.argmin(d)],   # tr
-                     pts[np.argmax(s)],   # br
-                     pts[np.argmax(d)]],  # bl
-                    dtype=np.float32)
+    sorted_y = pts[np.argsort(pts[:, 1])]      # tri par Y croissant
+    top = sorted_y[:2][np.argsort(sorted_y[:2, 0])]   # 2 haut → X croissant
+    bot = sorted_y[2:][np.argsort(sorted_y[2:, 0])]   # 2 bas  → X croissant
+    return np.array([top[0], top[1], bot[1], bot[0]], dtype=np.float32)
+    # ordre : TL, TR, BR, BL
 
 
 def _trouver_contour_panneau(thresh, kernel, min_w=150, min_h=50):
@@ -45,16 +44,18 @@ def detecter_et_redresser(img, debug_dir=None):
             cv2.imwrite(os.path.join(debug_dir, nom), image)
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # Lissage léger : réduit le bruit gaussien (σ≈12) sans effacer les bords
+    gray_smooth = cv2.GaussianBlur(gray, (5, 5), 0)
 
     # ── Stratégie 1 : panneau BLANC sur fond gris (seuil fixe 200) ──────────
     # Panneau blanc ~220-250, mur gris ~120-160 → seuil 200 isole le blanc.
-    # Fermeture pour boucher les bandes sombres intérieures (80→60→40 px).
-    _, thresh_bright = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY)
+    # Fermeture pour boucher les bandes sombres intérieures (max 40 px).
+    _, thresh_bright = cv2.threshold(gray_smooth, 200, 255, cv2.THRESH_BINARY)
     _dbg("dsk0_thresh.jpg", thresh_bright)
 
     contour = None
     closed_dbg = thresh_bright
-    for k_size in (80, 60, 40, 30):
+    for k_size in (40, 30, 20):
         k = np.ones((k_size, k_size), np.uint8)
         c, closed = _trouver_contour_panneau(thresh_bright, k)
         if c is not None:
@@ -64,7 +65,7 @@ def detecter_et_redresser(img, debug_dir=None):
 
     # ── Stratégie 2 : contenu sombre avec très grand noyau ──────────────────
     if contour is None:
-        _, thresh_dark = cv2.threshold(gray, 90, 255, cv2.THRESH_BINARY_INV)
+        _, thresh_dark = cv2.threshold(gray_smooth, 90, 255, cv2.THRESH_BINARY_INV)
         _dbg("dsk0b_thresh_dark.jpg", thresh_dark)
         for k_size in (60, 50, 40, 30, 20):
             k = np.ones((k_size, k_size), np.uint8)
@@ -122,6 +123,19 @@ def detecter_et_redresser(img, debug_dir=None):
     M = cv2.getPerspectiveTransform(coins, dst)
     roi = cv2.warpPerspective(img, M, (W + 2 * PAD, H + 2 * PAD))
     _dbg("dsk4_warp.jpg", roi)
+
+    # ── Recadrage sur la zone blanche du panneau ─────────────────────────────
+    # Le warp peut inclure du mur gris autour du panneau.
+    # On détecte les lignes/colonnes dominées par le blanc (>180) et on recadre.
+    wg = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+    _, wmask = cv2.threshold(wg, 180, 255, cv2.THRESH_BINARY)
+    rows_ok = np.where(wmask.mean(axis=1) > 40)[0]
+    cols_ok = np.where(wmask.mean(axis=0) > 40)[0]
+    if len(rows_ok) > 20 and len(cols_ok) > 20:
+        r0, r1 = max(0, rows_ok[0] - 4), min(roi.shape[0], rows_ok[-1] + 4)
+        c0, c1 = max(0, cols_ok[0] - 4), min(roi.shape[1], cols_ok[-1] + 4)
+        roi = roi[r0:r1, c0:c1]
+    _dbg("dsk5_crop.jpg", roi)
     return roi
 
 
