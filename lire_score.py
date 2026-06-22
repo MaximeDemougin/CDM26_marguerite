@@ -40,6 +40,7 @@ def detecter_et_redresser(img):
         np.ones((10, 40), np.uint8),   # horizontal — optimal à 0°
         np.ones((20, 20), np.uint8),   # carré — robuste en rotation
         np.ones((25, 25), np.uint8),   # plus grand si panneau plus éloigné
+        np.ones((35, 35), np.uint8),   # très grand — rotation ±20° ou caméra loin
     ]
 
     candidats = []
@@ -47,6 +48,15 @@ def detecter_et_redresser(img):
         candidats = _candidats_depuis_kernel(thresh, k)
         if candidats:
             break
+
+    # Fallback : seuillage OTSU si threshold fixe à 90 ne suffit pas
+    if not candidats:
+        _, thresh_otsu = cv2.threshold(gray, 0, 255,
+                                       cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+        for k in kernels:
+            candidats = _candidats_depuis_kernel(thresh_otsu, k)
+            if candidats:
+                break
 
     if not candidats:
         return None
@@ -279,7 +289,8 @@ def _est_un(bin_img):
         return False
     ratio = cw / ch
     fill = np.count_nonzero(contenu) / (cw * ch) if cw * ch > 0 else 1.0
-    return ratio < 0.50 and fill < 0.42
+    # Critères stricts : un '4' noisy peut passer ratio<0.50, mais pas 0.40
+    return ratio < 0.40 and fill < 0.38
 
 
 def lire_cellule(cellule_bgr):
@@ -294,9 +305,9 @@ def lire_cellule(cellule_bgr):
     gray = cv2.cvtColor(propre, cv2.COLOR_BGR2GRAY)
     h, w = gray.shape
 
-    # Garantir une taille minimale pour Tesseract (min 60px de haut)
-    scale = max(1, 60 // max(h, 1))
-    grande = cv2.resize(gray, (max(w * scale, 30), max(h * scale, 60)),
+    # Garantir une taille minimale pour Tesseract (min 100px de haut)
+    scale = max(1, 100 // max(h, 1))
+    grande = cv2.resize(gray, (max(w * scale, 40), max(h * scale, 100)),
                         interpolation=cv2.INTER_CUBIC)
 
     _, bin_otsu = cv2.threshold(grande, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
@@ -318,9 +329,9 @@ def lire_cellule(cellule_bgr):
 
     # Tesseract : essayer les deux binarisations, garder le premier résultat
     for bin_img in (bin_otsu, bin_adapt):
-        img_ocr = cv2.copyMakeBorder(bin_img, 10, 10, 10, 10,
+        img_ocr = cv2.copyMakeBorder(bin_img, 20, 20, 20, 20,
                                      cv2.BORDER_CONSTANT, value=255)
-        for psm in (8, 10, 13):
+        for psm in (8, 10, 13, 6):
             texte = pytesseract.image_to_string(
                 img_ocr,
                 config=f"--psm {psm} --oem 3 -c tessedit_char_whitelist=0123456789"
