@@ -19,7 +19,7 @@ def _ordonner_coins(pts):
 
 
 def _trouver_contour_panneau(thresh, kernel, min_w=150, min_h=50):
-    """Fermeture + extraction du plus grand contour dépassant les seuils."""
+    """Fermeture (kernel ellipse) + extraction du plus grand contour valide."""
     closed = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
     contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     valides = [(c, cv2.boundingRect(c)) for c in contours
@@ -58,12 +58,15 @@ def detecter_et_redresser(img, debug_dir=None):
     ERODE_SZ = 25
     contour = None
     closed_dbg = thresh_bright
+    # Kernel ellipse (disque) : invariant par rotation → pas de marches en escalier
+    # sur les blobs inclinés contrairement au kernel carré.
+    ek = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (ERODE_SZ, ERODE_SZ))
 
     for k_size in (70, 60, 50, 40, 30):
-        k = np.ones((k_size, k_size), np.uint8)
+        k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k_size, k_size))
         closed = cv2.morphologyEx(thresh_bright, cv2.MORPH_CLOSE, k)
         # Érosion pour supprimer protrusions (<2*ERODE_SZ px)
-        eroded = cv2.erode(closed, np.ones((ERODE_SZ, ERODE_SZ), np.uint8))
+        eroded = cv2.erode(closed, ek)
         cnts, _ = cv2.findContours(eroded, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         valides = [c for c in cnts
                    if cv2.boundingRect(c)[2] > 100 and cv2.boundingRect(c)[3] > 40]
@@ -85,7 +88,7 @@ def detecter_et_redresser(img, debug_dir=None):
         _, thresh_dark = cv2.threshold(gray_smooth, 90, 255, cv2.THRESH_BINARY_INV)
         _dbg("dsk0b_thresh_dark.jpg", thresh_dark)
         for k_size in (60, 50, 40, 30, 20):
-            k = np.ones((k_size, k_size), np.uint8)
+            k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k_size, k_size))
             c, closed = _trouver_contour_panneau(thresh_dark, k)
             if c is not None:
                 contour = c
