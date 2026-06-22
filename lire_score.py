@@ -96,9 +96,14 @@ def lire_cellule(cellule_gray, idx, label):
     img_ocr = cv2.copyMakeBorder(bin_img, 10, 10, 10, 10,
                                   cv2.BORDER_CONSTANT, value=255)
     cv2.imwrite(f"debug_cellule_{label}_{idx}.jpg", img_ocr)
-    config = "--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789"
-    texte = pytesseract.image_to_string(img_ocr, config=config).strip()
-    return texte[0] if texte and texte[0].isdigit() else "?"
+
+    for psm in (8, 10, 13):
+        config = f"--psm {psm} --oem 3 -c tessedit_char_whitelist=0123456789"
+        texte = pytesseract.image_to_string(img_ocr, config=config).strip()
+        chiffres = [c for c in texte if c.isdigit()]
+        if chiffres:
+            return chiffres[0]
+    return "?"
 
 
 def segmenter_colonnes(bande_gray, nb_cols=3, label=""):
