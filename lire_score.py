@@ -40,35 +40,57 @@ def detecter_et_redresser(img, debug_dir=None):
             cv2.imwrite(os.path.join(debug_dir, nom), image)
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    _, thresh = cv2.threshold(gray, 90, 255, cv2.THRESH_BINARY_INV)
-    _dbg("dsk0_thresh.jpg", thresh)
 
-    kernels = [
-        np.ones((10, 40), np.uint8),
-        np.ones((20, 20), np.uint8),
-        np.ones((25, 25), np.uint8),
+    # ── Stratégie principale : détecter le panneau BLANC sur fond gris ──────
+    # THRESH_BINARY (non inversé) + OTSU : le panneau blanc devient blanc,
+    # le mur gris devient noir. Fermeture pour boucher les bandes sombres
+    # intérieures (VISITEUR, CLUB) et obtenir un rectangle solide.
+    _, thresh_bright = cv2.threshold(gray, 0, 255,
+                                     cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    _dbg("dsk0_thresh.jpg", thresh_bright)
+
+    kernels_bright = [
         np.ones((35, 35), np.uint8),
+        np.ones((25, 25), np.uint8),
+        np.ones((20, 20), np.uint8),
     ]
 
     candidats = []
     kernel_utilisé = None
-    for k in kernels:
-        candidats = _candidats_depuis_kernel(thresh, k)
+    thresh_utilisé = thresh_bright
+    for k in kernels_bright:
+        candidats = _candidats_depuis_kernel(thresh_bright, k, min_w=150, min_h=50)
         if candidats:
             kernel_utilisé = k
             break
 
-    thresh_utilisé = thresh
+    # ── Fallback : détecter le contenu sombre (ancien comportement) ─────────
     if not candidats:
-        _, thresh_otsu = cv2.threshold(gray, 0, 255,
-                                       cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-        _dbg("dsk0b_thresh_otsu.jpg", thresh_otsu)
-        thresh_utilisé = thresh_otsu
-        for k in kernels:
-            candidats = _candidats_depuis_kernel(thresh_otsu, k)
+        _, thresh_dark = cv2.threshold(gray, 90, 255, cv2.THRESH_BINARY_INV)
+        _dbg("dsk0b_thresh_dark.jpg", thresh_dark)
+        thresh_utilisé = thresh_dark
+        kernels_dark = [
+            np.ones((10, 40), np.uint8),
+            np.ones((20, 20), np.uint8),
+            np.ones((25, 25), np.uint8),
+            np.ones((35, 35), np.uint8),
+        ]
+        for k in kernels_dark:
+            candidats = _candidats_depuis_kernel(thresh_dark, k)
             if candidats:
                 kernel_utilisé = k
                 break
+
+        if not candidats:
+            _, thresh_otsu_dark = cv2.threshold(gray, 0, 255,
+                                                cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+            _dbg("dsk0c_thresh_otsu_dark.jpg", thresh_otsu_dark)
+            thresh_utilisé = thresh_otsu_dark
+            for k in kernels_dark:
+                candidats = _candidats_depuis_kernel(thresh_otsu_dark, k)
+                if candidats:
+                    kernel_utilisé = k
+                    break
 
     if not candidats:
         return None
