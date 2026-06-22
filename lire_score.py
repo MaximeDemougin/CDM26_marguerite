@@ -4,10 +4,72 @@ import pytesseract
 
 
 # ---------------------------------------------------------------------------
-# Détection du panneau
+# Détection du panneau avec correction de perspective
 # ---------------------------------------------------------------------------
 
+def _ordonner_coins(pts):
+    """Ordonne 4 points : top-left, top-right, bottom-right, bottom-left."""
+    pts = pts.astype(np.float32)
+    s = pts.sum(axis=1)
+    d = np.diff(pts, axis=1).flatten()
+    return np.array([pts[np.argmin(s)],   # tl
+                     pts[np.argmin(d)],   # tr
+                     pts[np.argmax(s)],   # br
+                     pts[np.argmax(d)]],  # bl
+                    dtype=np.float32)
+
+
+def detecter_et_redresser(img):
+    """
+    Détecte le panneau de score et retourne un ROI redressé à plat.
+    Corrige translations, rotations et légères perspectives.
+    Retourne None si aucun panneau trouvé.
+    """
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    _, thresh = cv2.threshold(gray, 90, 255, cv2.THRESH_BINARY_INV)
+    kernel = np.ones((10, 40), np.uint8)
+    closed = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+    contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    candidats = [(c, cv2.boundingRect(c)) for c in contours]
+    candidats = [(c, r) for c, r in candidats if r[2] > 200 and r[3] > 20]
+    if not candidats:
+        return None
+
+    # Contour le plus haut dans l'image (le panneau est en haut du mur)
+    contour = sorted(candidats, key=lambda x: x[1][1])[0][0]
+
+    # Essayer une approximation en quadrilatère (4 coins exacts)
+    peri = cv2.arcLength(contour, True)
+    approx = cv2.approxPolyDP(contour, 0.02 * peri, True)
+
+    if len(approx) == 4:
+        pts = approx.reshape(4, 2)
+    else:
+        # Fallback : rectangle orienté minimal (robuste aux formes irrégulières)
+        pts = cv2.boxPoints(cv2.minAreaRect(contour))
+
+    coins = _ordonner_coins(pts)
+    tl, tr, br, bl = coins
+
+    # Dimensions de destination : largeur et hauteur du panneau redressé
+    W = int(max(np.linalg.norm(tr - tl), np.linalg.norm(br - bl)))
+    H = int(max(np.linalg.norm(bl - tl), np.linalg.norm(br - tr)))
+
+    # Garantir l'orientation paysage
+    if W < H:
+        W, H = H, W
+        coins = _ordonner_coins(np.array([tr, br, bl, tl]))
+
+    dst = np.array([[0, 0], [W - 1, 0], [W - 1, H - 1], [0, H - 1]], dtype=np.float32)
+    M = cv2.getPerspectiveTransform(coins, dst)
+    roi = cv2.warpPerspective(img, M, (W, H))
+    return roi
+
+
+# Alias pour compatibilité avec visualiser_chiffres.py
 def ancrage_blindé(img):
+    """Retourne (x, y, w, h) du panneau — maintenu pour compatibilité."""
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     _, thresh = cv2.threshold(gray, 90, 255, cv2.THRESH_BINARY_INV)
     kernel = np.ones((10, 40), np.uint8)
@@ -238,21 +300,18 @@ def lire_score(chemin_image, nb_cols=3):
     if img is None:
         raise FileNotFoundError(f"Image introuvable : {chemin_image}")
 
-    rect = ancrage_blindé(img)
-    if rect is None:
+    roi = detecter_et_redresser(img)
+    if roi is None:
         raise RuntimeError("Panneau non détecté.")
 
-    px, py, pw, ph = rect
-    roi = img[py:py + ph, px:px + pw]
     roi_gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-
-    rangees, bandes_sombres, _ = trouver_rangees_chiffres(roi_gray)
+    rangees, _, _ = trouver_rangees_chiffres(roi_gray)
     if len(rangees) < 2:
         raise RuntimeError(f"Seulement {len(rangees)} rangée(s) détectée(s), attendu 2.")
 
     labels = ["VISITEUR", "CLUB"]
     score = {}
-    debug = img.copy()
+    debug = roi.copy()
     colonnes_ref = None
 
     for idx, (y1, y2) in enumerate(rangees[:2]):
@@ -273,15 +332,14 @@ def lire_score(chemin_image, nb_cols=3):
             chiffre = lire_cellule(cellule)
             chiffres.append(chiffre)
 
-            # Dessin debug
-            ax1, ay1 = px + bx, py + y1 + 3 + by
+            ax1, ay1 = bx, y1 + 3 + by
             cv2.rectangle(debug, (ax1, ay1), (ax1 + bw, ay1 + bh), couleur, 2)
             cv2.putText(debug, chiffre, (ax1 + 3, ay1 - 4),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.6, couleur, 2)
 
         score[labels[idx]] = chiffres
         cv2.putText(debug, f"{labels[idx]}: {' | '.join(chiffres)}",
-                    (px + 2, py + y1 - 4),
+                    (4, y1 - 4),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, couleur, 2)
 
     cv2.imwrite("score_resultat.jpg", debug)
