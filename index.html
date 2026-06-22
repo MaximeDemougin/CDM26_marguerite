@@ -223,10 +223,12 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .tie-btn{min-height:var(--ctrl-h);border:1px solid rgba(15,29,49,.18);background:rgba(15,29,49,.05);color:var(--dim);font-family:var(--font-cond);font-size:var(--ctrl-fs);font-weight:800;letter-spacing:.5px;text-transform:uppercase;border-radius:0 9px 0 9px;padding:0 10px;cursor:pointer;transition:all .15s;box-shadow:none}
 .tie-btn:hover{border-color:var(--ink);background:rgba(15,29,49,.10);color:var(--ink);transform:translateY(-1px)}
 .tie-btn.on{border-color:var(--ok);background:color-mix(in oklab,var(--ok) 20%,transparent);color:#6edea8}
-.ko-qualifier{display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%;justify-content:center;padding-top:2px}
-.ko-qual-btn{min-height:var(--ctrl-h);border:1px solid rgba(15,29,49,.18);background:rgba(15,29,49,.05);color:var(--dim);font-family:var(--font-cond);font-size:var(--ctrl-fs);font-weight:800;letter-spacing:.5px;text-transform:uppercase;border-radius:0 9px 0 9px;padding:0 10px;cursor:pointer;transition:all .15s;box-shadow:none}
-.ko-qual-btn:hover{border-color:var(--ink);background:rgba(15,29,49,.10);color:var(--ink);transform:translateY(-1px)}
-.ko-qual-btn.on{border-color:var(--lock);background:color-mix(in oklab,var(--lock) 18%,transparent);color:var(--lock-deep)}
+.ko-extra-time{display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px 12px;flex-wrap:wrap}
+.ko-et-lbl{font-family:var(--font-cond);font-size:11px;font-weight:800;letter-spacing:1.5px;color:rgba(255,255,255,.45);text-transform:uppercase;min-width:36px;text-align:right}
+.ko-et-lbl.tab{color:rgba(99,224,190,.7);min-width:0;margin-left:10px}
+.ko-tab-btn{min-height:32px;border:2px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);font-family:var(--font-cond);font-size:13px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;border-radius:0 8px 0 8px;padding:0 12px;cursor:pointer;transition:all .15s}
+.ko-tab-btn:hover{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.14);color:#fff;transform:translateY(-1px)}
+.ko-tab-btn.on{border-color:#63e0be;background:rgba(99,224,190,.18);color:#63e0be}
 .br-qual{font-size:9px;font-weight:800;font-family:var(--font-cond);letter-spacing:.5px;color:var(--fr);background:rgba(45,92,230,.12);border-radius:3px;padding:1px 4px;margin-left:4px;vertical-align:middle;display:inline-block}
 .rsel{margin-left:auto;background:rgba(15,29,49,.05);border:1px solid rgba(15,29,49,.16);color:var(--ink);font-size:11px;font-weight:500;padding:6px 9px;cursor:pointer;font-family:inherit;border-radius:0 6px 0 6px;box-shadow:none}
 .rsel:focus{outline:none;border-color:var(--accent)}
@@ -1033,6 +1035,7 @@ let customColorMap={};
 let contractSignatures={};
 const FIFA_RANKS={"Argentine":1,"Espagne":2,"France":3,"Angleterre":4,"Portugal":5,"Brésil":6,"Maroc":7,"Pays-Bas":8,"Belgique":9,"Allemagne":10,"Croatie":11,"Colombie":13,"Mexique":14,"Sénégal":15,"Uruguay":16,"États-Unis":17,"Japon":18,"Suisse":19,"Iran":20,"Turquie":22,"Équateur":23,"Autriche":24,"Corée du Sud":25,"Australie":27,"Algérie":28,"Égypte":29,"Canada":30,"Norvège":31,"Côte d'Ivoire":33,"Panama":34,"Suède":38,"Rép. tchèque":40,"Paraguay":41,"Écosse":42,"Tunisie":45,"RD Congo":46,"Ouzbékistan":50,"Qatar":56,"Irak":57,"Afrique du Sud":60,"Arabie saoudite":61,"Jordanie":63,"Bosnie-Herzég.":64,"Cap-Vert":67,"Ghana":73,"Curaçao":82,"Haïti":83,"Nouvelle-Zélande":85};
 let scoreSaveTimers={};
+let koScoreTimers={};
 let matchsSeeded=false;
 try{coteMap=JSON.parse(localStorage.getItem("cdm26_cotes")||"{}");}catch{coteMap={};}
 try{placedBetMap=JSON.parse(localStorage.getItem("cdm26_paris_places")||"{}");}catch{placedBetMap={};}
@@ -1104,7 +1107,7 @@ async function loadAll(){
     pr.data.forEach(row=>{
       if(row.participant===TIE_BREAK_PARTICIPANT){if(row.choix)tieChoiceMap[row.match_id]=row.choix;return;}
       if(row.participant===BET_PLACED_PARTICIPANT){if(row.choix==="1")placedBetMap[row.match_id]=true;return;}
-      if(row.participant===KO_WINNER_PARTICIPANT){if(row.choix)koWinnerMap[row.match_id]=row.choix;return;}
+      if(row.participant===KO_WINNER_PARTICIPANT){if(row.choix){try{const p=JSON.parse(row.choix);if(p&&typeof p==='object')koWinnerMap[row.match_id]=p;}catch{}}return;}
       if(typeof row.participant==="string"&&row.participant.startsWith(COTE_PARTICIPANT_PREFIX)){const v=row.participant.slice(COTE_PARTICIPANT_PREFIX.length);if(v)coteMap[row.match_id]=v;return;}
       if(typeof row.participant==="string"&&row.participant.startsWith(COLOR_PARTICIPANT_PREFIX)){const name=row.participant.slice(COLOR_PARTICIPANT_PREFIX.length);if(PARTICIPANTS.includes(name)&&/^#[0-9a-fA-F]{6}$/.test(String(row.choix||"")))remoteColorMap[name]=row.choix;return;}
       if(typeof row.participant==="string"&&row.participant.startsWith(SIGNATURE_PARTICIPANT_PREFIX)){
@@ -1406,10 +1409,10 @@ function matchCard(m,sc){
   const betEditor=`<button class="bet-toggle ${placed?'on':''}" onclick="toggleBetPlaced(${m.id})">${placed?'Pari placé':'Pari non placé'}</button>`;
   const resetEditor=`<button class="reset-toggle" onclick="resetMatchAdmin(${m.id})">Réinitialiser</button>`;
   const tieChooser=hasTie?`<div class="tie-chooser">${tieOptions.map(v=>`<button class="tie-btn ${maj===v?'on':''}" onclick="setTieDecision(${m.id},'${v}')">${choiceLabel(v)}</button>`).join('')}</div>`:"";
-  const koWin=!m.g&&filled&&real==='N'?koWinnerMap[m.id]||null:null;
-  const koQualifier=(!m.g&&filled&&real==='N')?(()=>{const qbtn=(team,val,mode)=>`<button class="ko-qual-btn${koWin===val?' on':''}" onclick="setKoWinner(${m.id},'${val}')">${team} · ${mode}</button>`;return `<div class="ko-qualifier"><span class="rlabel">Qualifié :</span>${qbtn(s1,'1_aet','Prol.')}${qbtn(s1,'1_tab','TAB')}${qbtn(s2,'2_aet','Prol.')}${qbtn(s2,'2_tab','TAB')}</div>`;})():'';
+  const kd=!m.g&&filled&&real==='N'?(koWinnerMap[m.id]||{ps1:'',ps2:''}):null;
+  const koExtraTime=kd?(()=>{const ps1=kd.ps1!==''&&kd.ps1!=null?Number(kd.ps1):NaN;const ps2=kd.ps2!==''&&kd.ps2!=null?Number(kd.ps2):NaN;const prolDraw=!isNaN(ps1)&&!isNaN(ps2)&&ps1===ps2;const tabRow=prolDraw?`<span class="ko-et-lbl tab">TAB</span><button class="ko-tab-btn${kd.tab==='1'?' on':''}" onclick="setKoTab(${m.id},'1')">${s1}</button><button class="ko-tab-btn${kd.tab==='2'?' on':''}" onclick="setKoTab(${m.id},'2')">${s2}</button>`:'';return `<div class="ko-extra-time"><span class="ko-et-lbl">Prol.</span><input class="score-in" type="number" min="0" step="1" value="${kd.ps1??''}" oninput="setKoProlScore(${m.id},'ps1',this.value,this)"><span class="score-vs">–</span><input class="score-in" type="number" min="0" step="1" value="${kd.ps2??''}" oninput="setKoProlScore(${m.id},'ps2',this.value,this)">${tabRow}</div>`;})():'';
   const retainedText=majL?`<span class="rval">${majL}</span>`:hasTie?`<span class="rpending">égalité : choisis l'avis final</span>`:'<span class="rpending">en attente</span>';
-  return `<div id="match-${m.id}" class="card ${m.fr?'fr':''} ${filled?'filled':''} ${placed?'locked':''} ${betState?`bet-${betState.cls}`:''}" style="${pronostiqueurVoteStyle(me)}"><div class="teams">${teamsHead}<div class="teams-score"><div class="team">${i1}<span class="tname">${m.e1}</span></div><div class="vs${filled?' scored':''}">${filled?`${s.s1}&hairsp;·&hairsp;${s.s2}`:'VS'}</div><div class="team r"><span class="tname">${m.e2}</span>${i2}</div></div></div><div class="votes"><div class="votes-title">Choix des pronostics${placed&&!real?`<span class="vlock">🔒 Pari placé · pronos verrouillés</span>`:''}</div>${moRow}${rows}<div class="retenu"><div class="retenu-main"><span class="rlabel">Retenu :</span>${retainedText}${tieChooser}${coteEditor}${betEditor}${resetEditor}</div>${koQualifier}<div class="retenu-tools"><div class="retenu-row scoreline">${scoreEditor}${gainEditor}</div></div>${real&&badges?`<div class="badges">${badges}</div>`:''}</div></div></div>`;
+  return `<div id="match-${m.id}" class="card ${m.fr?'fr':''} ${filled?'filled':''} ${placed?'locked':''} ${betState?`bet-${betState.cls}`:''}" style="${pronostiqueurVoteStyle(me)}"><div class="teams">${teamsHead}<div class="teams-score"><div class="team">${i1}<span class="tname">${m.e1}</span></div><div class="vs${filled?' scored':''}">${filled?`${s.s1}&hairsp;·&hairsp;${s.s2}`:'VS'}</div><div class="team r"><span class="tname">${m.e2}</span>${i2}</div></div>${koExtraTime}</div><div class="votes"><div class="votes-title">Choix des pronostics${placed&&!real?`<span class="vlock">🔒 Pari placé · pronos verrouillés</span>`:''}</div>${moRow}${rows}<div class="retenu"><div class="retenu-main"><span class="rlabel">Retenu :</span>${retainedText}${tieChooser}${coteEditor}${betEditor}${resetEditor}</div><div class="retenu-tools"><div class="retenu-row scoreline">${scoreEditor}${gainEditor}</div></div>${real&&badges?`<div class="badges">${badges}</div>`:''}</div></div></div>`;
 }
 function evoHover(e,svg){
   const n=+svg.dataset.n,EW=+svg.dataset.ew,EH=+svg.dataset.eh,epx=+svg.dataset.epx,epR=+svg.dataset.epr,ept=+svg.dataset.ept,epb=+svg.dataset.epb;
@@ -1912,7 +1915,7 @@ async function saveBetPlacedDb(id,placed){
 }
 async function saveKoWinnerDb(id,val){
   if(val==null){const {error}=await db.from("pronostics").delete().match({match_id:id,participant:KO_WINNER_PARTICIPANT});if(error)throw error;return;}
-  const {error}=await db.from("pronostics").upsert({match_id:id,participant:KO_WINNER_PARTICIPANT,choix:val});
+  const {error}=await db.from("pronostics").upsert({match_id:id,participant:KO_WINNER_PARTICIPANT,choix:JSON.stringify(val)});
   if(error)throw error;
 }
 async function saveCoteDb(id,cote){
@@ -1985,6 +1988,15 @@ function groupTables(){
   Object.keys(groups).sort().forEach(g=>{sorted[g]=fifaSort(g,Object.values(groups[g]));});
   return sorted;
 }
+function koQualResult(id){
+  const kd=koWinnerMap[id];if(!kd)return null;
+  const ps1=kd.ps1!==''&&kd.ps1!=null?Number(kd.ps1):NaN;
+  const ps2=kd.ps2!==''&&kd.ps2!=null?Number(kd.ps2):NaN;
+  if(!isNaN(ps1)&&!isNaN(ps2)&&ps1>ps2)return{winner:'1',mode:'aet'};
+  if(!isNaN(ps1)&&!isNaN(ps2)&&ps2>ps1)return{winner:'2',mode:'aet'};
+  if(!isNaN(ps1)&&!isNaN(ps2)&&ps1===ps2&&kd.tab)return{winner:kd.tab,mode:'tab'};
+  return null;
+}
 function buildKnockoutProjection(tables){
   const first={},second={},third=[];
   Object.keys(tables).forEach(g=>{const arr=tables[g];if(arr[0])first[g]=arr[0].team;if(arr[1])second[g]=arr[1].team;if(arr[2])third.push({group:g,...arr[2]});});
@@ -2001,10 +2013,9 @@ function buildKnockoutProjection(tables){
       if(!Number.isNaN(a)&&!Number.isNaN(b)&&a!==b){
         ctx.winners[m.id]=a>b?e1:e2;
         ctx.losers[m.id]=a>b?e2:e1;
-      }else if(!Number.isNaN(a)&&!Number.isNaN(b)&&koWinnerMap[m.id]){
-        const kw=koWinnerMap[m.id];
-        ctx.winners[m.id]=kw.startsWith('1')?e1:e2;
-        ctx.losers[m.id]=kw.startsWith('1')?e2:e1;
+      }else if(!Number.isNaN(a)&&!Number.isNaN(b)){
+        const qr=koQualResult(m.id);
+        if(qr){ctx.winners[m.id]=qr.winner==='1'?e1:e2;ctx.losers[m.id]=qr.winner==='1'?e2:e1;}
       }
     }
     return {id:m.id,round:m.t,date:m.date,h:m.h,e1,e2,s1:s.s1,s2:s.s2};
@@ -2048,7 +2059,7 @@ function renderKnockout(fixtures){
   const right=sideFromSemi(102);
   const r3=fixtures.filter(x=>x.round==="3ème place");
   const rf=fixtures.filter(x=>x.round==="FINALE");
-  const card=x=>{const has=x.s1!==""&&x.s2!=="";const a=Number(x.s1),b=Number(x.s2);const w=has&&a!==b?(a>b?"1":"2"):null;const kw=has&&a===b?koWinnerMap[x.id]:null;const kwTeam=kw?(kw.startsWith('1')?'1':'2'):null;const kwBadge=kw?`<span class="br-qual">${kw.includes('tab')?'TAB':'AET'}</span>`:'';return `<div class="br-match" onclick="goToMatch(${x.id})"><div class="br-mhead"><span>M${x.id}</span><span>${x.date} · ${x.h}</span></div><div class="br-team ${(w==="1"||kwTeam==="1")?"win":""}">${labelTeamWithFlag(x.e1)}<span class="br-goals">${has?x.s1:""}${kwTeam==="1"?kwBadge:''}</span></div><div class="br-team ${(w==="2"||kwTeam==="2")?"win":""}">${labelTeamWithFlag(x.e2)}<span class="br-goals">${has?x.s2:""}${kwTeam==="2"?kwBadge:''}</span></div></div>`;};
+  const card=x=>{const has=x.s1!==""&&x.s2!=="";const a=Number(x.s1),b=Number(x.s2);const w=has&&a!==b?(a>b?"1":"2"):null;const qr=has&&a===b?koQualResult(x.id):null;const kwTeam=qr?qr.winner:null;const kwBadge=qr?`<span class="br-qual">${qr.mode==='tab'?'TAB':'AET'}</span>`:'';return `<div class="br-match" onclick="goToMatch(${x.id})"><div class="br-mhead"><span>M${x.id}</span><span>${x.date} · ${x.h}</span></div><div class="br-team ${(w==="1"||kwTeam==="1")?"win":""}">${labelTeamWithFlag(x.e1)}<span class="br-goals">${has?x.s1:""}${kwTeam==="1"?kwBadge:''}</span></div><div class="br-team ${(w==="2"||kwTeam==="2")?"win":""}">${labelTeamWithFlag(x.e2)}<span class="br-goals">${has?x.s2:""}${kwTeam==="2"?kwBadge:''}</span></div></div>`;};
   const col=(title,list,cls)=>`<div class="br-side-col ${cls}"><div class="br-col-title">${title}</div><div class="br-list">${list.length?list.map(card).join(''):"<div class='ko-line'>En attente</div>"}</div></div>`;
   return `<div class="bracket-wrap"><div class="br-main"><div class="br-side left">${col("1/16",left.r16,"r16")}${col("1/8",left.r8,"r8")}${col("Quarts",left.qf,"rqf")}${col("Demi",left.semi,"rsf")}</div><div class="br-center">${col("Finale",rf,"rf")}${col("3e place",r3,"r3")}</div><div class="br-side right">${col("Demi",right.semi,"rsf")}${col("Quarts",right.qf,"rqf")}${col("1/8",right.r8,"r8")}${col("1/16",right.r16,"r16")}</div></div></div>`;
 }
@@ -2143,6 +2154,7 @@ window.setCoteDraft=function(id,val,el){
 };
 window.resetMatchAdmin=async function(id){
   if(scoreSaveTimers[id])clearTimeout(scoreSaveTimers[id]);
+  if(koScoreTimers[id])clearTimeout(koScoreTimers[id]);
   scoreMap[id]={s1:"",s2:""};
   results[id]=null;
   delete coteMap[id];
@@ -2217,12 +2229,27 @@ window.setTieDecision=async function(id,v){
   setSync("busy");
   try{await saveTieChoiceDb(id,tieChoiceMap[id]||null);setSync("ok");showBanner(null);}catch(e){setSync("off");showBanner("Échec de l'enregistrement — base injoignable.");console.error(e);}
 };
-window.setKoWinner=function(id,val){
-  if(koWinnerMap[id]===val){delete koWinnerMap[id];val=null;}else koWinnerMap[id]=val;
+window.setKoProlScore=function(id,field,val,el){
+  const cleaned=String(val).trim();
+  if(cleaned!==''&&(isNaN(Number(cleaned))||Number(cleaned)<0||!Number.isInteger(Number(cleaned)))){if(el)el.value=koWinnerMap[id]?.(field)??'';return;}
+  const cur=koWinnerMap[id]||{ps1:'',ps2:''};
+  const upd={...cur,[field]:cleaned};
+  const p1=upd.ps1!==''?Number(upd.ps1):NaN,p2=upd.ps2!==''?Number(upd.ps2):NaN;
+  if(!isNaN(p1)&&!isNaN(p2)&&p1!==p2)delete upd.tab;
+  if(upd.ps1===''&&upd.ps2===''&&!upd.tab)delete koWinnerMap[id];else koWinnerMap[id]=upd;
+  localStorage.setItem("cdm26_ko_winners",JSON.stringify(koWinnerMap));
+  if(tab==="matchs")renderMatchsOnly();else render();
+  if(koScoreTimers[id])clearTimeout(koScoreTimers[id]);
+  koScoreTimers[id]=setTimeout(async()=>{koScoreTimers[id]=null;setSync("busy");try{await saveKoWinnerDb(id,koWinnerMap[id]||null);setSync("ok");showBanner(null);}catch(e){setSync("off");showBanner("Échec de l'enregistrement — base injoignable.");console.error(e);}},600);
+};
+window.setKoTab=function(id,team){
+  const cur=koWinnerMap[id]||{ps1:'',ps2:''};
+  if(cur.tab===team)delete cur.tab;else cur.tab=team;
+  koWinnerMap[id]=cur;
   localStorage.setItem("cdm26_ko_winners",JSON.stringify(koWinnerMap));
   if(tab==="matchs")renderMatchsOnly();else render();
   setSync("busy");
-  saveKoWinnerDb(id,val||null).then(()=>{setSync("ok");showBanner(null);}).catch(e=>{setSync("off");showBanner("Échec de l'enregistrement — base injoignable.");console.error(e);});
+  saveKoWinnerDb(id,koWinnerMap[id]).then(()=>{setSync("ok");showBanner(null);}).catch(e=>{setSync("off");showBanner("Échec de l'enregistrement — base injoignable.");console.error(e);});
 };
 window.setResult=async function(id,v){
   results[id]=v||null;render();setSync("busy");
