@@ -629,6 +629,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .past-team.win{color:var(--ok)}
 .past-team span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .past-score{font-size:14px;font-weight:900;color:var(--ink);letter-spacing:.4px;min-width:34px;text-align:center}
+.past-mode{font-size:9px;font-weight:800;font-family:var(--font-cond);letter-spacing:.5px;color:rgba(45,92,230,.7);background:rgba(45,92,230,.08);border-radius:3px;padding:1px 4px;margin-left:3px;vertical-align:middle;display:inline-block}
 .past-row.pending .past-score{color:var(--faint)}
 .past-row.pending .past-status{background:color-mix(in oklab,var(--line2) 56%, white);color:#5a708b}
 @media (max-width:760px){
@@ -878,7 +879,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
           <div class="subtitle" id="who-subtitle">Choisis qui tu es pour pronostiquer&nbsp;:</div>
         </div>
       </div>
-      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.2</span></div>
+      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.3</span></div>
     </div>
     <div class="who" id="who"></div>
   </div>
@@ -1576,8 +1577,12 @@ function renderCompetition(){
       const groupsHtml=orderedGroups.map(groupLabel=>{
         const rows=byGroup[groupLabel].map(({fm,s,done})=>{
         const a=Number(s.s1),b=Number(s.s2);
-        const hasWinner=done&&Number.isFinite(a)&&Number.isFinite(b)&&a!==b;
+        const qr=(done&&!fm.g&&Number.isFinite(a)&&Number.isFinite(b)&&a===b)?koQualResult(fm.id):null;
+        const hasWinner=done&&Number.isFinite(a)&&Number.isFinite(b)&&(a!==b||!!qr);
+        const win1=(hasWinner&&a>b)||(qr&&qr.winner==='1');
+        const win2=(hasWinner&&b>a)||(qr&&qr.winner==='2');
         const statusLabel=done?"Terminé":"";
+        const modeTag=qr?`<span class="past-mode">${qr.mode==='tab'?'TAB':'ap'}</span>`:'';
         const scoreLabel=done?`${s.s1}-${s.s2}`:"—";
           const placed=betPlaced(fm.id);
           const maj=getMajority(votes[fm.id]||[],sc,fm.id);
@@ -1590,7 +1595,7 @@ function renderCompetition(){
         const pickBadge=!placed?"":`<span class=\"past-pick ${pickClass}\">${pickLabel} : ${pickValue}</span>`;
         const statusBadge=statusLabel?`<span class=\"past-status\">${statusLabel}</span>`:"";
         const badgesBlock=pickBadge?`<span class=\"past-badges\">${pickBadge}</span>`:"";
-        return `<button class="past-row ${done?"":"pending"}" onclick="goToMatch(${fm.id})"><span class="past-when">${fm.h}</span><span class="past-team ${hasWinner&&a>b?"win":""}">${flagImg(fm.e1,"flag-sm")}<span>${fm.e1}</span></span><span class="past-score">${scoreLabel}</span><span class="past-team r ${hasWinner&&b>a?"win":""}">${flagImg(fm.e2,"flag-sm")}<span>${fm.e2}</span></span>${statusBadge}${badgesBlock}</button>`;
+        return `<button class="past-row ${done?"":"pending"}" onclick="goToMatch(${fm.id})"><span class="past-when">${fm.h}</span><span class="past-team ${win1?"win":""}">${flagImg(fm.e1,"flag-sm")}<span>${fm.e1}</span></span><span class="past-score">${scoreLabel}${modeTag}</span><span class="past-team r ${win2?"win":""}">${flagImg(fm.e2,"flag-sm")}<span>${fm.e2}</span></span>${statusBadge}${badgesBlock}</button>`;
         }).join('');
         return `<div class="past-group"><div class="past-group-title">${groupLabel}</div><div class="past-rows">${rows}</div></div>`;
       }).join('');
