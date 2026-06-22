@@ -86,12 +86,18 @@ def detecter_et_redresser(img, debug_dir=None):
         cv2.drawContours(vis_contour, [contour], -1, (0, 255, 0), 2)
         _dbg("dsk2_contour.jpg", vis_contour)
 
-    # minAreaRect sur le hull : toujours exactement 4 coins bien placés,
-    # robuste à la rotation, pas sensible à l'irrégularité du blob.
-    hull = cv2.convexHull(contour)
-    rect = cv2.minAreaRect(hull)
-    pts = cv2.boxPoints(rect)
-    coins = _ordonner_coins(pts)
+    # 4 coins extrêmes du convex hull dans les 4 directions diagonales.
+    # Contrairement à minAreaRect, cette méthode n'est pas perturbée par les
+    # protrusions (autocollant BR, enseigne TR) : chaque protrusion n'affecte
+    # que le coin dans sa direction, pas les 3 autres.
+    hull_pts = cv2.convexHull(contour).reshape(-1, 2).astype(np.float32)
+    centroide = hull_pts.mean(axis=0)
+    coins = []
+    for dx, dy in [(-1, -1), (1, -1), (1, 1), (-1, 1)]:  # TL TR BR BL
+        d = np.array([dx, dy], dtype=np.float32)
+        scores = (hull_pts - centroide) @ d
+        coins.append(hull_pts[int(np.argmax(scores))])
+    coins = np.array(coins, dtype=np.float32)  # [TL, TR, BR, BL]
     tl, tr, br, bl = coins
 
     W = int(max(np.linalg.norm(tr - tl), np.linalg.norm(br - bl)))
@@ -99,23 +105,18 @@ def detecter_et_redresser(img, debug_dir=None):
 
     if W < H:
         W, H = H, W
-        coins = _ordonner_coins(np.array([tr, br, bl, tl]))
+        coins = np.array([tr, br, bl, tl], dtype=np.float32)
+        tl, tr, br, bl = coins
 
-    # Élargissement des coins vers l'extérieur :
-    # minAreaRect tend à être légèrement à l'intérieur du panneau
-    # (bord blanc externe parfois sous le seuil 200).
-    # On pousse chaque coin de 20 px depuis le centroïde.
-    # Le recadrage post-warp supprimera le mur gris en excès.
+    # Élargissement de 20 px vers l'extérieur : le bord blanc externe est
+    # parfois sous le seuil 200 et ne figure pas dans le blob.
+    # Le recadrage post-warp supprime le mur gris inclus en excès.
     centroide = coins.mean(axis=0)
     img_h, img_w = img.shape[:2]
-    expanded = []
-    for coin in coins:
-        d = coin - centroide
-        n = np.linalg.norm(d)
-        if n > 0:
-            coin = coin + (d / n) * 20
-        expanded.append(coin)
-    coins = np.array(expanded, dtype=np.float32)
+    coins = np.array([
+        c + (c - centroide) / max(np.linalg.norm(c - centroide), 1) * 20
+        for c in coins
+    ], dtype=np.float32)
     coins[:, 0] = np.clip(coins[:, 0], 0, img_w - 1)
     coins[:, 1] = np.clip(coins[:, 1], 0, img_h - 1)
     tl, tr, br, bl = coins
