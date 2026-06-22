@@ -32,8 +32,6 @@ def detecter_et_redresser(img):
     Essaie plusieurs noyaux morphologiques pour être robuste à la rotation.
     """
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    # Léger flou pour réduire le bruit avant seuillage
-    gray = cv2.GaussianBlur(gray, (3, 3), 0)
     _, thresh = cv2.threshold(gray, 90, 255, cv2.THRESH_BINARY_INV)
 
     # Kernels par ordre de préférence :
