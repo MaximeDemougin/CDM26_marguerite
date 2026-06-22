@@ -101,6 +101,28 @@ def detecter_et_redresser(img, debug_dir=None):
         W, H = H, W
         coins = _ordonner_coins(np.array([tr, br, bl, tl]))
 
+    # Élargissement des coins vers l'extérieur :
+    # minAreaRect tend à être légèrement à l'intérieur du panneau
+    # (bord blanc externe parfois sous le seuil 200).
+    # On pousse chaque coin de 20 px depuis le centroïde.
+    # Le recadrage post-warp supprimera le mur gris en excès.
+    centroide = coins.mean(axis=0)
+    img_h, img_w = img.shape[:2]
+    expanded = []
+    for coin in coins:
+        d = coin - centroide
+        n = np.linalg.norm(d)
+        if n > 0:
+            coin = coin + (d / n) * 20
+        expanded.append(coin)
+    coins = np.array(expanded, dtype=np.float32)
+    coins[:, 0] = np.clip(coins[:, 0], 0, img_w - 1)
+    coins[:, 1] = np.clip(coins[:, 1], 0, img_h - 1)
+    tl, tr, br, bl = coins
+
+    W = int(max(np.linalg.norm(tr - tl), np.linalg.norm(br - bl)))
+    H = int(max(np.linalg.norm(bl - tl), np.linalg.norm(br - tr)))
+
     # 4 coins retenus sur l'image originale
     if debug_dir:
         vis_coins = img.copy()
