@@ -58,54 +58,38 @@ def trouver_rangees_chiffres(roi_gray):
     return rangees, bandes_sombres, profil
 
 
-def preparer_bande(bande_gray):
-    """Prétraitement pour maximiser le contraste des chiffres."""
-    h, w = bande_gray.shape
-    # Agrandir (Tesseract préfère les images hautes résolution)
+def preparer_cellule(cellule_gray):
+    """
+    Prétraitement d'une cellule contenant un seul chiffre.
+    On agrandit, on binarise avec Otsu, on s'assure que le fond est blanc.
+    Pas de CLAHE : il crée des artefacts sur les chiffres fins (le '1' devient '4').
+    """
+    h, w = cellule_gray.shape
+    # Agrandir jusqu'à ~80 px de haut pour Tesseract
     scale = max(1, 80 // h)
-    grande = cv2.resize(bande_gray, (w * scale, h * scale), interpolation=cv2.INTER_CUBIC)
-    # Égalisation d'histogramme locale (CLAHE) pour faire ressortir les chiffres
-    clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(4, 4))
-    grande = clahe.apply(grande)
-    # Binarisation Otsu (fond clair → chiffres sombres, ou l'inverse)
+    grande = cv2.resize(cellule_gray, (w * scale, h * scale), interpolation=cv2.INTER_CUBIC)
+    # Binarisation Otsu
     _, bin_img = cv2.threshold(grande, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    # Si le fond est majoritairement noir, inverser
+    # Garantir fond blanc (Tesseract préfère texte sombre sur fond clair)
     if np.mean(bin_img) < 127:
         bin_img = cv2.bitwise_not(bin_img)
-    # Petite dilatation pour relier les segments brisés
-    bin_img = cv2.dilate(bin_img, np.ones((2, 2), np.uint8), iterations=1)
+    # Marge blanche autour pour éviter que le chiffre touche le bord
+    bin_img = cv2.copyMakeBorder(bin_img, 10, 10, 10, 10,
+                                  cv2.BORDER_CONSTANT, value=255)
     return bin_img
 
 
-def lire_ligne(bande_gray):
-    """
-    Lit toute une ligne de chiffres (ex : '1 0 0') en une seule passe Tesseract.
-    Retourne une liste de chaînes (une par colonne détectée, ou ['?','?','?']).
-    """
-    img = preparer_bande(bande_gray)
-    config = "--psm 7 --oem 3 -c tessedit_char_whitelist=0123456789 "
-    texte = pytesseract.image_to_string(img, config=config).strip()
-    # Ne garder que les chiffres
-    chiffres = [c for c in texte if c.isdigit()]
-    return chiffres if chiffres else ["?"] * 3
-
-
 def segmenter_colonnes(bande_gray, nb_cols=3):
-    """
-    Essaie d'abord une lecture globale de la ligne.
-    Si le nombre de chiffres ne correspond pas, recoupe en cellules.
-    """
-    chiffres = lire_ligne(bande_gray)
-    if len(chiffres) == nb_cols:
-        return chiffres
-
-    # Repli : lecture cellule par cellule
+    """Lit chaque chiffre individuellement (--psm 10 = caractère unique)."""
     h, w = bande_gray.shape
+    # Ignorer les 3 premiers pixels (résidu possible du bandeau texte au-dessus)
+    bande_gray = bande_gray[3:, :]
     largeur_col = w // nb_cols
     chiffres = []
     for i in range(nb_cols):
         cellule = bande_gray[:, i * largeur_col:(i + 1) * largeur_col]
-        img = preparer_bande(cellule)
+        img = preparer_cellule(cellule)
+        cv2.imwrite(f"debug_cellule_{i}.jpg", img)
         config = "--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789"
         texte = pytesseract.image_to_string(img, config=config).strip()
         chiffres.append(texte[0] if texte and texte[0].isdigit() else "?")
