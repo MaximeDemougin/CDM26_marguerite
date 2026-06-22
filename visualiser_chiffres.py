@@ -3,6 +3,26 @@ import numpy as np
 from lire_score import ancrage_blindé, trouver_rangees_chiffres
 
 
+def etendue_verticale(inv_slice, seuil_ratio=0.20):
+    """
+    Retourne (y_debut, hauteur) du contenu dense dans une tranche inv.
+    seuil_ratio : fraction minimale de pixels sombres par ligne pour être comptée.
+    Ignore les lignes sparse en haut/bas (résidus de texte, bruit).
+    """
+    h, w = inv_slice.shape
+    if w == 0:
+        return 0, h
+    lignes = np.where(inv_slice.sum(axis=1) / 255 > w * seuil_ratio)[0]
+    if len(lignes) == 0:
+        # Fallback : on prend les lignes les plus denses (top 70 %)
+        densite = inv_slice.sum(axis=1) / 255
+        seuil_fallback = np.percentile(densite[densite > 0], 30) if densite.max() > 0 else 0
+        lignes = np.where(densite > seuil_fallback)[0]
+    if len(lignes) == 0:
+        return 0, h
+    return int(lignes[0]), int(lignes[-1]) - int(lignes[0]) + 1
+
+
 def masquer_marqueurs(bande_bgr):
     """
     Met à blanc les pixels colorés (marqueurs roses/magenta) en HSV.
@@ -90,17 +110,11 @@ def detecter_digits_par_projection(bande_bgr, nb_attendus=3):
         segments_finaux = sorted(segments_finaux, key=lambda s: s[1] - s[0], reverse=True)[:nb_attendus]
         segments_finaux = sorted(segments_finaux, key=lambda s: s[0])
 
-    # Construire les bounding boxes avec extent vertical serré
+    # Construire les bounding boxes avec étendue verticale serrée
     boites = []
     for x1, x2 in segments_finaux:
-        col_slice = inv[:, x1:x2]
-        # Exiger au moins 10 % de pixels sombres dans la ligne pour l'étendue verticale
-        lignes = np.where(col_slice.sum(axis=1) > col_slice.shape[1] * 0.1)[0]
-        if len(lignes) == 0:
-            continue
-        y1_digit = int(lignes[0])
-        y2_digit = int(lignes[-1]) + 1
-        boites.append((x1, y1_digit, x2 - x1, y2_digit - y1_digit))
+        ry, rh = etendue_verticale(inv[:, x1:x2])
+        boites.append((x1, ry, x2 - x1, rh))
 
     return boites
 
@@ -160,22 +174,8 @@ def boites_depuis_colonnes_ref(bande_bgr, colonnes_x):
                        key=lambda s: abs((s[0] + s[1]) / 2 - centre_ref))
         sx1, sx2 = meilleur
 
-        # Étendue verticale dans ce segment
-        seg_slice = inv[:, sx1:sx2]
-        lignes = np.where(seg_slice.sum(axis=1) > seg_slice.shape[1] * 0.08)[0]
-        if len(lignes) == 0:
-            boites.append((sx1, 0, sx2 - sx1, h_bande))
-            continue
-
-        ry = int(lignes[0])
-        rh = int(lignes[-1]) - ry + 1
-
-        # Rejeter si trop petit (sticker ou bruit) : moins de h_min_digit
-        if rh < h_min_digit:
-            # Agrandir à toute la hauteur disponible (c'est probablement un chiffre fin)
-            ry = 0
-            rh = h_bande
-
+        # Étendue verticale serrée
+        ry, rh = etendue_verticale(inv[:, sx1:sx2])
         boites.append((sx1, ry, sx2 - sx1, rh))
     return boites
 
