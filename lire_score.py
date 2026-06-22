@@ -146,13 +146,16 @@ def detecter_et_redresser(img, debug_dir=None):
     roi = cv2.warpPerspective(img, M, (W + 2 * PAD, H + 2 * PAD))
     _dbg("dsk4_warp.jpg", roi)
 
-    # ── Recadrage sur la zone blanche du panneau ─────────────────────────────
+    # ── Recadrage sur le contenu du panneau ──────────────────────────────────
     # Le warp peut inclure du mur gris autour du panneau.
-    # On détecte les lignes/colonnes dominées par le blanc (>180) et on recadre.
+    # Masque "contenu panneau" = pixels très clairs (>180) OU très sombres (<100).
+    # Le mur gris (~130-160) tombe entre les deux → exclu naturellement.
+    # Un masque blanc seul couperait les zones sombres (ABR TAXI, VISITEUR, CLUB).
     wg = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-    _, wmask = cv2.threshold(wg, 180, 255, cv2.THRESH_BINARY)
-    rows_ok = np.where(wmask.mean(axis=1) > 40)[0]
-    cols_ok = np.where(wmask.mean(axis=0) > 40)[0]
+    content = np.zeros_like(wg)
+    content[(wg > 180) | (wg < 100)] = 255
+    rows_ok = np.where(content.mean(axis=1) > 15)[0]
+    cols_ok = np.where(content.mean(axis=0) > 15)[0]
     if len(rows_ok) > 20 and len(cols_ok) > 20:
         r0, r1 = max(0, rows_ok[0] - 4), min(roi.shape[0], rows_ok[-1] + 4)
         c0, c1 = max(0, cols_ok[0] - 4), min(roi.shape[1], cols_ok[-1] + 4)
