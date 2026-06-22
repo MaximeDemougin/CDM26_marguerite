@@ -5,52 +5,71 @@ from lire_score import ancrage_blindé, trouver_rangees_chiffres
 
 def detecter_digits_par_contours(bande_gray, nb_attendus=3):
     """
-    Trouve les bounding boxes des chiffres dans une bande en cherchant
-    les grands composants connexes, plutôt qu'en découpant en tiers égaux.
-    Retourne une liste de (x, y, w, h) triés par x, dans les coordonnées de la bande.
+    Trouve les bounding boxes des chiffres dans une bande.
+    Stratégie : on collecte tous les blobs significatifs, puis on divise
+    la largeur en nb_attendus zones et on prend le meilleur blob dans chaque zone.
+    Cela évite de rater le '1' (petite aire) ou les chiffres en bord de bande.
+    Retourne une liste de (x, y, w, h) triés par x, dans les coords de la bande.
     """
     _, bin_img = cv2.threshold(bande_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     if np.mean(bin_img) < 127:
         bin_img = cv2.bitwise_not(bin_img)
 
-    # Chiffres = pixels sombres
     inv = cv2.bitwise_not(bin_img)
 
-    # Fermeture légère pour relier les segments d'un même chiffre
+    # Fermeture pour relier les segments d'un même chiffre
     kernel = np.ones((5, 3), np.uint8)
     fermé = cv2.morphologyEx(inv, cv2.MORPH_CLOSE, kernel)
 
     contours, _ = cv2.findContours(fermé, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     h_bande, w_bande = bande_gray.shape
-    aire_min = (h_bande * w_bande) / (nb_attendus * 12)  # au moins ~8% de la surface d'une cellule
 
-    boites = []
+    # Seuils très permissifs — on veut attraper le '1' fin
+    aire_min = h_bande * 3          # au moins 3 px de haut × 1 px de large
+    h_min = h_bande * 0.20          # au moins 20 % de la hauteur de la bande
+    w_max = w_bande * 0.65          # pas plus large que 65 % de la bande
+
+    blobs = []
     for c in contours:
         x, y, w, h = cv2.boundingRect(c)
-        aire = cv2.contourArea(c)
-        # Filtrer le bruit (trop petit) et les artefacts de bord (trop large)
-        if aire > aire_min and w < w_bande * 0.6 and h > h_bande * 0.25:
-            boites.append((x, y, w, h))
+        aire = w * h
+        if aire > aire_min and h > h_min and w < w_max:
+            blobs.append((x, y, w, h))
 
-    # Fusionner les boites qui se chevauchent horizontalement (segments d'un même chiffre)
-    boites = sorted(boites, key=lambda b: b[0])
-    fusionnées = []
-    for b in boites:
+    if not blobs:
+        return []
+
+    # Fusionner les blobs qui se chevauchent horizontalement (ex : chiffre en 2 morceaux)
+    blobs = sorted(blobs, key=lambda b: b[0])
+    fusionnés = []
+    for b in blobs:
         bx, by, bw, bh = b
-        if fusionnées and bx < fusionnées[-1][0] + fusionnées[-1][2] + 8:
-            px, py, pw, ph = fusionnées[-1]
+        if fusionnés and bx < fusionnés[-1][0] + fusionnés[-1][2] + 6:
+            px, py2, pw, ph = fusionnés[-1]
             nx = min(px, bx)
-            ny = min(py, by)
+            ny = min(py2, by)
             nw = max(px + pw, bx + bw) - nx
-            nh = max(py + ph, by + bh) - ny
-            fusionnées[-1] = (nx, ny, nw, nh)
+            nh = max(py2 + ph, by + bh) - ny
+            fusionnés[-1] = (nx, ny, nw, nh)
         else:
-            fusionnées.append(b)
+            fusionnés.append(b)
 
-    # Garder les nb_attendus plus grandes boites
-    fusionnées = sorted(fusionnées, key=lambda b: b[2] * b[3], reverse=True)[:nb_attendus]
-    return sorted(fusionnées, key=lambda b: b[0])
+    # Diviser la largeur en nb_attendus zones et prendre le meilleur blob par zone
+    zone_w = w_bande / nb_attendus
+    résultat = []
+    for i in range(nb_attendus):
+        zone_x1 = i * zone_w
+        zone_x2 = (i + 1) * zone_w
+        # Blobs dont le centre est dans cette zone
+        candidats = [b for b in fusionnés
+                     if zone_x1 <= b[0] + b[2] / 2 < zone_x2]
+        if candidats:
+            # Prendre le plus grand
+            meilleur = max(candidats, key=lambda b: b[2] * b[3])
+            résultat.append(meilleur)
+
+    return sorted(résultat, key=lambda b: b[0])
 
 
 def visualiser_chiffres(chemin_image, nb_cols=3):
