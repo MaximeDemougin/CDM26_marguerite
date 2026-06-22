@@ -3,12 +3,30 @@ import numpy as np
 from lire_score import ancrage_blindé, trouver_rangees_chiffres
 
 
-def detecter_digits_par_projection(bande_gray, nb_attendus=3):
+def masquer_marqueurs(bande_bgr):
+    """
+    Met à blanc les pixels colorés (marqueurs roses/magenta) en HSV.
+    Retourne une image BGR nettoyée.
+    """
+    hsv = cv2.cvtColor(bande_bgr, cv2.COLOR_BGR2HSV)
+    # Rose/magenta : teinte 140-180 ou 0-10, saturation > 80
+    masque1 = cv2.inRange(hsv, (140, 80, 80), (180, 255, 255))
+    masque2 = cv2.inRange(hsv, (0,  80, 80), (10,  255, 255))
+    masque = cv2.bitwise_or(masque1, masque2)
+    résultat = bande_bgr.copy()
+    résultat[masque > 0] = (255, 255, 255)   # remplacer par blanc
+    return résultat
+
+
+def detecter_digits_par_projection(bande_bgr, nb_attendus=3):
     """
     Segmente les chiffres par projection verticale (somme de pixels sombres
     par colonne). Trouve les vallées entre chiffres sans morphologie.
     Retourne une liste de (x, y, w, h) dans les coordonnées de la bande.
     """
+    bande_propre = masquer_marqueurs(bande_bgr)
+    bande_gray = cv2.cvtColor(bande_propre, cv2.COLOR_BGR2GRAY)
+
     _, bin_img = cv2.threshold(bande_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     if np.mean(bin_img) < 127:
         bin_img = cv2.bitwise_not(bin_img)
@@ -88,9 +106,9 @@ def visualiser_chiffres(chemin_image, nb_cols=3):
 
     for idx, (y1, y2) in enumerate(rangees[:2]):
         couleur = couleurs[idx]
-        bande_gray = roi_gray[y1 + 3:y2, :]
+        bande_bgr  = roi[y1 + 3:y2, :]
 
-        boites = detecter_digits_par_projection(bande_gray, nb_attendus=nb_cols)
+        boites = detecter_digits_par_projection(bande_bgr, nb_attendus=nb_cols)
 
         for col, (bx, by, bw, bh) in enumerate(boites):
             abs_x1 = px + bx
