@@ -26,46 +26,65 @@ def _candidats_depuis_kernel(thresh, kernel, min_w=200, min_h=20):
             if cv2.boundingRect(c)[2] > min_w and cv2.boundingRect(c)[3] > min_h]
 
 
-def detecter_et_redresser(img):
+def detecter_et_redresser(img, debug_dir=None):
     """
     Détecte le panneau de score et retourne un ROI redressé à plat.
     Essaie plusieurs noyaux morphologiques pour être robuste à la rotation.
+    Si debug_dir est fourni, sauvegarde les étapes internes du deskew.
     """
+    import os
+
+    def _dbg(nom, image):
+        if debug_dir:
+            os.makedirs(debug_dir, exist_ok=True)
+            cv2.imwrite(os.path.join(debug_dir, nom), image)
+
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     _, thresh = cv2.threshold(gray, 90, 255, cv2.THRESH_BINARY_INV)
+    _dbg("dsk0_thresh.jpg", thresh)
 
-    # Kernels par ordre de préférence :
-    # horizontal (fonctionne bien à 0°) → carré large (robuste jusqu'à ±20°)
     kernels = [
-        np.ones((10, 40), np.uint8),   # horizontal — optimal à 0°
-        np.ones((20, 20), np.uint8),   # carré — robuste en rotation
-        np.ones((25, 25), np.uint8),   # plus grand si panneau plus éloigné
-        np.ones((35, 35), np.uint8),   # très grand — rotation ±20° ou caméra loin
+        np.ones((10, 40), np.uint8),
+        np.ones((20, 20), np.uint8),
+        np.ones((25, 25), np.uint8),
+        np.ones((35, 35), np.uint8),
     ]
 
     candidats = []
+    kernel_utilisé = None
     for k in kernels:
         candidats = _candidats_depuis_kernel(thresh, k)
         if candidats:
+            kernel_utilisé = k
             break
 
-    # Fallback : seuillage OTSU si threshold fixe à 90 ne suffit pas
+    thresh_utilisé = thresh
     if not candidats:
         _, thresh_otsu = cv2.threshold(gray, 0, 255,
                                        cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+        _dbg("dsk0b_thresh_otsu.jpg", thresh_otsu)
+        thresh_utilisé = thresh_otsu
         for k in kernels:
             candidats = _candidats_depuis_kernel(thresh_otsu, k)
             if candidats:
+                kernel_utilisé = k
                 break
 
     if not candidats:
         return None
 
+    # Fermeture morphologique avec le kernel retenu
+    closed = cv2.morphologyEx(thresh_utilisé, cv2.MORPH_CLOSE, kernel_utilisé)
+    _dbg("dsk1_closed.jpg", closed)
+
     contour = sorted(candidats, key=lambda x: x[1][1])[0][0]
 
-    # Les 4 coins du panneau = les 4 points extrêmes du convex hull
-    # (min/max de x+y et x-y). Plus robuste qu'approxPolyDP dont
-    # l'epsilon peut placer les coins hors des vraies arêtes.
+    # Contour sélectionné sur l'image originale
+    if debug_dir:
+        vis_contour = img.copy()
+        cv2.drawContours(vis_contour, [contour], -1, (0, 255, 0), 2)
+        _dbg("dsk2_contour.jpg", vis_contour)
+
     hull_pts = cv2.convexHull(contour).reshape(-1, 2)
     coins = _ordonner_coins(hull_pts)
     tl, tr, br, bl = coins
@@ -77,7 +96,18 @@ def detecter_et_redresser(img):
         W, H = H, W
         coins = _ordonner_coins(np.array([tr, br, bl, tl]))
 
-    # Marges autour du panneau : évite de rogner les chiffres en bord de ROI
+    # 4 coins retenus sur l'image originale
+    if debug_dir:
+        vis_coins = img.copy()
+        labels_c = ["TL", "TR", "BR", "BL"]
+        couleurs_c = [(0,255,0),(0,200,255),(0,0,255),(255,0,0)]
+        for pt, label, col in zip(coins, labels_c, couleurs_c):
+            px, py = int(pt[0]), int(pt[1])
+            cv2.circle(vis_coins, (px, py), 8, col, -1)
+            cv2.putText(vis_coins, label, (px + 6, py - 6),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, col, 2)
+        _dbg("dsk3_coins.jpg", vis_coins)
+
     PAD = 14
     dst = np.array([
         [PAD,         PAD        ],
@@ -87,6 +117,7 @@ def detecter_et_redresser(img):
     ], dtype=np.float32)
     M = cv2.getPerspectiveTransform(coins, dst)
     roi = cv2.warpPerspective(img, M, (W + 2 * PAD, H + 2 * PAD))
+    _dbg("dsk4_warp.jpg", roi)
     return roi
 
 

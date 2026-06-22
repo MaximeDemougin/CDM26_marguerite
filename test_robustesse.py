@@ -78,7 +78,7 @@ def pipeline_debug(img_transformée, dossier, nb_cols=3):
     cv2.imwrite(f"{dossier}/0_entree.jpg", img_transformée)
 
     # ── Étape 1 : détection et redressement ───────────────────────────────
-    roi = detecter_et_redresser(img_transformée)
+    roi = detecter_et_redresser(img_transformée, debug_dir=dossier)
     if roi is None:
         _ecrire_texte(img_transformée, "PANNEAU NON DÉTECTÉ",
                       f"{dossier}/ECHEC_detection.jpg")
