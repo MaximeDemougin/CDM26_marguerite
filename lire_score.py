@@ -63,10 +63,17 @@ def detecter_et_redresser(img):
 
     contour = sorted(candidats, key=lambda x: x[1][1])[0][0]
 
-    peri = cv2.arcLength(contour, True)
-    approx = cv2.approxPolyDP(contour, 0.02 * peri, True)
-
-    pts = approx.reshape(-1, 2) if len(approx) == 4 else cv2.boxPoints(cv2.minAreaRect(contour))
+    # Chercher 4 coins via convex hull + epsilon croissant
+    hull = cv2.convexHull(contour)
+    peri = cv2.arcLength(hull, True)
+    pts = None
+    for eps in (0.02, 0.04, 0.06, 0.08, 0.10, 0.15):
+        approx = cv2.approxPolyDP(hull, eps * peri, True)
+        if len(approx) == 4:
+            pts = approx.reshape(-1, 2)
+            break
+    if pts is None:
+        pts = cv2.boxPoints(cv2.minAreaRect(contour))
 
     coins = _ordonner_coins(pts)
     tl, tr, br, bl = coins
