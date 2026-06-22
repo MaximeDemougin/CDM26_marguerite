@@ -118,28 +118,39 @@ def trouver_rangees_chiffres(roi_gray):
     h_img = roi_gray.shape[0]
     _, dark = cv2.threshold(roi_gray, 80, 255, cv2.THRESH_BINARY_INV)
     profil = dark.mean(axis=1)
-    # Lissage léger pour absorber les petites inclinaisons résiduelles
-    profil = np.convolve(profil, np.ones(5) / 5, mode='same')
-    seuil_sombre = max(15.0, profil.max() * 0.15)
-    in_dark = profil > seuil_sombre
 
-    bandes_sombres = []
-    debut = None
-    for i, val in enumerate(in_dark):
-        if val and debut is None:
-            debut = i
-        elif not val and debut is not None:
-            if i - debut > 5:
-                bandes_sombres.append((debut, i))
-            debut = None
-    if debut is not None and h_img - debut > 5:
-        bandes_sombres.append((debut, h_img))
+    def _detecter_bandes(facteur):
+        seuil = max(15.0, profil.max() * facteur)
+        active = profil > seuil
+        bandes = []
+        debut = None
+        for i, v in enumerate(active):
+            if v and debut is None:
+                debut = i
+            elif not v and debut is not None:
+                if i - debut > 5:
+                    bandes.append((debut, i))
+                debut = None
+        if debut is not None and h_img - debut > 5:
+            bandes.append((debut, h_img))
+        return bandes
+
+    # Essai à 0.25 d'abord ; si insuffisant, descendre à 0.15
+    bandes_sombres = _detecter_bandes(0.25)
+    if len(bandes_sombres) < 2:
+        bandes_sombres = _detecter_bandes(0.15)
 
     rangees = []
     for i, (_, fin) in enumerate(bandes_sombres):
         debut_suivant = bandes_sombres[i + 1][0] if i + 1 < len(bandes_sombres) else h_img
-        if debut_suivant - fin > 10:
+        if debut_suivant - fin > 15:
             rangees.append((fin, debut_suivant))
+
+    # Garder les 2 zones les plus hautes (= vraies rangées de chiffres)
+    # Protège contre les fausses bandes de la publicité en haut du panneau
+    if len(rangees) > 2:
+        rangees = sorted(rangees, key=lambda r: r[1] - r[0], reverse=True)[:2]
+        rangees = sorted(rangees, key=lambda r: r[0])
 
     return rangees, bandes_sombres, profil
 
