@@ -63,19 +63,11 @@ def detecter_et_redresser(img):
 
     contour = sorted(candidats, key=lambda x: x[1][1])[0][0]
 
-    # Chercher 4 coins via convex hull + epsilon croissant
-    hull = cv2.convexHull(contour)
-    peri = cv2.arcLength(hull, True)
-    pts = None
-    for eps in (0.02, 0.04, 0.06, 0.08, 0.10, 0.15):
-        approx = cv2.approxPolyDP(hull, eps * peri, True)
-        if len(approx) == 4:
-            pts = approx.reshape(-1, 2)
-            break
-    if pts is None:
-        pts = cv2.boxPoints(cv2.minAreaRect(contour))
-
-    coins = _ordonner_coins(pts)
+    # Les 4 coins du panneau = les 4 points extrêmes du convex hull
+    # (min/max de x+y et x-y). Plus robuste qu'approxPolyDP dont
+    # l'epsilon peut placer les coins hors des vraies arêtes.
+    hull_pts = cv2.convexHull(contour).reshape(-1, 2)
+    coins = _ordonner_coins(hull_pts)
     tl, tr, br, bl = coins
 
     W = int(max(np.linalg.norm(tr - tl), np.linalg.norm(br - bl)))
