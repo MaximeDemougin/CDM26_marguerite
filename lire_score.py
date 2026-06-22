@@ -19,29 +19,44 @@ def ancrage_blindé(img):
 
 def trouver_rangees_chiffres(roi_gray):
     """
-    Localise les deux bandes horizontales contenant les chiffres (fond noir).
-    Retourne une liste de (y_debut, y_fin) pour chaque rangée.
+    Stratégie : les bandeaux VISITEUR / CLUB sont des bandes sombres.
+    On les détecte, puis les zones de chiffres sont les espaces clairs juste en dessous.
+    Retourne une liste de (y_debut, y_fin) pour chaque rangée de chiffres.
     """
-    # Profil vertical : moyenne des pixels sombres par ligne
-    _, dark = cv2.threshold(roi_gray, 60, 255, cv2.THRESH_BINARY_INV)
-    profil = dark.mean(axis=1)  # moyenne par ligne
+    h_img = roi_gray.shape[0]
 
-    # Seuil : ligne appartenant à un afficheur si beaucoup de pixels sombres
-    seuil = profil.max() * 0.4
-    in_band = profil > seuil
+    # Profil : proportion de pixels sombres par ligne
+    _, dark = cv2.threshold(roi_gray, 80, 255, cv2.THRESH_BINARY_INV)
+    profil = dark.mean(axis=1)
 
-    rangees = []
+    # Bandes sombres = bandeaux texte (VISITEUR / CLUB)
+    seuil_sombre = max(20.0, profil.max() * 0.25)
+    in_dark = profil > seuil_sombre
+
+    # Trouve les intervalles de bandes sombres
+    bandes_sombres = []
     debut = None
-    for i, val in enumerate(in_band):
+    for i, val in enumerate(in_dark):
         if val and debut is None:
             debut = i
         elif not val and debut is not None:
-            if i - debut > 10:  # ignorer les bandes trop fines
-                rangees.append((debut, i))
+            if i - debut > 5:
+                bandes_sombres.append((debut, i))
             debut = None
-    if debut is not None:
-        rangees.append((debut, len(in_band)))
-    return rangees
+    if debut is not None and h_img - debut > 5:
+        bandes_sombres.append((debut, h_img))
+
+    # Les zones de chiffres sont les espaces clairs entre/après les bandes sombres
+    # On les délimite par les fins de bandes sombres
+    rangees = []
+    fins = [b[1] for b in bandes_sombres]
+    for i, fin in enumerate(fins):
+        prochain = fins[i + 1] if i + 1 < len(fins) else h_img
+        hauteur = prochain - fin
+        if hauteur > 10:
+            rangees.append((fin, prochain))
+
+    return rangees, bandes_sombres, profil
 
 
 def lire_chiffre(cellule_gray):
@@ -77,6 +92,32 @@ def segmenter_colonnes(bande_gray, nb_cols=3):
     return chiffres
 
 
+def sauver_profil_debug(profil, bandes_sombres, rangees, chemin="debug_profil.png"):
+    """Sauvegarde une image du profil vertical avec annotations."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.plot(profil, label="Profil sombre (moyenne par ligne)")
+    for (y1, y2) in bandes_sombres:
+        ax.axvspan(y1, y2, alpha=0.3, color="red", label="Bandeau sombre")
+    for (y1, y2) in rangees:
+        ax.axvspan(y1, y2, alpha=0.3, color="green", label="Zone chiffres")
+    handles = [
+        mpatches.Patch(color="red", alpha=0.5, label="Bandeau sombre (VISITEUR/CLUB)"),
+        mpatches.Patch(color="green", alpha=0.5, label="Zone chiffres détectée"),
+    ]
+    ax.legend(handles=handles)
+    ax.set_xlabel("Ligne y dans le ROI")
+    ax.set_ylabel("Intensité sombre moyenne")
+    ax.set_title("Profil vertical du ROI")
+    plt.tight_layout()
+    plt.savefig(chemin)
+    plt.close()
+
+
 def lire_score(chemin_image, nb_cols=3):
     img = cv2.imread(chemin_image)
     if img is None:
@@ -90,35 +131,53 @@ def lire_score(chemin_image, nb_cols=3):
     roi = img[y:y + h, x:x + w]
     roi_gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
 
-    rangees = trouver_rangees_chiffres(roi_gray)
+    # Sauvegarde intermédiaire 1 : ROI brut
+    cv2.imwrite("debug_1_roi.jpg", roi)
+
+    rangees, bandes_sombres, profil = trouver_rangees_chiffres(roi_gray)
+
+    # Sauvegarde intermédiaire 2 : ROI annoté (bandes sombres + zones chiffres)
+    roi_annote = cv2.cvtColor(roi_gray, cv2.COLOR_GRAY2BGR)
+    for (y1, y2) in bandes_sombres:
+        cv2.rectangle(roi_annote, (0, y1), (roi_annote.shape[1], y2), (0, 0, 200), 2)
+    for (y1, y2) in rangees:
+        cv2.rectangle(roi_annote, (0, y1), (roi_annote.shape[1], y2), (0, 200, 0), 2)
+    cv2.imwrite("debug_2_roi_annote.jpg", roi_annote)
+
+    # Sauvegarde intermédiaire 3 : profil vertical
+    try:
+        sauver_profil_debug(profil, bandes_sombres, rangees, "debug_3_profil.png")
+    except ImportError:
+        pass  # matplotlib optionnel
 
     if len(rangees) < 2:
         raise RuntimeError(
-            f"Seulement {len(rangees)} rangée(s) de chiffres détectée(s) "
-            f"(attendu 2). Essayez d'ajuster le seuil dans trouver_rangees_chiffres."
+            f"Seulement {len(rangees)} rangée(s) de chiffres détectée(s) (attendu 2).\n"
+            f"  Bandes sombres trouvées : {bandes_sombres}\n"
+            f"  Consultez debug_1_roi.jpg et debug_2_roi_annote.jpg pour diagnostiquer."
         )
 
-    # On prend les deux premières rangées trouvées
     labels = ["VISITEUR", "CLUB"]
     score = {}
     debug = img.copy()
 
     for idx, (y1, y2) in enumerate(rangees[:2]):
         bande = roi_gray[y1:y2, :]
+        # Sauvegarde intermédiaire 4/5 : chaque bande de chiffres
+        cv2.imwrite(f"debug_4_bande_{labels[idx].lower()}.jpg", bande)
         chiffres = segmenter_colonnes(bande, nb_cols)
         score[labels[idx]] = chiffres
 
-        # Dessin debug sur l'image originale
         cv2.rectangle(debug,
                       (x, y + y1), (x + w, y + y2),
                       (0, 255, 0) if idx == 0 else (0, 0, 255), 2)
-        texte_score = " - ".join(chiffres)
+        texte_score = " | ".join(chiffres)
         cv2.putText(debug, f"{labels[idx]}: {texte_score}",
                     (x + 5, y + y1 - 5),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7,
                     (0, 255, 0) if idx == 0 else (0, 0, 255), 2)
 
-    cv2.imwrite("score_debug.jpg", debug)
+    cv2.imwrite("debug_5_resultat_final.jpg", debug)
     return score
 
 
