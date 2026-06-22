@@ -46,49 +46,69 @@ def trouver_rangees_chiffres(roi_gray):
     if debut is not None and h_img - debut > 5:
         bandes_sombres.append((debut, h_img))
 
-    # Les zones de chiffres sont les espaces clairs entre/après les bandes sombres
-    # On les délimite par les fins de bandes sombres
+    # Les zones de chiffres sont les espaces clairs ENTRE les bandes sombres.
+    # Délimitation : fin de la bande courante → début de la bande suivante.
     rangees = []
-    fins = [b[1] for b in bandes_sombres]
-    for i, fin in enumerate(fins):
-        prochain = fins[i + 1] if i + 1 < len(fins) else h_img
-        hauteur = prochain - fin
+    for i, (_, fin) in enumerate(bandes_sombres):
+        debut_suivant = bandes_sombres[i + 1][0] if i + 1 < len(bandes_sombres) else h_img
+        hauteur = debut_suivant - fin
         if hauteur > 10:
-            rangees.append((fin, prochain))
+            rangees.append((fin, debut_suivant))
 
     return rangees, bandes_sombres, profil
 
 
-def lire_chiffre(cellule_gray):
+def preparer_bande(bande_gray):
+    """Prétraitement pour maximiser le contraste des chiffres."""
+    h, w = bande_gray.shape
+    # Agrandir (Tesseract préfère les images hautes résolution)
+    scale = max(1, 80 // h)
+    grande = cv2.resize(bande_gray, (w * scale, h * scale), interpolation=cv2.INTER_CUBIC)
+    # Égalisation d'histogramme locale (CLAHE) pour faire ressortir les chiffres
+    clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(4, 4))
+    grande = clahe.apply(grande)
+    # Binarisation Otsu (fond clair → chiffres sombres, ou l'inverse)
+    _, bin_img = cv2.threshold(grande, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    # Si le fond est majoritairement noir, inverser
+    if np.mean(bin_img) < 127:
+        bin_img = cv2.bitwise_not(bin_img)
+    # Petite dilatation pour relier les segments brisés
+    bin_img = cv2.dilate(bin_img, np.ones((2, 2), np.uint8), iterations=1)
+    return bin_img
+
+
+def lire_ligne(bande_gray):
     """
-    Lit un chiffre unique dans une cellule (fond sombre, chiffre clair).
-    Retourne la chaîne lue ou '?' si échec.
+    Lit toute une ligne de chiffres (ex : '1 0 0') en une seule passe Tesseract.
+    Retourne une liste de chaînes (une par colonne détectée, ou ['?','?','?']).
     """
-    # Inverser : fond clair, chiffre sombre → meilleur pour Tesseract
-    inv = cv2.bitwise_not(cellule_gray)
-    # Redimensionner pour aider Tesseract
-    h, w = inv.shape
-    scale = max(1, 60 // h)
-    inv = cv2.resize(inv, (w * scale, h * scale), interpolation=cv2.INTER_CUBIC)
-    # Binarisation adaptative
-    _, bin_img = cv2.threshold(inv, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    config = "--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789"
-    texte = pytesseract.image_to_string(bin_img, config=config).strip()
-    return texte if texte else "?"
+    img = preparer_bande(bande_gray)
+    config = "--psm 7 --oem 3 -c tessedit_char_whitelist=0123456789 "
+    texte = pytesseract.image_to_string(img, config=config).strip()
+    # Ne garder que les chiffres
+    chiffres = [c for c in texte if c.isdigit()]
+    return chiffres if chiffres else ["?"] * 3
 
 
 def segmenter_colonnes(bande_gray, nb_cols=3):
     """
-    Divise une bande horizontale en nb_cols colonnes et lit chaque chiffre.
+    Essaie d'abord une lecture globale de la ligne.
+    Si le nombre de chiffres ne correspond pas, recoupe en cellules.
     """
+    chiffres = lire_ligne(bande_gray)
+    if len(chiffres) == nb_cols:
+        return chiffres
+
+    # Repli : lecture cellule par cellule
     h, w = bande_gray.shape
     largeur_col = w // nb_cols
     chiffres = []
     for i in range(nb_cols):
-        x1 = i * largeur_col
-        x2 = x1 + largeur_col
-        cellule = bande_gray[:, x1:x2]
-        chiffres.append(lire_chiffre(cellule))
+        cellule = bande_gray[:, i * largeur_col:(i + 1) * largeur_col]
+        img = preparer_bande(cellule)
+        config = "--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789"
+        texte = pytesseract.image_to_string(img, config=config).strip()
+        chiffres.append(texte[0] if texte and texte[0].isdigit() else "?")
     return chiffres
 
 
