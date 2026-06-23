@@ -879,7 +879,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
           <div class="subtitle" id="who-subtitle">Choisis qui tu es pour pronostiquer&nbsp;:</div>
         </div>
       </div>
-      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.12</span></div>
+      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.13</span></div>
     </div>
     <div class="who" id="who"></div>
   </div>
@@ -979,8 +979,8 @@ const MG=[
   {id:66,date:"27/06",h:"05:00",g:"G",e1:"Nouvelle-Zélande",e2:"Belgique",fr:false},
   {id:67,date:"27/06",h:"23:00",g:"L",e1:"Panama",e2:"Angleterre",fr:false},
   {id:68,date:"27/06",h:"23:00",g:"L",e1:"Croatie",e2:"Ghana",fr:false},
-  {id:69,date:"28/06",h:"01:30",g:"J",e1:"Algérie",e2:"Argentine",fr:false},
-  {id:70,date:"28/06",h:"01:30",g:"J",e1:"Jordanie",e2:"Autriche",fr:false},
+  {id:69,date:"28/06",h:"01:30",g:"J",e1:"Algérie",e2:"Autriche",fr:false},
+  {id:70,date:"28/06",h:"01:30",g:"J",e1:"Jordanie",e2:"Argentine",fr:false},
   {id:71,date:"28/06",h:"04:00",g:"K",e1:"Colombie",e2:"Portugal",fr:false},
   {id:72,date:"28/06",h:"04:00",g:"K",e1:"RD Congo",e2:"Ouzbékistan",fr:false}
 ];
@@ -1018,7 +1018,7 @@ const MKO=[
   {id:103,date:"18/07",h:"19:00",t:"3ème place",e1:"Perdant M101",e2:"Perdant M102"},
   {id:104,date:"19/07",h:"21:00",t:"FINALE",e1:"V.M101",e2:"V.M102"}
 ];
-const ALL=[...MG,...MKO];const MEDALS=["🥇","🥈","🥉","🍺"];
+let ALL=[...MG,...MKO];const MEDALS=["🥇","🥈","🥉","🍺"];
 const METADATA_MATCH_ID=ALL[0].id;
 const TIE_BREAK_PARTICIPANT="__TIE_BREAK__";
 const BET_PLACED_PARTICIPANT="__BET_PLACED__";
@@ -1086,16 +1086,21 @@ function pColor(name){return themeForPronostiqueur(name).accent;}
 function pName(name){return `<span style="color:${themeForPronostiqueur(name).accent};font-weight:700">${name}</span>`;}
 
 function toISODate(d){const [jj,mm]=d.split("/");return `2026-${mm.padStart(2,"0")}-${jj.padStart(2,"0")}`;}
-function toMatchRow(m){return {id:m.id,date_match:toISODate(m.date),heure_match:`${m.h}:00`,phase:m.g?"Groupes":m.t,groupe:m.g||null,equipe_dom:m.e1,equipe_ext:m.e2,france:!!m.fr,score_dom:null,score_ext:null};}
+function toMatchRow(m){return {id:m.id,date_match:toISODate(m.date),heure_match:`${m.h}:00`,phase:m.g?"Groupes":m.t,groupe:m.g||null,equipe_dom:m.e1,equipe_ext:m.e2,france:!!m.fr};}
+function fromMatchRow(r){
+  const [,mm,dd]=(r.date_match||"2026-01-01").split("-");
+  const h=(r.heure_match||"00:00:00").slice(0,5);
+  const obj={id:r.id,date:`${dd}/${mm}`,h,e1:r.equipe_dom,e2:r.equipe_ext,fr:!!r.france};
+  if(r.groupe)obj.g=r.groupe; else obj.t=r.phase;
+  return obj;
+}
 async function ensureMatchsRows(){
   if(matchsSeeded)return;
-  const {count,error}=await db.from("matchs").select("id",{count:"exact",head:true});
-  if(error)throw error;
-  if((count||0)===0){
-    const rows=ALL.map(toMatchRow);
-    const {error:insError}=await db.from("matchs").upsert(rows,{onConflict:"id"});
-    if(insError)throw insError;
-  }
+  // Toujours upsert les champs statiques (équipes, dates, groupes) depuis le code source.
+  // Les scores/résultats ne sont jamais inclus dans toMatchRow → pas écrasés.
+  const rows=ALL.map(toMatchRow);
+  const {error:insError}=await db.from("matchs").upsert(rows,{onConflict:"id"});
+  if(insError)throw insError;
   matchsSeeded=true;
 }
 
@@ -1103,7 +1108,7 @@ async function loadAll(){
   setSync("busy");
   try{
     await ensureMatchsRows();
-    const [pr,ma,co]=await Promise.all([db.from("pronostics").select("*"),db.from("matchs").select("id,resultat,score_dom,score_ext"),db.from("cotes_marche").select("*")]);
+    const [pr,ma,co]=await Promise.all([db.from("pronostics").select("*"),db.from("matchs").select("*").order("id"),db.from("cotes_marche").select("*")]);
     if(pr.error)throw pr.error;if(ma.error)throw ma.error;
     // Cotes de marché (table optionnelle alimentée par la routine quotidienne) : on tolère son absence
     marketOddsMap={};
@@ -1158,6 +1163,7 @@ async function loadAll(){
     localStorage.setItem("cdm26_contract_signatures",JSON.stringify(contractSignatures));
     results={};scoreMap={};
     ma.data.forEach(row=>{const s1=row.score_dom==null?"":String(row.score_dom),s2=row.score_ext==null?"":String(row.score_ext);scoreMap[row.id]={s1,s2};results[row.id]=winnerFromScore(s1,s2)||row.resultat||null;});
+    if(ma.data.length)ALL=ma.data.map(fromMatchRow);
     setSync("ok");showBanner(null);
   }catch(e){
     setSync("off");
