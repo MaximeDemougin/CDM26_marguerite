@@ -400,15 +400,16 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .apero-txt b{color:var(--ink);font-weight:600}
 .apero-name{color:var(--accent);font-weight:600}
 /* Classement — qui paie la tournée (fun) */
-.beer-card{margin:6px 18px 18px;border-radius:14px;padding:15px 18px;display:flex;align-items:center;gap:15px;background:linear-gradient(135deg,#FFF7E0 0%,#FFE6A8 100%);box-shadow:0 12px 26px rgba(193,141,20,.20),0 0 0 1px rgba(255,255,255,.6) inset;position:relative;overflow:hidden}
-.beer-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--wc-magenta),var(--wc-yellow),var(--wc-orange),var(--wc-teal),var(--wc-purple))}
-.beer-emoji{font-size:38px;line-height:1;flex-shrink:0;filter:drop-shadow(0 4px 7px rgba(193,141,20,.4));animation:beerWiggle 3.4s ease-in-out infinite;transform-origin:bottom center}
+.beer-card{margin:6px 18px 18px;border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:15px;background:linear-gradient(135deg,#1c1f28 0%,#0b0c11 100%);box-shadow:0 16px 32px rgba(0,0,0,.36),0 0 0 1px rgba(255,255,255,.07) inset;position:relative;overflow:hidden}
+.beer-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--wc-magenta),var(--wc-yellow),var(--wc-orange),var(--wc-teal),var(--wc-purple));z-index:2}
+.beer-card::after{content:"";position:absolute;left:-8px;top:50%;transform:translateY(-50%);width:98px;height:98px;border-radius:50%;background:radial-gradient(circle,rgba(244,179,21,.22),transparent 68%);pointer-events:none}
+.beer-emoji{font-size:38px;line-height:1;flex-shrink:0;filter:drop-shadow(0 4px 10px rgba(244,179,21,.5));animation:beerWiggle 3.4s ease-in-out infinite;transform-origin:bottom center;position:relative;z-index:1}
 @keyframes beerWiggle{0%,86%,100%{transform:rotate(0)}90%{transform:rotate(-9deg)}94%{transform:rotate(9deg)}}
 @media (prefers-reduced-motion:reduce){.beer-emoji{animation:none}}
-.beer-body{flex:1;min-width:0}
-.beer-kicker{font-family:var(--font-cond);font-size:10px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;color:#b07d14}
-.beer-headline{font-family:var(--font-cond);font-size:20px;font-weight:900;color:#5b3d05;line-height:1.08;margin-top:2px}
-.beer-foot{font-size:11px;color:#8a6a1f;margin-top:5px;font-weight:600;line-height:1.4}
+.beer-body{flex:1;min-width:0;position:relative;z-index:1}
+.beer-kicker{font-family:var(--font-cond);font-size:10px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;color:#E8B923}
+.beer-headline{font-family:var(--font-cond);font-size:20px;font-weight:900;color:#fff;line-height:1.08;margin-top:2px}
+.beer-foot{font-size:11px;color:rgba(255,255,255,.58);margin-top:5px;font-weight:600;line-height:1.4}
 /* Classement — podium top 3 (couleurs joueur + palette CDM) */
 .podium{display:grid;grid-template-columns:1fr 1.18fr 1fr;align-items:end;gap:10px;margin:2px 18px 0;padding:0 2px}
 .pod{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;width:100%}
@@ -927,7 +928,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
           <div class="subtitle" id="who-subtitle">Choisis qui tu es pour pronostiquer&nbsp;:</div>
         </div>
       </div>
-      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.23</span></div>
+      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.24</span></div>
     </div>
     <div class="who" id="who"></div>
   </div>
@@ -1576,12 +1577,19 @@ function kpiTipToggle(ev,el){ev.stopPropagation();if(_kpiTip&&_kpiTip.style.disp
 document.addEventListener('click',kpiTipHide);
 document.addEventListener('scroll',kpiTipHide,true);
 function renderClassement(sc){
-  const sorted=[...PARTICIPANTS].sort((a,b)=>(sc[b]||0)-(sc[a]||0));
+  // Cote moyenne par joueur (sur pronos terminés) — départage les ex æquo : + de risque (cote ↑) = mieux classé
+  const avgOdds={};
+  PARTICIPANTS.forEach((p,pi)=>{let sum=0,n=0;ALL.forEach(m=>{if(!results[m.id])return;const pick=(votes[m.id]||[])[pi];if(!pick)return;const o=marketOddsMap[m.id];if(!o)return;const c=pick==='1'?Number(o.c1):pick==='N'?Number(o.cn):Number(o.c2);if(c==null||isNaN(c))return;sum+=c;n++;});avgOdds[p]=n?sum/n:0;});
+  const cmpRank=(a,b)=>(sc[b]||0)-(sc[a]||0)||(avgOdds[b]||0)-(avgOdds[a]||0)||PARTICIPANTS.indexOf(a)-PARTICIPANTS.indexOf(b);
+  const sorted=[...PARTICIPANTS].sort(cmpRank);
   const total=Object.values(results).filter(Boolean).length;
   const max=Math.max(...Object.values(sc),1);
-  const minPts=sc[sorted[sorted.length-1]]||0;
-  const medals=total?sorted.map((p,i)=>(sc[p]||0)===minPts?'🍺':(MEDALS[i]||'🍺')):MEDALS;
-  const lastPlayers=total?sorted.filter(p=>(sc[p]||0)===minPts):[];
+  // Dernier « réel » : à égalité de points ET de cote moyenne (sinon le risque a départagé → un seul paie)
+  const lastP=sorted[sorted.length-1];
+  const minPts=sc[lastP]||0,lastOdds=avgOdds[lastP]||0;
+  const lastPlayers=total?sorted.filter(p=>(sc[p]||0)===minPts&&(avgOdds[p]||0)===lastOdds):[];
+  const lastSet=new Set(lastPlayers);
+  const medals=total?sorted.map((p,i)=>lastSet.has(p)?'🍺':(MEDALS[i]||'🍺')):MEDALS;
 
   // Matchs joués triés chrono (mouvement de rang + forme récente)
   const playedChrono=ALL.filter(m=>results[m.id]).sort((a,b)=>(matchDate(a.date)-matchDate(b.date))||a.id-b.id);
@@ -1596,7 +1604,7 @@ function renderClassement(sc){
   const podium=total>0?(()=>{
     const cells=[1,0,2].map(rk=>{ // ordre visuel : 2e · 1er · 3e
       const p=sorted[rk];if(!p)return `<div class="pod pod-${rk+1}"></div>`;
-      const medal=(sc[p]||0)===minPts?'🍺':MEDALS[rk];
+      const medal=lastSet.has(p)?'🍺':MEDALS[rk];
       return `<div class="pod pod-${rk+1}" style="${pronostiqueurStatStyle(p)}"><span class="pod-medal">${medal}</span><span class="pod-name">${p}</span><span class="pod-pts"><b>${sc[p]||0}</b>pts</span><div class="pod-block"><span class="pod-rank">${rk+1}</span></div></div>`;
     }).join('');
     return `<div class="podium">${cells}</div><div class="podium-stage"></div>`;
@@ -1609,14 +1617,14 @@ function renderClassement(sc){
     const gapLead=(sc[sorted[0]]||0)-pts,gapPrev=i>0?((sc[sorted[i-1]]||0)-pts):0;
     const gapHtml=i===0
       ?`<span class="rgap"><span class="lead">● en tête</span></span>`
-      :`<span class="rgap">−<b>${gapLead}</b> leader · ${gapPrev>0?`−<b>${gapPrev}</b> devant`:'ex æquo'}</span>`;
+      :`<span class="rgap">−<b>${gapLead}</b> leader · ${gapPrev>0?`−<b>${gapPrev}</b> devant`:`ex æquo${avgOdds[p]?` · cote ${avgOdds[p].toFixed(2)}`:''}`}</span>`;
     const dots=formOf(pi).map(s=>`<span class="rdot ${s}"></span>`).join('');
     const formHtml=formMatches.length?`<div class="rform"><span class="rform-lbl">Forme</span><div class="rform-dots">${dots}</div></div>`:'';
     const metaHtml=total>0?`<div class="rmeta">${gapHtml}${formHtml}</div>`:'';
     return `<div class="rcard ${i===0&&pts>0?'gold':''}" style="${pronostiqueurStatStyle(p)}"><div class="rtop"><span class="rmedal ${medals[i]==='🍺'?'txt':''}">${medals[i]}</span><span class="rname player">${p}</span>${moveBadge}<span class="rscore">${pts}<span class="runit">pts</span></span></div>${metaHtml}<div class="rbars"><div class="brow"><span class="blabel">Bons pronos</span><div class="btrack"><div class="bfill player" style="width:${max>0?(pts/max*100):0}%"></div></div><span class="bval">${pts}/${total}</span></div><div class="brow"><span class="blabel">Réussite</span><div class="btrack"><div class="bfill neutral player" style="width:${total>0?(pts/total*100):0}%"></div></div><span class="bval">${total>0?Math.round((pts/total)*100)+'%':'—'}</span></div></div></div>`;
   }).join('');
 
-  const beerNames=lastPlayers.map(p=>`<span style="color:${themeForPronostiqueur(p).accent};font-weight:900">${p}</span>`).join(' &amp; ');
+  const beerNames=lastPlayers.map(p=>`<span style="color:color-mix(in oklab,${themeForPronostiqueur(p).accent} 70%,#fff);font-weight:900">${p}</span>`).join(' &amp; ');
   const beerVerb=lastPlayers.length>1?'paient':'paie';
   const beerCard=total>0?`<div class="beer-card"><span class="beer-emoji">🍺</span><div class="beer-body"><div class="beer-kicker">À ce stade…</div><div class="beer-headline">${beerNames} ${beerVerb} la tournée 🍻</div><div class="beer-foot">Bon dernier au classement — mais rien n'est joué, ça peut encore tourner !</div></div></div>`:'';
   return `<div class="slabel"><span class="slabel-text">Classement pronos</span><span class="slabel-line"></span><span class="slabel-count">${total} joués</span></div>${podium}${beerCard}${pCards}<div style="height:16px"></div>`;

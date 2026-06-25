@@ -26,7 +26,8 @@
 
 ### Onglet Classement
 - **Podium top 3** : bloc visuel or/argent/bronze (hauteurs différentes) en tête de l'onglet — couleurs joueur sur les blocs **+** palette CDM (badges de rang magenta/teal/orange, estrade arc-en-ciel sous les marches).
-- **Carte « tournée »** : remplace la bannière apéro par un affichage fun — chope 🍺 animée, nom du payeur en couleur, message « ça peut encore tourner ! ».
+- **Carte « tournée »** : remplace la bannière apéro par un affichage fun, **fond noir stylé** — chope 🍺 animée + halo doré, nom du payeur en couleur, message « ça peut encore tourner ! ». Placée juste sous le podium.
+- **Départage par le risque** : les ex æquo impactent désormais le podium et le classement — à points égaux, la **cote moyenne la plus élevée** (le plus de risque pris) passe devant. Annotation « ex æquo · cote X.XX » sur les cartes concernées. Le payeur de tournée est départagé pareil (le moins risqué paie ; sans cotes dispo, les derniers partagent).
 - **Mouvement de rang** : flèches ▲▼ sur chaque carte — progression depuis la journée précédente.
 - **Écarts chiffrés** : retard sur le leader + écart avec le joueur juste devant, sur chaque carte.
 - **Forme récente** : pastilles vert/rouge des 5 derniers pronos de chaque joueur.
