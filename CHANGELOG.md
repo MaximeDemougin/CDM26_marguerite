@@ -25,7 +25,8 @@
 - **Podium doré** : la 1ʳᵉ place s'affiche en or vif (2ᵉ/3ᵉ gardent la couleur du joueur), médaille avec halo doré.
 
 ### Onglet Classement
-- **Podium top 3** : bloc visuel or/argent/bronze (hauteurs différentes) en tête de l'onglet.
+- **Podium top 3** : bloc visuel or/argent/bronze (hauteurs différentes) en tête de l'onglet — couleurs joueur sur les blocs **+** palette CDM (badges de rang magenta/teal/orange, estrade arc-en-ciel sous les marches).
+- **Carte « tournée »** : remplace la bannière apéro par un affichage fun — chope 🍺 animée, nom du payeur en couleur, message « ça peut encore tourner ! ».
 - **Mouvement de rang** : flèches ▲▼ sur chaque carte — progression depuis la journée précédente.
 - **Écarts chiffrés** : retard sur le leader + écart avec le joueur juste devant, sur chaque carte.
 - **Forme récente** : pastilles vert/rouge des 5 derniers pronos de chaque joueur.
