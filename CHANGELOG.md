@@ -19,6 +19,7 @@
 
 ### Thème couleurs — WC26 vibrant 🌈
 - **Ambiance officielle 2026** : fond multicolore magenta→teal→lime, confettis aux 6 couleurs WC, liseré arc-en-ciel sous le header, eyebrow magenta. Les cartes restent blanches et lisibles.
+- **Page confettie** : texture confetti WC (5 couleurs) dans le fond du contenu, wash interne renforcé, liseré header épaissi — la page ne fait plus « blanche » sous le header coloré.
 - **Teal vif** : `--wc-teal` passe de #007A5E à #00B2A9 (couleur officielle).
 - **Podium doré** : la 1ʳᵉ place s'affiche en or vif (2ᵉ/3ᵉ gardent la couleur du joueur), médaille avec halo doré.
 
