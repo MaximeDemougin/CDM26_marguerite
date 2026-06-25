@@ -22,10 +22,9 @@
 - **Confettis retirés** : le décor flou (cercles) cède la place aux bandes nettes, plus fidèle à la DA.
 - **Cartes classement colorées** : barre supérieure + header teintés à la couleur de chaque joueur, leader en or (écho au podium). Fini les cartes blanches plates.
 - **Teal vif** : `--wc-teal` passe de #007A5E à #00B2A9 (couleur officielle).
-- **Podium doré** : la 1ʳᵉ place s'affiche en or vif (2ᵉ/3ᵉ gardent la couleur du joueur), médaille avec halo doré.
 
 ### Onglet Classement
-- **Podium top 3** : bloc visuel or/argent/bronze (hauteurs différentes) en tête de l'onglet — couleurs joueur sur les blocs **+** palette CDM (badges de rang magenta/teal/orange, estrade arc-en-ciel sous les marches).
+- **Podium top 3** : blocs **sombres** (raccord avec la carte tournée noire) à cercle de rang coloré (magenta/teal/orange), liseré couleur joueur en haut, or pour le champion ; estrade en bandes nettes CDM sous les marches.
 - **Carte « tournée »** : remplace la bannière apéro par un affichage fun, **fond noir stylé** — chope 🍺 animée + halo doré, nom du payeur en couleur, message « ça peut encore tourner ! ». Placée juste sous le podium.
 - **Départage par le risque** : les ex æquo impactent désormais le podium et le classement — à points égaux, la **cote moyenne la plus élevée** (le plus de risque pris) passe devant. Annotation « ex æquo · cote X.XX » sur les cartes concernées. Le payeur de tournée est départagé pareil (le moins risqué paie ; sans cotes dispo, les derniers partagent).
 - **Mouvement de rang** : flèches ▲▼ sur chaque carte — progression depuis la journée précédente.
