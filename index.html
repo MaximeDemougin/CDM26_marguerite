@@ -19,26 +19,27 @@
   --bg1:rgba(45,92,230,.20);--bg2:rgba(215,40,47,.22);--bg3:rgba(164,210,51,.14);--bg4:#e7eff9;
   --wc-purple:#5B2D8C;--wc-red:#D7282F;--wc-orange:#FF5A1E;--wc-lime:#A4D233;
   --wc-blue:#2D5CE6;--wc-lav:#B79CE4;--wc-salmon:#F8A29A;--wc-mint:#63E0BE;
-  --wc-yellow:#F5E642;--wc-magenta:#E4007C;--wc-teal:#007A5E;--wc-black:#101418;
+  --wc-yellow:#F5E642;--wc-magenta:#E4007C;--wc-teal:#00B2A9;--wc-black:#101418;
   --font-round:'Fredoka','Manrope',sans-serif;
   --font-cond:'Barlow Condensed','Manrope',sans-serif;
 }
 html{height:100%;overflow:hidden}
-body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 10% -10%,rgba(13,79,194,.16),transparent 32%),radial-gradient(circle at 92% -8%,rgba(215,24,58,.14),transparent 34%),linear-gradient(180deg,#f7fafe 0%,#eaf2fb 100%);color:var(--ink);height:100%;overflow:hidden;font-feature-settings:"tnum"}
+body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 6% -8%,color-mix(in oklab,var(--wc-magenta) 22%,transparent),transparent 34%),radial-gradient(circle at 95% -6%,color-mix(in oklab,var(--wc-teal) 24%,transparent),transparent 36%),radial-gradient(circle at 50% 112%,color-mix(in oklab,var(--wc-lime) 20%,transparent),transparent 42%),radial-gradient(circle at 82% 58%,color-mix(in oklab,var(--wc-yellow) 13%,transparent),transparent 30%),linear-gradient(180deg,#f7fafe 0%,#eef3fb 100%);color:var(--ink);height:100%;overflow:hidden;font-feature-settings:"tnum"}
 @media (prefers-reduced-motion:reduce){body::before,body::after{animation:none}}
-html::before,html::after{content:"";position:fixed;top:0;height:200vh;width:clamp(40px,12vw,220px);pointer-events:none;z-index:0;background-image:radial-gradient(circle 3px,color-mix(in oklab,var(--fr) 55%,transparent) 100%,transparent 100%),radial-gradient(circle 2.5px,color-mix(in oklab,var(--accent) 50%,transparent) 100%,transparent 100%),radial-gradient(circle 2px,color-mix(in oklab,var(--fr) 38%,transparent) 100%,transparent 100%);background-size:120px 230px,90px 190px,70px 150px;background-position:14px 40px,50px 120px,30px 80px;will-change:transform;animation:confettiFall 24s linear infinite}
+html::before,html::after{content:"";position:fixed;top:0;height:200vh;width:clamp(40px,12vw,220px);pointer-events:none;z-index:0;background-image:radial-gradient(circle 3px,color-mix(in oklab,var(--wc-magenta) 60%,transparent) 100%,transparent 100%),radial-gradient(circle 2.5px,color-mix(in oklab,var(--wc-teal) 60%,transparent) 100%,transparent 100%),radial-gradient(circle 2px,color-mix(in oklab,var(--wc-lime) 62%,transparent) 100%,transparent 100%),radial-gradient(circle 2.5px,color-mix(in oklab,var(--wc-yellow) 60%,transparent) 100%,transparent 100%),radial-gradient(circle 2px,color-mix(in oklab,var(--wc-orange) 55%,transparent) 100%,transparent 100%),radial-gradient(circle 3px,color-mix(in oklab,var(--wc-purple) 55%,transparent) 100%,transparent 100%);background-size:120px 230px,90px 190px,70px 150px,110px 210px,80px 170px,100px 250px;background-position:14px 40px,50px 120px,30px 80px,68px 30px,12px 150px,80px 200px;will-change:transform;animation:confettiFall 24s linear infinite}
 html::before{left:0;mask-image:linear-gradient(90deg,black 30%,transparent 100%);-webkit-mask-image:linear-gradient(90deg,black 30%,transparent 100%)}
 html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black 30%,transparent 100%);-webkit-mask-image:linear-gradient(270deg,black 30%,transparent 100%)}
 @keyframes confettiFall{from{transform:translateY(-100vh)}to{transform:translateY(0)}}
 @media (prefers-reduced-motion:reduce){html::before,html::after{animation:none}}
 ::-webkit-scrollbar{width:0;height:0}
-.app{width:100%;max-width:min(100%,1180px);margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column;background:#fdfefe;position:relative;border:1px solid color-mix(in oklab,var(--line2) 78%, #7f9fbe);border-radius:20px;overflow:hidden;box-shadow:0 12px 30px rgba(15,29,49,.10);z-index:1}
+.app{width:100%;max-width:min(100%,1180px);margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column;background:radial-gradient(circle at 0% 0%,color-mix(in oklab,var(--wc-magenta) 7%,transparent),transparent 28%),radial-gradient(circle at 100% 2%,color-mix(in oklab,var(--wc-teal) 8%,transparent),transparent 28%),radial-gradient(circle at 50% 100%,color-mix(in oklab,var(--wc-lime) 6%,transparent),transparent 32%),#fdfefe;position:relative;border:1px solid color-mix(in oklab,var(--line2) 78%, #7f9fbe);border-radius:20px;overflow:hidden;box-shadow:0 12px 30px rgba(15,29,49,.10);z-index:1}
 .app.wide{max-width:min(100%,1800px)}
 .header{padding:18px 22px 14px;border-bottom:1px solid color-mix(in oklab,var(--line2) 86%, #8aa5c2);position:sticky;top:0;z-index:100;background:rgba(249,252,255,.95);backdrop-filter:blur(8px) saturate(130%)}
+.header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,var(--wc-magenta) 0% 16%,var(--wc-teal) 16% 36%,var(--wc-lime) 36% 58%,var(--wc-yellow) 58% 72%,var(--wc-orange) 72% 86%,var(--wc-purple) 86% 100%);z-index:101;pointer-events:none}
 .h-row{display:flex;align-items:center;justify-content:space-between;gap:14px}
 .h-brand{display:flex;align-items:center;gap:14px}
 .cdm-logo{height:64px;width:auto;object-fit:contain;flex-shrink:0}
-.eyebrow{font-size:9px;letter-spacing:2.2px;color:var(--wc-purple);text-transform:uppercase;font-weight:800;margin-bottom:6px}
+.eyebrow{font-size:9px;letter-spacing:2.2px;color:var(--wc-magenta);text-transform:uppercase;font-weight:800;margin-bottom:6px}
 .title{font-family:'Space Grotesk',sans-serif;font-size:25px;font-weight:700;letter-spacing:-.5px;line-height:1;color:#0b1930}
 .subtitle{font-size:12px;color:var(--dim);margin-top:6px;font-weight:500}
 .who{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
@@ -403,7 +404,8 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .pod-pts{font-family:var(--font-cond);font-size:11px;font-weight:800;color:var(--dim)}
 .pod-pts b{font-size:16px;color:var(--ps,var(--ink));margin-right:2px}
 .pod-block{width:100%;border-radius:12px 12px 0 0;background:linear-gradient(180deg,color-mix(in oklab,var(--ps,var(--fr)) 24%,#fff),color-mix(in oklab,var(--ps,var(--fr)) 7%,#fff));box-shadow:0 -2px 0 color-mix(in oklab,var(--ps,var(--fr)) 42%,transparent) inset,0 12px 24px rgba(15,29,49,.12);display:flex;align-items:flex-start;justify-content:center;padding-top:7px;font-family:var(--font-cond);font-weight:900;font-size:18px;color:color-mix(in oklab,var(--ps,var(--fr)) 72%,var(--ink))}
-.pod-1 .pod-block{height:84px}
+.pod-1 .pod-block{height:84px;background:linear-gradient(180deg,#FFD75E,#F4B315);box-shadow:0 -2px 0 #E0980A inset,0 12px 26px rgba(244,179,21,.34);color:#7a4d00}
+.pod-1 .pod-medal{filter:drop-shadow(0 2px 6px rgba(244,179,21,.5))}
 .pod-2 .pod-block{height:60px}
 .pod-3 .pod-block{height:42px}
 /* Classement — mouvement de rang */
@@ -907,7 +909,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
           <div class="subtitle" id="who-subtitle">Choisis qui tu es pour pronostiquer&nbsp;:</div>
         </div>
       </div>
-      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.17</span></div>
+      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.18</span></div>
     </div>
     <div class="who" id="who"></div>
   </div>
