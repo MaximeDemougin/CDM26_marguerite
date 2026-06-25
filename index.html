@@ -24,15 +24,11 @@
   --font-cond:'Barlow Condensed','Manrope',sans-serif;
 }
 html{height:100%;overflow:hidden}
-body{font-family:'Manrope',sans-serif;background:radial-gradient(circle at 6% -8%,color-mix(in oklab,var(--wc-magenta) 22%,transparent),transparent 34%),radial-gradient(circle at 95% -6%,color-mix(in oklab,var(--wc-teal) 24%,transparent),transparent 36%),radial-gradient(circle at 50% 112%,color-mix(in oklab,var(--wc-lime) 20%,transparent),transparent 42%),radial-gradient(circle at 82% 58%,color-mix(in oklab,var(--wc-yellow) 13%,transparent),transparent 30%),linear-gradient(180deg,#f7fafe 0%,#eef3fb 100%);color:var(--ink);height:100%;overflow:hidden;font-feature-settings:"tnum"}
+body{font-family:'Manrope',sans-serif;background:linear-gradient(90deg,color-mix(in oklab,var(--wc-magenta) 12%,#eef3fb) 0% 17%,color-mix(in oklab,var(--wc-teal) 12%,#eef3fb) 17% 34%,color-mix(in oklab,var(--wc-lime) 12%,#eef3fb) 34% 50%,color-mix(in oklab,var(--wc-yellow) 11%,#eef3fb) 50% 66%,color-mix(in oklab,var(--wc-orange) 11%,#eef3fb) 66% 83%,color-mix(in oklab,var(--wc-purple) 11%,#eef3fb) 83% 100%);color:var(--ink);height:100%;overflow:hidden;font-feature-settings:"tnum"}
 @media (prefers-reduced-motion:reduce){body::before,body::after{animation:none}}
-html::before,html::after{content:"";position:fixed;top:0;height:200vh;width:clamp(40px,12vw,220px);pointer-events:none;z-index:0;background-image:radial-gradient(circle 3px,color-mix(in oklab,var(--wc-magenta) 60%,transparent) 100%,transparent 100%),radial-gradient(circle 2.5px,color-mix(in oklab,var(--wc-teal) 60%,transparent) 100%,transparent 100%),radial-gradient(circle 2px,color-mix(in oklab,var(--wc-lime) 62%,transparent) 100%,transparent 100%),radial-gradient(circle 2.5px,color-mix(in oklab,var(--wc-yellow) 60%,transparent) 100%,transparent 100%),radial-gradient(circle 2px,color-mix(in oklab,var(--wc-orange) 55%,transparent) 100%,transparent 100%),radial-gradient(circle 3px,color-mix(in oklab,var(--wc-purple) 55%,transparent) 100%,transparent 100%);background-size:120px 230px,90px 190px,70px 150px,110px 210px,80px 170px,100px 250px;background-position:14px 40px,50px 120px,30px 80px,68px 30px,12px 150px,80px 200px;will-change:transform;animation:confettiFall 24s linear infinite}
-html::before{left:0;mask-image:linear-gradient(90deg,black 30%,transparent 100%);-webkit-mask-image:linear-gradient(90deg,black 30%,transparent 100%)}
-html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black 30%,transparent 100%);-webkit-mask-image:linear-gradient(270deg,black 30%,transparent 100%)}
-@keyframes confettiFall{from{transform:translateY(-100vh)}to{transform:translateY(0)}}
-@media (prefers-reduced-motion:reduce){html::before,html::after{animation:none}}
+/* Confettis retirés — DA WC26 : bandes de couleurs nettes (liserés), pas de décor flou */
 ::-webkit-scrollbar{width:0;height:0}
-.app{width:100%;max-width:min(100%,1180px);margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column;background:radial-gradient(circle at 0% 0%,color-mix(in oklab,var(--wc-magenta) 13%,transparent),transparent 32%),radial-gradient(circle at 100% 1%,color-mix(in oklab,var(--wc-teal) 14%,transparent),transparent 32%),radial-gradient(circle at 50% 100%,color-mix(in oklab,var(--wc-lime) 11%,transparent),transparent 34%),#fdfefe;position:relative;border:1px solid color-mix(in oklab,var(--line2) 78%, #7f9fbe);border-radius:20px;overflow:hidden;box-shadow:0 12px 30px rgba(15,29,49,.10);z-index:1}
+.app{width:100%;max-width:min(100%,1180px);margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column;background:#fdfefe;position:relative;border:1px solid color-mix(in oklab,var(--line2) 78%, #7f9fbe);border-radius:20px;overflow:hidden;box-shadow:0 12px 30px rgba(15,29,49,.10);z-index:1}
 .app.wide{max-width:min(100%,1800px)}
 .header{padding:18px 22px 14px;border-bottom:1px solid color-mix(in oklab,var(--line2) 86%, #8aa5c2);position:sticky;top:0;z-index:100;background:rgba(249,252,255,.95);backdrop-filter:blur(8px) saturate(130%)}
 .header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--wc-magenta) 0% 16%,var(--wc-teal) 16% 36%,var(--wc-lime) 36% 58%,var(--wc-yellow) 58% 72%,var(--wc-orange) 72% 86%,var(--wc-purple) 86% 100%);z-index:101;pointer-events:none}
@@ -401,7 +397,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .apero-name{color:var(--accent);font-weight:600}
 /* Classement — qui paie la tournée (fun) */
 .beer-card{margin:6px 18px 18px;border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:15px;background:linear-gradient(135deg,#1c1f28 0%,#0b0c11 100%);box-shadow:0 16px 32px rgba(0,0,0,.36),0 0 0 1px rgba(255,255,255,.07) inset;position:relative;overflow:hidden}
-.beer-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--wc-magenta),var(--wc-yellow),var(--wc-orange),var(--wc-teal),var(--wc-purple));z-index:2}
+.beer-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--wc-magenta) 0% 16%,var(--wc-teal) 16% 36%,var(--wc-lime) 36% 58%,var(--wc-yellow) 58% 72%,var(--wc-orange) 72% 86%,var(--wc-purple) 86% 100%);z-index:2}
 .beer-card::after{content:"";position:absolute;left:-8px;top:50%;transform:translateY(-50%);width:98px;height:98px;border-radius:50%;background:radial-gradient(circle,rgba(244,179,21,.22),transparent 68%);pointer-events:none}
 .beer-emoji{font-size:38px;line-height:1;flex-shrink:0;filter:drop-shadow(0 4px 10px rgba(244,179,21,.5));animation:beerWiggle 3.4s ease-in-out infinite;transform-origin:bottom center;position:relative;z-index:1}
 @keyframes beerWiggle{0%,86%,100%{transform:rotate(0)}90%{transform:rotate(-9deg)}94%{transform:rotate(9deg)}}
@@ -426,7 +422,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .pod-1 .pod-medal{filter:drop-shadow(0 2px 6px rgba(244,179,21,.5))}
 .pod-2 .pod-block{height:60px}
 .pod-3 .pod-block{height:42px}
-.podium-stage{height:11px;margin:0 18px 18px;border-radius:0 0 9px 9px;background:linear-gradient(90deg,var(--wc-magenta) 0%,var(--wc-red) 17%,var(--wc-orange) 33%,var(--wc-yellow) 49%,var(--wc-lime) 65%,var(--wc-teal) 83%,var(--wc-purple) 100%);box-shadow:0 9px 18px rgba(15,29,49,.18),inset 0 1px 0 rgba(255,255,255,.45)}
+.podium-stage{height:11px;margin:0 18px 18px;border-radius:0 0 9px 9px;background:linear-gradient(90deg,var(--wc-magenta) 0% 16%,var(--wc-teal) 16% 36%,var(--wc-lime) 36% 58%,var(--wc-yellow) 58% 72%,var(--wc-orange) 72% 86%,var(--wc-purple) 86% 100%);box-shadow:0 9px 18px rgba(15,29,49,.18),inset 0 1px 0 rgba(255,255,255,.45)}
 /* Classement — mouvement de rang */
 .rmove{font-family:var(--font-cond);font-size:12px;font-weight:800;display:inline-flex;align-items:center;gap:1px;padding:2px 7px;border-radius:999px;flex-shrink:0;letter-spacing:.3px}
 .rmove.up{color:var(--ok);background:color-mix(in oklab,var(--ok) 13%,#fff)}
@@ -928,7 +924,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
           <div class="subtitle" id="who-subtitle">Choisis qui tu es pour pronostiquer&nbsp;:</div>
         </div>
       </div>
-      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.24</span></div>
+      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.25</span></div>
     </div>
     <div class="who" id="who"></div>
   </div>

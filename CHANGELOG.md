@@ -17,9 +17,9 @@
 - **Meilleurs 3es enfin placés** : les slots type `3BEFIJ` restaient parfois affichés en code brut. L'ancienne affectation gloutonne se coinçait dès que les groupes autorisés se chevauchaient (elle échouait sur **80 % des combinaisons** possibles !). Remplacée par un vrai couplage biparti complet → les 8 troisièmes sont toujours répartis correctement.
 - **Règles vérifiées** : tableau des 16es, slots de 3es et départages de groupe contrôlés contre les sources FIFA officielles. Tout conforme (le départage 2026 priorise bien le head-to-head avant la diff générale).
 
-### Thème couleurs — WC26 vibrant 🌈
-- **Ambiance officielle 2026** : fond multicolore magenta→teal→lime, confettis aux 6 couleurs WC, liseré arc-en-ciel sous le header, eyebrow magenta. Les cartes restent blanches et lisibles.
-- **Ambiance page** : wash multicolore interne renforcé + liseré header épaissi (pas de confettis sur le contenu — fond propre).
+### Thème couleurs — WC26 (bandes nettes) 🎽
+- **DA officielle 2026** : on respecte la direction artistique WC26 = **bandes de couleurs successives nettes** (pas de dégradés flous). Liseré header, estrade du podium et liseré de la carte tournée en bandes franches ; fond du body en bandes verticales subtiles ; eyebrow magenta.
+- **Confettis retirés** : le décor flou (cercles) cède la place aux bandes nettes, plus fidèle à la DA.
 - **Cartes classement colorées** : barre supérieure + header teintés à la couleur de chaque joueur, leader en or (écho au podium). Fini les cartes blanches plates.
 - **Teal vif** : `--wc-teal` passe de #007A5E à #00B2A9 (couleur officielle).
 - **Podium doré** : la 1ʳᵉ place s'affiche en or vif (2ᵉ/3ᵉ gardent la couleur du joueur), médaille avec halo doré.
