@@ -879,7 +879,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
           <div class="subtitle" id="who-subtitle">Choisis qui tu es pour pronostiquer&nbsp;:</div>
         </div>
       </div>
-      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.14</span></div>
+      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.15</span></div>
     </div>
     <div class="who" id="who"></div>
   </div>
@@ -2026,12 +2026,38 @@ function koQualResult(id){
   if(!isNaN(ps1)&&!isNaN(ps2)&&ps1===ps2&&kd.tab)return{winner:kd.tab,mode:'tab'};
   return null;
 }
+// Affecte les meilleurs 3es aux slots "3XXXXX" des 16es par couplage biparti complet
+// (Kuhn / chemins augmentants). Le glouton échoue parce que les groupes autorisés se
+// chevauchent : un slot tardif peut se retrouver sans groupe libre alors qu'un couplage
+// complet existe. Renvoie { label3 -> nom d'équipe }.
+function matchThirdsToSlots(bestThirdEntries,slots){
+  const slotMatch=new Array(slots.length).fill(-1); // slot -> index 3e
+  const thirdMatch=new Array(bestThirdEntries.length).fill(-1); // 3e -> index slot
+  const tryAssign=(si,visited)=>{
+    for(let ti=0;ti<bestThirdEntries.length;ti++){
+      if(!slots[si].allowed.has(bestThirdEntries[ti].group)||visited.has(ti))continue;
+      visited.add(ti);
+      if(thirdMatch[ti]===-1||tryAssign(thirdMatch[ti],visited)){
+        slotMatch[si]=ti;thirdMatch[ti]=si;return true;
+      }
+    }
+    return false;
+  };
+  for(let si=0;si<slots.length;si++)tryAssign(si,new Set());
+  const out={};
+  slots.forEach((s,si)=>{if(slotMatch[si]>=0)out[s.label]=bestThirdEntries[slotMatch[si]].team;});
+  return out;
+}
 function buildKnockoutProjection(tables){
   const first={},second={},third=[];
   Object.keys(tables).forEach(g=>{const arr=tables[g];if(arr[0])first[g]=arr[0].team;if(arr[1])second[g]=arr[1].team;if(arr[2])third.push({group:g,...arr[2]});});
   const bestThirdEntries=third.sort((a,b)=>b.pts-a.pts||b.d-a.d||b.gf-a.gf||(FIFA_RANKS[a.team]||999)-(FIFA_RANKS[b.team]||999)||a.team.localeCompare(b.team)).slice(0,8);
   const bestThirdRanking=bestThirdEntries.map(x=>x.team);
-  const ctx={first,second,bestThirdEntries,usedThirdGroups:new Set(),winners:{},losers:{}};
+  // Slots "3XXXXX" dans l'ordre du calendrier (= ordre officiel des 16es)
+  const thirdSlots=[];
+  MKO.forEach(m=>[m.e1,m.e2].forEach(lbl=>{if(/^3[A-L]+$/.test(lbl))thirdSlots.push({label:lbl,allowed:new Set(lbl.slice(1).split(""))});}));
+  const thirdAssign=matchThirdsToSlots(bestThirdEntries,thirdSlots);
+  const ctx={first,second,bestThirdEntries,thirdAssign,winners:{},losers:{}};
   const fixtures=MKO.map(m=>{
     const e1=resolveKoLabel(m.e1,ctx);
     const e2=resolveKoLabel(m.e2,ctx);
@@ -2055,10 +2081,7 @@ function resolveKoLabel(lbl,ctx){
   if(lbl.startsWith("1er Gr.")){const g=lbl.replace("1er Gr.","");return ctx.first[g]||lbl;}
   if(lbl.startsWith("2e Gr.")){const g=lbl.replace("2e Gr.","");return ctx.second[g]||lbl;}
   if(/^3[A-L]+$/.test(lbl)){
-    const allowed=new Set(lbl.slice(1).split(""));
-    const pick=ctx.bestThirdEntries.find(x=>allowed.has(x.group)&&!ctx.usedThirdGroups.has(x.group));
-    if(pick){ctx.usedThirdGroups.add(pick.group);return pick.team;}
-    return lbl;
+    return (ctx.thirdAssign&&ctx.thirdAssign[lbl])||lbl;
   }
   if(lbl.startsWith("V.M")){const id=Number(lbl.replace("V.M",""));return ctx.winners[id]||lbl;}
   if(lbl.startsWith("Perdant M")){const id=Number(lbl.replace("Perdant M",""));return ctx.losers[id]||lbl;}

@@ -13,6 +13,9 @@
 ### Finance
 - **Mise rationalisée à 1 €** : la courbe « Bilan financier individuel » passe d'une mise de 4 € à **1 € par pari**. Échelle plus fine, affichage aux centimes (±X.XX €).
 
+### Bracket
+- **Meilleurs 3es enfin placés** : les slots type `3BEFIJ` restaient parfois affichés en code brut. L'ancienne affectation gloutonne se coinçait dès que les groupes autorisés se chevauchaient (elle échouait sur **80 % des combinaisons** possibles !). Remplacée par un vrai couplage biparti complet → les 8 troisièmes sont toujours répartis correctement.
+
 ---
 
 ## [2026-06-23] — Prol/TAB, stats risque, affichage clean 🎯
