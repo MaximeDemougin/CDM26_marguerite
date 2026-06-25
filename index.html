@@ -395,6 +395,34 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
 .apero-txt{font-size:12px;color:var(--dim);line-height:1.5}
 .apero-txt b{color:var(--ink);font-weight:600}
 .apero-name{color:var(--accent);font-weight:600}
+/* Classement — podium top 3 */
+.podium{display:grid;grid-template-columns:1fr 1.18fr 1fr;align-items:end;gap:10px;margin:2px 18px 20px;padding:0 2px}
+.pod{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;width:100%}
+.pod-medal{font-size:28px;line-height:1}
+.pod-name{font-family:var(--font-cond);font-size:13px;font-weight:900;letter-spacing:.4px;text-transform:uppercase;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;color:var(--ps,var(--ink))}
+.pod-pts{font-family:var(--font-cond);font-size:11px;font-weight:800;color:var(--dim)}
+.pod-pts b{font-size:16px;color:var(--ps,var(--ink));margin-right:2px}
+.pod-block{width:100%;border-radius:12px 12px 0 0;background:linear-gradient(180deg,color-mix(in oklab,var(--ps,var(--fr)) 24%,#fff),color-mix(in oklab,var(--ps,var(--fr)) 7%,#fff));box-shadow:0 -2px 0 color-mix(in oklab,var(--ps,var(--fr)) 42%,transparent) inset,0 12px 24px rgba(15,29,49,.12);display:flex;align-items:flex-start;justify-content:center;padding-top:7px;font-family:var(--font-cond);font-weight:900;font-size:18px;color:color-mix(in oklab,var(--ps,var(--fr)) 72%,var(--ink))}
+.pod-1 .pod-block{height:84px}
+.pod-2 .pod-block{height:60px}
+.pod-3 .pod-block{height:42px}
+/* Classement — mouvement de rang */
+.rmove{font-family:var(--font-cond);font-size:12px;font-weight:800;display:inline-flex;align-items:center;gap:1px;padding:2px 7px;border-radius:999px;flex-shrink:0;letter-spacing:.3px}
+.rmove.up{color:var(--ok);background:color-mix(in oklab,var(--ok) 13%,#fff)}
+.rmove.down{color:var(--ko);background:color-mix(in oklab,var(--ko) 12%,#fff)}
+.rmove.flat{color:var(--faint);background:rgba(30,45,140,.05)}
+/* Classement — écart chiffré + forme */
+.rmeta{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 16px;background:#fff;border-bottom:1px solid rgba(30,45,140,.06);flex-wrap:wrap}
+.rgap{font-family:var(--font-cond);font-size:11px;font-weight:700;letter-spacing:.3px;color:var(--dim);white-space:nowrap}
+.rgap .lead{color:var(--ps,var(--fr));font-weight:900}
+.rgap b{color:var(--ink);font-weight:900}
+.rform{display:flex;align-items:center;gap:6px;margin-left:auto}
+.rform-lbl{font-family:var(--font-cond);font-size:9px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--faint)}
+.rform-dots{display:flex;gap:4px}
+.rdot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.rdot.w{background:var(--ok)}
+.rdot.l{background:var(--ko)}
+.rdot.n{background:rgba(30,45,140,.14)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px}
 .scard{border:2px solid var(--line2);background:var(--card);padding:15px;border-radius:10px}
 .slbl{font-size:9px;color:var(--faint);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
@@ -879,7 +907,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
           <div class="subtitle" id="who-subtitle">Choisis qui tu es pour pronostiquer&nbsp;:</div>
         </div>
       </div>
-      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.16</span></div>
+      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.17</span></div>
     </div>
     <div class="who" id="who"></div>
   </div>
@@ -1173,6 +1201,10 @@ async function loadAll(){
 }
 
 function computeScores(){const sc={};PARTICIPANTS.forEach(p=>sc[p]=0);ALL.forEach(m=>{const r=results[m.id];if(!r)return;const mv=votes[m.id]||[];PARTICIPANTS.forEach((p,i)=>{if(mv[i]===r)sc[p]=(sc[p]||0)+1;});});return sc;}
+// Score de chaque joueur sur un sous-ensemble de matchs (par id) — sert au mouvement de classement
+function scoresUpTo(ids){const sc={};PARTICIPANTS.forEach(p=>sc[p]=0);ids.forEach(id=>{const r=results[id];if(!r)return;const mv=votes[id]||[];PARTICIPANTS.forEach((p,i)=>{if(mv[i]===r)sc[p]++;});});return sc;}
+// Rang 0-based avec égalités partagées (nb de joueurs ayant strictement plus de points)
+function rankMap(scoreObj){const r={};PARTICIPANTS.forEach(p=>{r[p]=PARTICIPANTS.filter(q=>(scoreObj[q]||0)>(scoreObj[p]||0)).length;});return r;}
 function majorityCandidates(mv){const c={};mv.forEach(v=>{if(v)c[v]=(c[v]||0)+1;});if(!Object.keys(c).length)return [];const mx=Math.max(...Object.values(c));return Object.keys(c).filter(k=>c[k]===mx);}
 function getMajority(mv,sc,id){const w=majorityCandidates(mv);if(!w.length)return null;if(w.length===1)return w[0];const forced=tieChoiceMap[id];return forced&&w.includes(forced)?forced:null;}
 
@@ -1530,10 +1562,43 @@ function renderClassement(sc){
   const minPts=sc[sorted[sorted.length-1]]||0;
   const medals=total?sorted.map((p,i)=>(sc[p]||0)===minPts?'🍺':(MEDALS[i]||'🍺')):MEDALS;
   const lastPlayers=total?sorted.filter(p=>(sc[p]||0)===minPts):[];
-  const pCards=sorted.map((p,i)=>`<div class="rcard ${i===0&&(sc[p]||0)>0?'gold':''}" style="${pronostiqueurStatStyle(p)}"><div class="rtop"><span class="rmedal ${medals[i]==='🍺'?'txt':''}">${medals[i]}</span><span class="rname player">${p}</span><span class="rscore">${sc[p]||0}<span class="runit">pts</span></span></div><div class="rbars"><div class="brow"><span class="blabel">Bons pronos</span><div class="btrack"><div class="bfill player" style="width:${max>0?((sc[p]||0)/max*100):0}%"></div></div><span class="bval">${sc[p]||0}/${total}</span></div><div class="brow"><span class="blabel">Réussite</span><div class="btrack"><div class="bfill neutral player" style="width:${total>0?((sc[p]||0)/total*100):0}%"></div></div><span class="bval">${total>0?Math.round(((sc[p]||0)/total)*100)+'%':'—'}</span></div></div></div>`).join('');
+
+  // Matchs joués triés chrono (mouvement de rang + forme récente)
+  const playedChrono=ALL.filter(m=>results[m.id]).sort((a,b)=>(matchDate(a.date)-matchDate(b.date))||a.id-b.id);
+  const lastDay=playedChrono.length?playedChrono[playedChrono.length-1].date:null;
+  const prevIds=playedChrono.filter(m=>m.date!==lastDay).map(m=>m.id);
+  const curRank=rankMap(sc),prevRank=rankMap(scoresUpTo(prevIds));
+  const moveOf=p=>prevIds.length?prevRank[p]-curRank[p]:null; // +N = monté de N places depuis la journée précédente
+  const formMatches=playedChrono.slice(-5);
+  const formOf=pi=>formMatches.map(m=>{const pk=(votes[m.id]||[])[pi];if(!pk)return'n';return pk===results[m.id]?'w':'l';});
+
+  // Podium top 3
+  const podium=total>0?(()=>{
+    const cells=[1,0,2].map(rk=>{ // ordre visuel : 2e · 1er · 3e
+      const p=sorted[rk];if(!p)return `<div class="pod pod-${rk+1}"></div>`;
+      const medal=(sc[p]||0)===minPts?'🍺':MEDALS[rk];
+      return `<div class="pod pod-${rk+1}" style="${pronostiqueurStatStyle(p)}"><span class="pod-medal">${medal}</span><span class="pod-name">${p}</span><span class="pod-pts"><b>${sc[p]||0}</b>pts</span><div class="pod-block">${rk+1}</div></div>`;
+    }).join('');
+    return `<div class="podium">${cells}</div>`;
+  })():'';
+
+  const pCards=sorted.map((p,i)=>{
+    const pi=PARTICIPANTS.indexOf(p),pts=sc[p]||0;
+    const mv=moveOf(p);
+    const moveBadge=mv==null?'':(mv>0?`<span class="rmove up">▲${mv}</span>`:mv<0?`<span class="rmove down">▼${-mv}</span>`:`<span class="rmove flat">—</span>`);
+    const gapLead=(sc[sorted[0]]||0)-pts,gapPrev=i>0?((sc[sorted[i-1]]||0)-pts):0;
+    const gapHtml=i===0
+      ?`<span class="rgap"><span class="lead">● en tête</span></span>`
+      :`<span class="rgap">−<b>${gapLead}</b> leader · ${gapPrev>0?`−<b>${gapPrev}</b> devant`:'ex æquo'}</span>`;
+    const dots=formOf(pi).map(s=>`<span class="rdot ${s}"></span>`).join('');
+    const formHtml=formMatches.length?`<div class="rform"><span class="rform-lbl">Forme</span><div class="rform-dots">${dots}</div></div>`:'';
+    const metaHtml=total>0?`<div class="rmeta">${gapHtml}${formHtml}</div>`:'';
+    return `<div class="rcard ${i===0&&pts>0?'gold':''}" style="${pronostiqueurStatStyle(p)}"><div class="rtop"><span class="rmedal ${medals[i]==='🍺'?'txt':''}">${medals[i]}</span><span class="rname player">${p}</span>${moveBadge}<span class="rscore">${pts}<span class="runit">pts</span></span></div>${metaHtml}<div class="rbars"><div class="brow"><span class="blabel">Bons pronos</span><div class="btrack"><div class="bfill player" style="width:${max>0?(pts/max*100):0}%"></div></div><span class="bval">${pts}/${total}</span></div><div class="brow"><span class="blabel">Réussite</span><div class="btrack"><div class="bfill neutral player" style="width:${total>0?(pts/total*100):0}%"></div></div><span class="bval">${total>0?Math.round((pts/total)*100)+'%':'—'}</span></div></div></div>`;
+  }).join('');
+
   const aperoNames=lastPlayers.map(p=>`<span class="apero-name" style="color:${themeForPronostiqueur(p).accent}">${p}</span>`).join(' &amp; ');
   const aperoVerb=lastPlayers.length>1?'offrent conjointement':'offre';
-  return `<div class="slabel"><span class="slabel-text">Classement pronos</span><span class="slabel-line"></span><span class="slabel-count">${total} joués</span></div>${pCards}${total>0?`<div class="apero"><span class="apero-ico">🍻</span><div class="apero-txt"><b>Clause Apéro —</b> à ce stade, ${aperoNames} ${aperoVerb} l'apéro à la fin du tournoi.</div></div>`:''}<div style="height:16px"></div>`;
+  return `<div class="slabel"><span class="slabel-text">Classement pronos</span><span class="slabel-line"></span><span class="slabel-count">${total} joués</span></div>${podium}${pCards}${total>0?`<div class="apero"><span class="apero-ico">🍻</span><div class="apero-txt"><b>Clause Apéro —</b> à ce stade, ${aperoNames} ${aperoVerb} l'apéro à la fin du tournoi.</div></div>`:''}<div style="height:16px"></div>`;
 }
 function renderCompetition(){
   const sc=computeScores();

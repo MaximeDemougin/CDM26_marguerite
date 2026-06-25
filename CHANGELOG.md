@@ -15,6 +15,13 @@
 
 ### Bracket
 - **Meilleurs 3es enfin placés** : les slots type `3BEFIJ` restaient parfois affichés en code brut. L'ancienne affectation gloutonne se coinçait dès que les groupes autorisés se chevauchaient (elle échouait sur **80 % des combinaisons** possibles !). Remplacée par un vrai couplage biparti complet → les 8 troisièmes sont toujours répartis correctement.
+- **Règles vérifiées** : tableau des 16es, slots de 3es et départages de groupe contrôlés contre les sources FIFA officielles. Tout conforme (le départage 2026 priorise bien le head-to-head avant la diff générale).
+
+### Onglet Classement
+- **Podium top 3** : bloc visuel or/argent/bronze (hauteurs différentes) en tête de l'onglet.
+- **Mouvement de rang** : flèches ▲▼ sur chaque carte — progression depuis la journée précédente.
+- **Écarts chiffrés** : retard sur le leader + écart avec le joueur juste devant, sur chaque carte.
+- **Forme récente** : pastilles vert/rouge des 5 derniers pronos de chaque joueur.
 
 ---
 
