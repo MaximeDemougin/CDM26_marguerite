@@ -24,7 +24,7 @@
 - **Teal vif** : `--wc-teal` passe de #007A5E à #00B2A9 (couleur officielle).
 
 ### Onglet Classement
-- **Podium top 3** : blocs **sombres** (raccord avec la carte tournée noire) à cercle de rang coloré (magenta/teal/orange), liseré couleur joueur en haut, or pour le champion ; estrade en bandes nettes CDM sous les marches.
+- **Podium top 3** : blocs **sombres métallisés** or / argent / bronze selon le rang (raccord avec la carte tournée noire), cercle de rang coloré (magenta/teal/orange) ; estrade en bandes nettes CDM sous les marches.
 - **Carte « tournée »** : remplace la bannière apéro par un affichage fun, **fond noir stylé** — chope 🍺 animée + halo doré, nom du payeur en couleur, message « ça peut encore tourner ! ». Placée juste sous le podium.
 - **Départage par le risque** : les ex æquo impactent désormais le podium et le classement — à points égaux, la **cote moyenne la plus élevée** (le plus de risque pris) passe devant. Annotation « ex æquo · cote X.XX » sur les cartes concernées. Le payeur de tournée est départagé pareil (le moins risqué paie ; sans cotes dispo, les derniers partagent).
 - **Mouvement de rang** : flèches ▲▼ sur chaque carte — progression depuis la journée précédente.
