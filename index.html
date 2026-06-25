@@ -927,7 +927,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
           <div class="subtitle" id="who-subtitle">Choisis qui tu es pour pronostiquer&nbsp;:</div>
         </div>
       </div>
-      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.22</span></div>
+      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.23</span></div>
     </div>
     <div class="who" id="who"></div>
   </div>
@@ -1618,7 +1618,8 @@ function renderClassement(sc){
 
   const beerNames=lastPlayers.map(p=>`<span style="color:${themeForPronostiqueur(p).accent};font-weight:900">${p}</span>`).join(' &amp; ');
   const beerVerb=lastPlayers.length>1?'paient':'paie';
-  return `<div class="slabel"><span class="slabel-text">Classement pronos</span><span class="slabel-line"></span><span class="slabel-count">${total} joués</span></div>${podium}${pCards}${total>0?`<div class="beer-card"><span class="beer-emoji">🍺</span><div class="beer-body"><div class="beer-kicker">À ce stade…</div><div class="beer-headline">${beerNames} ${beerVerb} la tournée 🍻</div><div class="beer-foot">Bon dernier au classement — mais rien n'est joué, ça peut encore tourner !</div></div></div>`:''}<div style="height:16px"></div>`;
+  const beerCard=total>0?`<div class="beer-card"><span class="beer-emoji">🍺</span><div class="beer-body"><div class="beer-kicker">À ce stade…</div><div class="beer-headline">${beerNames} ${beerVerb} la tournée 🍻</div><div class="beer-foot">Bon dernier au classement — mais rien n'est joué, ça peut encore tourner !</div></div></div>`:'';
+  return `<div class="slabel"><span class="slabel-text">Classement pronos</span><span class="slabel-line"></span><span class="slabel-count">${total} joués</span></div>${podium}${beerCard}${pCards}<div style="height:16px"></div>`;
 }
 function renderCompetition(){
   const sc=computeScores();
