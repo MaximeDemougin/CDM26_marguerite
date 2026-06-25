@@ -879,7 +879,7 @@ html::after{right:0;animation-delay:-12s;mask-image:linear-gradient(270deg,black
           <div class="subtitle" id="who-subtitle">Choisis qui tu es pour pronostiquer&nbsp;:</div>
         </div>
       </div>
-      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.13</span></div>
+      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.14</span></div>
     </div>
     <div class="who" id="who"></div>
   </div>
@@ -1449,7 +1449,7 @@ function evoHover(e,svg){
   let html=`<div style="font-weight:700;color:var(--ink);font-size:12px">${m.id}</div><div style="color:var(--dim);font-size:10px;margin-bottom:7px">${m.e1} · ${m.e2}</div>`;
   [...names].sort((a,b)=>series[names.indexOf(b)][idx]-series[names.indexOf(a)][idx]).forEach(name=>{
     const i=names.indexOf(name);const val=series[i][idx];
-    const valStr=mode==='fin'?`${val>=0?'+':''}${val.toFixed(1)} €`:String(val);
+    const valStr=mode==='fin'?`${val>=0?'+':''}${val.toFixed(2)} €`:String(val);
     html+=`<div style="display:flex;align-items:center;gap:7px;margin-top:4px"><span style="width:8px;height:8px;border-radius:50%;background:${colors[i]};flex-shrink:0"></span><span style="color:var(--dim)">${name}</span><span style="margin-left:auto;font-weight:700;color:${colors[i]};padding-left:12px">${valStr}</span></div>`;
   });
   tt.innerHTML=html;
@@ -1478,7 +1478,7 @@ window.evoSetMode=function(btn){
   const names=JSON.parse(svg.dataset.names);
   const colors=JSON.parse(svg.dataset.colors);
   const last=series[0].length-1;
-  legendEl.innerHTML=names.map((p,i)=>{const col=colors[i];const val=series[i][last];const valStr=mode==='fin'?`${val>=0?'+':''}${val.toFixed(1)} €`:String(val);return `<div style="display:flex;align-items:center;gap:6px"><span style="width:20px;height:3px;border-radius:2px;background:${col};flex-shrink:0;display:inline-block"></span><span style="font-size:11px;color:var(--dim)">${p}</span><span style="font-size:11px;font-weight:700;color:${col}">${valStr}</span></div>`;}).join('');
+  legendEl.innerHTML=names.map((p,i)=>{const col=colors[i];const val=series[i][last];const valStr=mode==='fin'?`${val>=0?'+':''}${val.toFixed(2)} €`:String(val);return `<div style="display:flex;align-items:center;gap:6px"><span style="width:20px;height:3px;border-radius:2px;background:${col};flex-shrink:0;display:inline-block"></span><span style="font-size:11px;color:var(--dim)">${p}</span><span style="font-size:11px;font-weight:700;color:${col}">${valStr}</span></div>`;}).join('');
 };
 function finHover(e,svg){
   const n=+svg.dataset.n,FW=+svg.dataset.fw,FH=+svg.dataset.fh,fpx=+svg.dataset.fpx;
@@ -1787,20 +1787,20 @@ function renderStatsRich(sc){
     endPts.forEach(pt=>{pt.labelY=pt.rawY;});
     for(let k=1;k<endPts.length;k++){if(endPts[k].labelY<endPts[k-1].labelY+17)endPts[k].labelY=endPts[k-1].labelY+17;}
     const edots=endPts.map(pt=>`<circle cx="${esx(en-1).toFixed(1)}" cy="${pt.rawY.toFixed(1)}" r="5.5" fill="${pt.col}" stroke="#fff" stroke-width="2.5"/><text x="${(EW-epR+10).toFixed(1)}" y="${pt.labelY.toFixed(1)}" dy="4" fill="${pt.col}" font-size="12" font-weight="700" font-family="system-ui,-apple-system,sans-serif">${pt.p} ${pt.val}</text>`).join('');
-    // Financial series — chaque joueur parie 4€ sur son propre pick aux cotes marché
-    const finSeries=PARTICIPANTS.map((p,pi)=>{let c=0;return[0,...evoPlayed.map(m=>{const r=results[m.id];const pk=(votes[m.id]||[])[pi];if(!r||!pk)return c;const mo=marketOddsMap[m.id];let cote=null;if(mo){if(pk==='1')cote=Number(mo.c1);else if(pk==='2')cote=Number(mo.c2);else if(pk==='N')cote=Number(mo.cn);}if(cote==null||!Number.isFinite(cote)||cote<=0)return c;c+=pk===r?4*cote-4:-4;return c;})];});
+    // Financial series — chaque joueur mise 1€ sur son propre pick aux cotes marché
+    const finSeries=PARTICIPANTS.map((p,pi)=>{let c=0;return[0,...evoPlayed.map(m=>{const r=results[m.id];const pk=(votes[m.id]||[])[pi];if(!r||!pk)return c;const mo=marketOddsMap[m.id];let cote=null;if(mo){if(pk==='1')cote=Number(mo.c1);else if(pk==='2')cote=Number(mo.c2);else if(pk==='N')cote=Number(mo.cn);}if(cote==null||!Number.isFinite(cote)||cote<=0)return c;c+=pk===r?cote-1:-1;return c;})];});
     const finMin=Math.min(0,...finSeries.flat());
     const finMax=Math.max(0,...finSeries.flat(),1);
     const esyFin=v=>EH-epb-((v-finMin)/Math.max(finMax-finMin,0.01))*(EH-ept-epb);
     const finRange=finMax-finMin;
-    const finStep=finRange<=5?1:finRange<=10?2:finRange<=20?4:finRange<=50?10:20;
+    const finStep=finRange<=2?0.5:finRange<=5?1:finRange<=10?2:finRange<=20?4:finRange<=50?10:20;
     let gridSvgFin=`<line x1="${epx}" y1="${esyFin(0).toFixed(1)}" x2="${EW-epR}" y2="${esyFin(0).toFixed(1)}" stroke="rgba(30,45,140,.18)" stroke-width="1" stroke-dasharray="4,3"/>`;
-    for(let v=Math.ceil(finMin/finStep)*finStep;v<=finMax;v+=finStep){if(Math.abs(v)<0.01)continue;const gy=esyFin(v).toFixed(1);const lbl=`${v>0?'+':''}${v}€`;gridSvgFin+=`<line x1="${epx}" y1="${gy}" x2="${EW-epR}" y2="${gy}" stroke="rgba(30,45,140,.07)" stroke-width="1"/><text x="${(epx-5).toFixed(1)}" y="${gy}" dy="3.5" fill="#c0c8d8" font-size="11" text-anchor="end" font-family="system-ui,-apple-system,sans-serif">${lbl}</text>`;}
+    for(let v=Math.ceil(finMin/finStep)*finStep;v<=finMax;v+=finStep){if(Math.abs(v)<0.01)continue;const gy=esyFin(v).toFixed(1);const lbl=`${v>0?'+':''}${Number(v.toFixed(2))}€`;gridSvgFin+=`<line x1="${epx}" y1="${gy}" x2="${EW-epR}" y2="${gy}" stroke="rgba(30,45,140,.07)" stroke-width="1"/><text x="${(epx-5).toFixed(1)}" y="${gy}" dy="3.5" fill="#c0c8d8" font-size="11" text-anchor="end" font-family="system-ui,-apple-system,sans-serif">${lbl}</text>`;}
     const finLines=PARTICIPANTS.map((p,i)=>{const col=themeForPronostiqueur(p).accent;return `<path d="${makeSmoothD(finSeries[i],esyFin)}" fill="none" stroke="${col}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;}).join('');
     const finEndPts=PARTICIPANTS.map((p,i)=>({p,i,col:themeForPronostiqueur(p).accent,val:finSeries[i][en-1],rawY:esyFin(finSeries[i][en-1])})).sort((a,b)=>a.rawY-b.rawY);
     finEndPts.forEach(pt=>{pt.labelY=pt.rawY;});
     for(let k=1;k<finEndPts.length;k++){if(finEndPts[k].labelY<finEndPts[k-1].labelY+17)finEndPts[k].labelY=finEndPts[k-1].labelY+17;}
-    const finEdots=finEndPts.map(pt=>{const v=pt.val;const valStr=`${v>=0?'+':''}${v.toFixed(1)}€`;return `<circle cx="${esx(en-1).toFixed(1)}" cy="${pt.rawY.toFixed(1)}" r="5.5" fill="${pt.col}" stroke="#fff" stroke-width="2.5"/><text x="${(EW-epR+10).toFixed(1)}" y="${pt.labelY.toFixed(1)}" dy="4" fill="${pt.col}" font-size="12" font-weight="700" font-family="system-ui,-apple-system,sans-serif">${pt.p} ${valStr}</text>`;}).join('');
+    const finEdots=finEndPts.map(pt=>{const v=pt.val;const valStr=`${v>=0?'+':''}${v.toFixed(2)}€`;return `<circle cx="${esx(en-1).toFixed(1)}" cy="${pt.rawY.toFixed(1)}" r="5.5" fill="${pt.col}" stroke="#fff" stroke-width="2.5"/><text x="${(EW-epR+10).toFixed(1)}" y="${pt.labelY.toFixed(1)}" dy="4" fill="${pt.col}" font-size="12" font-weight="700" font-family="system-ui,-apple-system,sans-serif">${pt.p} ${valStr}</text>`;}).join('');
     // Crosshair + legends
     const crosshair=`<line class="evo-ch" x1="0" y1="${ept}" x2="0" y2="${EH-epb}" stroke="rgba(30,45,140,.2)" stroke-width="1.5" stroke-dasharray="5,3" display="none"/>`;
     const esc=s=>JSON.stringify(s).replace(/'/g,"&#39;");

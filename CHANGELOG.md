@@ -4,6 +4,17 @@
 
 ---
 
+## [2026-06-25] — Calendrier dynamique & finance par tête 🗓️
+
+### Calendrier
+- **Groupe J réparé** : la 3e journée affichait les mêmes duels que la 1re (Algérie–Argentine / Jordanie–Autriche en miroir, impossible en poule de 4). Remis d'équerre → **Algérie–Autriche** & **Jordanie–Argentine**. C'est d'ailleurs ce que l'actualisateur de cotes essayait de nous dire.
+- **Fini le calendrier en dur** : l'appli lit maintenant les équipes, dates et groupes depuis Supabase. Le code se contente de semer/réparer les champs statiques au chargement (les scores ne sont jamais écrasés). Corrige un match en base → l'appli suit au refresh suivant.
+
+### Finance
+- **Mise rationalisée à 1 €** : la courbe « Bilan financier individuel » passe d'une mise de 4 € à **1 € par pari**. Échelle plus fine, affichage aux centimes (±X.XX €).
+
+---
+
 ## [2026-06-23] — Prol/TAB, stats risque, affichage clean 🎯
 
 ### KO Prolongations / Tirs au but
