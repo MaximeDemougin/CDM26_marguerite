@@ -1227,13 +1227,29 @@ function getMajority(mv,sc,id){const w=majorityCandidates(mv);if(!w.length)retur
 
 function centerCompetitionBracket(){const b=document.querySelector('.bracket-wrap');if(!b)return;b.scrollLeft=Math.max(0,Math.round((b.scrollWidth-b.clientWidth)/2));}
 function render(){renderWho();const sc=computeScores();renderBoard(sc);renderContent(sc);if(tab==="competition")requestAnimationFrame(centerCompetitionBracket);lastDataSig=dataSignature();}
+// Transplante les <img> drapeaux déjà décodés de l'ancienne carte vers la
+// nouvelle (appariés par src) : évite que les drapeaux « clignotent » en se
+// rechargeant lors du remplacement de la carte.
+function reuseFlagImages(oldEl,newEl){
+  const pool=new Map();
+  oldEl.querySelectorAll("img").forEach(img=>{const k=img.currentSrc||img.src;if(!pool.has(k))pool.set(k,[]);pool.get(k).push(img);});
+  newEl.querySelectorAll("img").forEach(img=>{const q=pool.get(img.src);if(q&&q.length)img.replaceWith(q.shift());});
+}
+// Met à jour UNE carte sans reconstruire la liste : remplace seulement la carte
+// concernée, en réutilisant les drapeaux (anti-flash) et en figeant la position
+// de scroll (anti-saut).
 function updateMatchCard(id){
   const el=document.getElementById("match-"+id);
   const m=ALL.find(x=>x.id===id);
   if(!el||!m||tab!=="matchs"){render();return;}
+  const c=document.getElementById("content");
+  const y=c?c.scrollTop:0;
   const tmp=document.createElement("div");
   tmp.innerHTML=matchCard(m,computeScores());
-  el.replaceWith(tmp.firstElementChild);
+  const fresh=tmp.firstElementChild;
+  reuseFlagImages(el,fresh);
+  el.replaceWith(fresh);
+  if(c)c.scrollTop=y;
   lastDataSig=dataSignature();
 }
 const WC26_PALETTE=["#5B2D8C","#D7282F","#FF5A1E","#A4D233","#2D5CE6","#B79CE4","#F8A29A","#63E0BE"];
@@ -2318,8 +2334,7 @@ window.setCoteDraft=function(id,val,el){
   localStorage.setItem("cdm26_cotes",JSON.stringify(coteMap));
   if(el&&el.value!==cleaned)el.value=cleaned;
   if(tab==="matchs"){
-    renderMatchsOnly();
-    if(!el){requestAnimationFrame(()=>{const inp=document.querySelector(`#match-${id} .odds-in`);if(inp)inp.scrollIntoView({block:"nearest",behavior:"smooth"});});}
+    updateMatchCard(id);
   }else render();
   setSync("busy");
   saveCoteDb(id,cleaned).then(()=>{setSync("ok");showBanner(null);}).catch(e=>{setSync("off");showBanner("Échec de l'enregistrement — base injoignable.");console.error(e);});
@@ -2357,7 +2372,7 @@ window.toggleBetPlaced=function(id){
   placedBetMap[id]=!placedBetMap[id];
   if(!placedBetMap[id])delete placedBetMap[id];
   localStorage.setItem("cdm26_paris_places",JSON.stringify(placedBetMap));
-  if(tab==="matchs")renderMatchsOnly();
+  if(tab==="matchs")updateMatchCard(id);
   else render();
   setSync("busy");
   saveBetPlacedDb(id,!!placedBetMap[id]).then(()=>{setSync("ok");showBanner(null);}).catch(e=>{setSync("off");showBanner("Échec de l'enregistrement — base injoignable.");console.error(e);});
@@ -2397,7 +2412,7 @@ window.setTieDecision=async function(id,v){
   if(tieChoiceMap[id]===v)delete tieChoiceMap[id];
   else tieChoiceMap[id]=v;
   localStorage.setItem("cdm26_tie_choices",JSON.stringify(tieChoiceMap));
-  if(tab==="matchs")renderMatchsOnly();else render();
+  if(tab==="matchs")updateMatchCard(id);else render();
   setSync("busy");
   try{await saveTieChoiceDb(id,tieChoiceMap[id]||null);setSync("ok");showBanner(null);}catch(e){setSync("off");showBanner("Échec de l'enregistrement — base injoignable.");console.error(e);}
 };
