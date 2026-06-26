@@ -1263,8 +1263,19 @@ function updateMatchCard(id){
   if(el.className!==fresh.className)el.className=fresh.className;
   const fs=fresh.getAttribute("style")||"";
   if((el.getAttribute("style")||"")!==fs)el.setAttribute("style",fs);
+  // Le bouton cliqué est détruit ici : on enlève d'abord le focus pour que le
+  // navigateur ne tente pas de « ramener le focus en vue » (cause du scroll
+  // vers le haut au 1er clic).
+  const ae=document.activeElement;
+  if(ae&&ae!==document.body&&el.contains(ae)&&typeof ae.blur==="function")ae.blur();
   el.replaceChildren(...fresh.childNodes);
-  if(c)c.scrollTop=y;
+  // Pin de la position : synchrone PUIS re-pin avant le prochain paint, pour
+  // écraser tout réajustement asynchrone du navigateur (scroll anchoring /
+  // focus) qui survient à la frame suivante.
+  if(c){
+    c.scrollTop=y;
+    requestAnimationFrame(()=>{if(c.scrollTop!==y)c.scrollTop=y;});
+  }
   lastDataSig=dataSignature();
 }
 const WC26_PALETTE=["#5B2D8C","#D7282F","#FF5A1E","#A4D233","#2D5CE6","#B79CE4","#F8A29A","#63E0BE"];
