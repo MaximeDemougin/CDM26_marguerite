@@ -1106,7 +1106,16 @@ function isPastDay(d){const dt=matchDate(d);const today=new Date();today.setHour
 let openDays={};       // clé = libellé du jour -> true si déplié
 let collapseInit=false;
 let lastDataSig="";    // signature des données affichées : évite de reconstruire la liste (et le micro-scroll) quand rien n'a changé
-function dataSignature(){try{return JSON.stringify([votes,results,scoreMap,coteMap,marketOddsMap,placedBetMap,tieChoiceMap,customColorMap,contractSignatures]);}catch(e){return String(Math.random());}}
+// Sérialisation STABLE (clés triées) : l'ordre des lignes renvoyées par Supabase
+// n'est pas garanti, donc un JSON.stringify naïf changeait de signature à chaque
+// rechargement même sans changement réel -> l'écho temps réel de notre propre
+// écriture provoquait un rebuild complet intermittent (effet « capricieux »).
+function stableStringify(o){
+  if(o===null||typeof o!=="object")return JSON.stringify(o);
+  if(Array.isArray(o))return "["+o.map(stableStringify).join(",")+"]";
+  return "{"+Object.keys(o).sort().map(k=>JSON.stringify(k)+":"+stableStringify(o[k])).join(",")+"}";
+}
+function dataSignature(){try{return stableStringify([votes,results,scoreMap,coteMap,marketOddsMap,placedBetMap,tieChoiceMap,customColorMap,contractSignatures]);}catch(e){return String(Math.random());}}
 let filterDate="Toutes"; // filtre par date (jj/mm) ou "Toutes"
 let autoCollapsed={};    // journées déjà repliées automatiquement (une seule fois)
 const PRONOSTIQUEUR_THEMES={
