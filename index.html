@@ -1248,7 +1248,13 @@ function updateMatchCard(id){
   tmp.innerHTML=matchCard(m,computeScores());
   const fresh=tmp.firstElementChild;
   reuseFlagImages(el,fresh);
-  el.replaceWith(fresh);
+  // Mise à jour EN PLACE : on garde l'élément carte (son fond dégradé + ses
+  // ombres ne sont pas repeints), on ne remplace que ses classes et ses
+  // enfants -> évite le micro-repaint du cadre au clic.
+  if(el.className!==fresh.className)el.className=fresh.className;
+  const fs=fresh.getAttribute("style")||"";
+  if((el.getAttribute("style")||"")!==fs)el.setAttribute("style",fs);
+  el.replaceChildren(...fresh.childNodes);
   if(c)c.scrollTop=y;
   lastDataSig=dataSignature();
 }
