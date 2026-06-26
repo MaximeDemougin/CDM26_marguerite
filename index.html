@@ -1374,6 +1374,35 @@ function currentMatches(){
   }
   return {matches,dates};
 }
+// Phase (chip) à laquelle appartient un match : "Groupes" ou un tour à élimination directe.
+// La petite finale ("3ème place") n'a pas de chip dédié -> on la rattache à "FINALE".
+function chipPhaseForMatch(m){
+  if(m.g)return "Groupes";
+  return m.t==="3ème place"?"FINALE":m.t;
+}
+// Journée cible au lancement : la 1re journée pas encore passée dont au moins un match
+// n'a pas de résultat ; à défaut (tournoi fini) la dernière journée avec un match restant,
+// sinon la toute dernière. Renvoie {lbl, match} ou null.
+function pickInitialDay(){
+  const byDay={};const order=[];
+  ALL.forEach(m=>{const l=dayLabel(m.date);if(!byDay[l]){byDay[l]=[];order.push(l);}byDay[l].push(m);});
+  let target=order.find(l=>!isPastDay(byDay[l][0].date)&&!byDay[l].every(m=>results[m.id]));
+  if(!target)target=order.find(l=>byDay[l].some(m=>!results[m.id]))||order[order.length-1];
+  return target?{lbl:target,match:byDay[target][0]}:null;
+}
+// Place la zone scrollable des matchs sur la journée demandée (sous les filtres).
+// Scroll synchrone (le DOM est déjà posé par render) + relance différée au cas où
+// la mise en page bouge encore (chargement des polices / drapeaux).
+function scrollToDay(lbl){
+  if(tab!=="matchs")return;
+  const go=()=>{
+    const c=document.getElementById("content");if(!c)return;
+    const el=c.querySelector('.day[data-day="'+String(lbl).replace(/"/g,'\\"')+'"]');
+    if(el)c.scrollTop=Math.max(0,el.offsetTop-c.offsetTop-12);
+  };
+  go();
+  setTimeout(go,60);
+}
 function renderMatchs(sc){
   const phases=["Groupes","1/16","1/8","Quart","Demi","FINALE"];
   const {matches,dates}=currentMatches();
@@ -1412,7 +1441,7 @@ function matchListHtml(sc,matches){
     const done=dayMatches.filter(m=>results[m.id]).length;
     const allDone=done===dayMatches.length;
     const open=!!openDays[lbl];
-    html+=`<button class="day ${open?'open':''} ${allDone?'finished':''}" onclick="toggleDay('${lbl.replace(/'/g,"\\'")}')">
+    html+=`<button class="day ${open?'open':''} ${allDone?'finished':''}" data-day="${lbl.replace(/"/g,"&quot;")}" onclick="toggleDay('${lbl.replace(/'/g,"\\'")}')">
       <span class="day-chev">▶</span>
       <span class="day-name">${lbl}</span>
       <span class="day-meta">
@@ -2458,23 +2487,21 @@ async function softRefresh(){
 async function refresh(){
   await loadAll();
   applyPronostiqueurTheme(me);
+  let scrollTarget=null;
   if(!collapseInit){
     collapseInit=true;
-    // On regroupe tous les matchs (groupes + finales) par jour, dans l'ordre chrono
-    const byDay={};const order=[];
-    ALL.forEach(m=>{const l=dayLabel(m.date);if(!byDay[l]){byDay[l]=[];order.push(l);}byDay[l].push(m);});
-    // Journée cible : la 1re qui n'est PAS passée et dont au moins un match n'a pas de résultat.
-    // À défaut (tournoi fini), on ouvre la dernière journée.
-    let target=order.find(l=>{
-      const ms=byDay[l];
-      const past=isPastDay(ms[0].date);
-      const allDone=ms.every(m=>results[m.id]);
-      return !past && !allDone;
-    });
-    if(!target) target=order.find(l=>byDay[l].some(m=>!results[m.id]))||order[order.length-1];
-    if(target)openDays[target]=true;
+    const target=pickInitialDay();
+    if(target){
+      openDays[target.lbl]=true;
+      // Cale la page Matchs sur la phase de la journée cible (groupes ou tour à élim.)
+      const ph=chipPhaseForMatch(target.match);
+      filterPhase=ph;
+      if(ph==="Groupes")filterGroupe="Tous";
+      scrollTarget=target.lbl;
+    }
   }
   render();
+  if(scrollTarget)scrollToDay(scrollTarget);
 }
 
 // ── Temps réel : on écoute les changements et on rafraîchit aussitôt ──
