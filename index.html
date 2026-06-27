@@ -2558,29 +2558,6 @@ applyPronostiqueurTheme(me);
 refresh();
 subscribeRealtime();
 setInterval(softRefresh,20000); // filet de sécurité si le temps réel se coupe (ne reconstruit que si les données ont changé)
-
-// ===== DIAG SCROLL (temporaire — à retirer) =====
-(function(){
-  function start(){
-    const c=document.getElementById('content');
-    if(!c){return setTimeout(start,200);}
-    const box=document.createElement('div');
-    box.style.cssText='position:fixed;left:4px;bottom:64px;z-index:99999;background:rgba(0,0,0,.88);color:#0f0;font:10px/1.35 monospace;padding:6px 8px;max-width:96vw;white-space:pre-wrap;border-radius:6px;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.4)';
-    document.body.appendChild(box);
-    const lines=[];
-    const push=s=>{lines.unshift(s);if(lines.length>9)lines.pop();box.textContent=lines.join('\n');};
-    // 1) intercepte les écritures JS de scrollTop (qui font baisser le scroll)
-    const d=Object.getOwnPropertyDescriptor(Element.prototype,'scrollTop');
-    try{Object.defineProperty(c,'scrollTop',{configurable:true,
-      get(){return d.get.call(this);},
-      set(v){const from=d.get.call(this);if(v<from-120){const st=(new Error().stack||'').split('\n').slice(2,4).map(s=>s.trim().replace(/^at\s*/,'')).join(' < ');push('JS '+Math.round(from)+'→'+Math.round(v)+'  '+st);}d.set.call(this,v);}});}catch(e){push('patch fail '+e.message);}
-    // 2) observe tous les sauts vers le haut (JS ou navigateur)
-    let last=d.get.call(c);
-    c.addEventListener('scroll',()=>{const now=d.get.call(c);if(now<last-120)push('SCROLL '+Math.round(last)+'→'+Math.round(now)+(now<5?'  (=HAUT)':''));last=now;},{passive:true});
-    push('diag actif — clique et lis ici');
-  }
-  start();
-})();
 </script>
 </body>
 </html>
