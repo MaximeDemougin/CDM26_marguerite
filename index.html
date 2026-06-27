@@ -1256,7 +1256,10 @@ function reuseFlagImages(oldEl,newEl){
 // de scroll (anti-saut).
 function updateMatchCard(id){
   const el=document.getElementById("match-"+id);
-  const m=ALL.find(x=>x.id===id);
+  // On prend l'équipe telle qu'affichée dans la liste (projection résolue pour les
+  // phases finales) plutôt que le libellé brut de ALL ("2e Gr.A"), sinon voter
+  // ferait revenir des placeholders à la place des équipes qualifiées.
+  const m=currentMatches().matches.find(x=>x.id===id)||ALL.find(x=>x.id===id);
   if(!el||!m||tab!=="matchs"){render();return;}
   const c=document.getElementById("content");
   const y=c?c.scrollTop:0;
@@ -1504,13 +1507,25 @@ function matchListHtml(sc,matches){
   });
   return html;
 }
+// Libellé court pour les boutons de vote. Pour une vraie équipe on garde le 1er mot ;
+// pour un placeholder de phase finale on évite l'ambiguïté ("2e Gr.A" et "2e Gr.B"
+// donnaient tous deux "2e") en gardant de quoi distinguer (groupe, n° de match…).
+function shortLabel(n){
+  if(FLAGS[n])return n.split(' ')[0];
+  let mm;
+  if(mm=n.match(/^(\d+(?:er|e)) Gr\.([A-L])$/))return mm[1]+' '+mm[2];     // "2e Gr.A" -> "2e A"
+  if(/^3[A-L]+$/.test(n))return '3e';                                       // "3CDFGH" -> "3e"
+  if(n.startsWith('V.M'))return n;                                          // "V.M74"
+  if(n.startsWith('Perdant M'))return 'P.M'+n.replace(/\D/g,'');            // "Perdant M101" -> "P.M101"
+  return n.split(' ')[0];
+}
 function matchCard(m,sc){
   const mv=votes[m.id]||[null,null,null,null];
   const tieOptions=majorityCandidates(mv);
   const maj=getMajority(mv,sc,m.id),real=results[m.id];
   const placed=betPlaced(m.id);
   const hasTie=tieOptions.length>1;
-  const s1=m.e1.split(' ')[0],s2=m.e2.split(' ')[0];
+  const s1=shortLabel(m.e1),s2=shortLabel(m.e2);
   const i1=flagImg(m.e1),i2=flagImg(m.e2),i1s=flagImg(m.e1,"flag-sm"),i2s=flagImg(m.e2,"flag-sm");
   const s1h=`<span class="with-flag">${i1s}<span>${s1}</span></span>`,s2h=`<span class="with-flag">${i2s}<span>${s2}</span></span>`;
   const choiceLabel=v=>v==="1"?`<span class="with-flag">${i1s}<span>${m.e1}</span></span>`:v==="2"?`<span class="with-flag">${i2s}<span>${m.e2}</span></span>`:"Match nul";
