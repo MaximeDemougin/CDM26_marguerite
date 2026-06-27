@@ -1087,6 +1087,7 @@ let contractSignatures={};
 const FIFA_RANKS={"Argentine":1,"Espagne":2,"France":3,"Angleterre":4,"Portugal":5,"Brésil":6,"Maroc":7,"Pays-Bas":8,"Belgique":9,"Allemagne":10,"Croatie":11,"Colombie":13,"Mexique":14,"Sénégal":15,"Uruguay":16,"États-Unis":17,"Japon":18,"Suisse":19,"Iran":20,"Turquie":22,"Équateur":23,"Autriche":24,"Corée du Sud":25,"Australie":27,"Algérie":28,"Égypte":29,"Canada":30,"Norvège":31,"Côte d'Ivoire":33,"Panama":34,"Suède":38,"Rép. tchèque":40,"Paraguay":41,"Écosse":42,"Tunisie":45,"RD Congo":46,"Ouzbékistan":50,"Qatar":56,"Irak":57,"Afrique du Sud":60,"Arabie saoudite":61,"Jordanie":63,"Bosnie-Herzég.":64,"Cap-Vert":67,"Ghana":73,"Curaçao":82,"Haïti":83,"Nouvelle-Zélande":85};
 let scoreSaveTimers={};
 let koScoreTimers={};
+let scoreEditTs={};   // horodatage de la dernière frappe de score par match -> protège la saisie en cours d'un écrasement par loadAll (temps réel)
 let matchsSeeded=false;
 try{coteMap=JSON.parse(localStorage.getItem("cdm26_cotes")||"{}");}catch{coteMap={};}
 try{placedBetMap=JSON.parse(localStorage.getItem("cdm26_paris_places")||"{}");}catch{placedBetMap={};}
@@ -1215,8 +1216,14 @@ async function loadAll(){
     localStorage.setItem("cdm26_ko_winners",JSON.stringify(koWinnerMap));
     localStorage.setItem("cdm26_custom_colors",JSON.stringify(customColorMap));
     localStorage.setItem("cdm26_contract_signatures",JSON.stringify(contractSignatures));
+    // Conserve les scores en cours de saisie (frappe < 4 s, sauvegarde pas encore
+    // partie) pour qu'un rafraîchissement temps réel ne les efface pas.
+    const _nowTs=Date.now();
+    const _keepDrafts={};
+    Object.keys(scoreEditTs).forEach(k=>{if(_nowTs-scoreEditTs[k]<4000&&scoreMap[k])_keepDrafts[k]=scoreMap[k];});
     results={};scoreMap={};
     ma.data.forEach(row=>{const s1=row.score_dom==null?"":String(row.score_dom),s2=row.score_ext==null?"":String(row.score_ext);scoreMap[row.id]={s1,s2};results[row.id]=winnerFromScore(s1,s2)||row.resultat||null;});
+    Object.keys(_keepDrafts).forEach(k=>{scoreMap[k]=_keepDrafts[k];const d=_keepDrafts[k];results[k]=winnerFromScore(d.s1,d.s2)||results[k]||null;});
     if(ma.data.length)ALL=ma.data.map(fromMatchRow);
     setSync("ok");showBanner(null);
   }catch(e){
@@ -2338,6 +2345,7 @@ window.setFilterDate=function(d){filterDate=d;
 };
 window.setScoreDraft=function(id,key,val,el){
   if(!scoreMap[id])scoreMap[id]={s1:"",s2:""};
+  scoreEditTs[id]=Date.now();
   const cleaned=String(val).replace(/[^0-9]/g,"");
   scoreMap[id][key]=cleaned;
   if(el&&el.value!==cleaned)el.value=cleaned;
@@ -2413,8 +2421,9 @@ window.saveScore=async function(id){
   try{
     const {error}=await db.from("matchs").update({score_dom:s1,score_ext:s2}).eq("id",id);
     if(error)throw error;
+    delete scoreEditTs[id];   // sauvegardé : la base redevient la source de vérité
     setSync("ok");showBanner(null);
-  }catch(e){setSync("off");showBanner("Échec de l'enregistrement — base injoignable.");console.error(e);} 
+  }catch(e){setSync("off");showBanner("Échec de l'enregistrement — base injoignable.");console.error(e);}
 };
 window.vote=async function(id,pi,v){
   if(me!==PARTICIPANTS[pi])return;
