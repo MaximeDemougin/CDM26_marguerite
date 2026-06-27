@@ -23,6 +23,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { resolveKnockout } from './ko-projection.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const TEAMS_FR_EN = JSON.parse(fs.readFileSync(path.join(__dirname, 'teams-fr-en.json'), 'utf8'));
@@ -82,20 +83,13 @@ export function bestOdds(event) {
 }
 
 // ── Construit les lignes cotes_marche en associant événements ↔ matchs ─────────
-// Instant UTC d'un match. Les heures en base sont en Europe/Paris ; sur toute la
-// CDM (11 juin → 19 juil. 2026) Paris = CEST = UTC+2, d'où l'offset fixe +02:00.
-export function matchInstant(date, heure) {
-  if (!date) return NaN;
-  return Date.parse(`${date}T${heure || '00:00:00'}+02:00`);
-}
-
+// `matchs` doit avoir ses libellés KO déjà résolus (cf. resolveKnockout) pour que
+// l'association par nom fonctionne aussi en phase finale.
 export function buildRows(matchs, events, { enToFr = buildEnToFr(), nowISO = new Date().toISOString() } = {}) {
   const appByPair = new Map();
-  const appByInstant = new Map();
   for (const m of matchs) {
-    if (m.equipe_dom && m.equipe_ext) appByPair.set(pairKey(norm(m.equipe_dom), norm(m.equipe_ext)), m);
-    const t = matchInstant(m.date_match, m.heure_match);
-    if (!Number.isNaN(t) && !appByInstant.has(t)) appByInstant.set(t, m); // 1er gagne (KO = horaires uniques)
+    if (!m.equipe_dom || !m.equipe_ext) continue;
+    appByPair.set(pairKey(norm(m.equipe_dom), norm(m.equipe_ext)), m);
   }
   const rows = [];
   const matched = [];
@@ -104,35 +98,17 @@ export function buildRows(matchs, events, { enToFr = buildEnToFr(), nowISO = new
   for (const ev of events) {
     const frHome = enToFr[norm(ev.home_team)];
     const frAway = enToFr[norm(ev.away_team)];
-    const o = bestOdds(ev);
-    const hasOdds = o.home.c != null || o.away.c != null || o.draw.c != null;
-    // 1) Appariement par noms (phases de groupes : equipe_dom/ext sont de vraies équipes).
-    let m = (frHome && frAway) ? appByPair.get(pairKey(norm(frHome), norm(frAway))) : null;
-    let byTime = false;
-    // 2) Repli par horaire (phases finales : le calendrier n'a que des libellés "2e Gr.A").
-    if (!m) {
-      const t = Date.parse(ev.commence_time || '');
-      const mt = Number.isNaN(t) ? null : appByInstant.get(t);
-      if (mt) { m = mt; byTime = true; }
-    }
-    if (!m) {
-      if (!frHome || !frAway) unmatched.push(`${ev.home_team} vs ${ev.away_team} (nom inconnu)`);
-      else unmatched.push(`${frHome} vs ${frAway} (pas dans le calendrier)`);
-      continue;
-    }
+    if (!frHome || !frAway) { unmatched.push(`${ev.home_team} vs ${ev.away_team} (nom inconnu)`); continue; }
+    const nHome = norm(frHome), nAway = norm(frAway);
+    const m = appByPair.get(pairKey(nHome, nAway));
+    if (!m) { unmatched.push(`${frHome} vs ${frAway} (pas dans le calendrier)`); continue; }
     if (seen.has(m.id)) continue; // garde le 1er event pour ce match
-    if (!hasOdds) { unmatched.push(`${frHome || ev.home_team} vs ${frAway || ev.away_team} (aucune cote)`); continue; }
-    // Orientation 1/2.
-    let dom, ext;
-    if (byTime) {
-      // Libellé non résolu en base : on garde l'ordre domicile/extérieur de l'API.
-      // Le tableau officiel liste l'équipe "à domicile" en 1er, = equipe_dom (e1) côté app.
-      dom = o.home; ext = o.away;
-    } else {
-      const homeIsDom = norm(m.equipe_dom) === norm(frHome);
-      dom = homeIsDom ? o.home : o.away;
-      ext = homeIsDom ? o.away : o.home;
-    }
+    const o = bestOdds(ev);
+    if (o.home.c == null && o.away.c == null && o.draw.c == null) { unmatched.push(`${frHome} vs ${frAway} (aucune cote)`); continue; }
+    // Oriente 1/2 selon le domicile côté app (equipe_dom)
+    const homeIsDom = norm(m.equipe_dom) === nHome;
+    const dom = homeIsDom ? o.home : o.away;
+    const ext = homeIsDom ? o.away : o.home;
     rows.push({
       match_id: m.id,
       cote_1: dom.c, book_1: dom.b || null,
@@ -141,8 +117,7 @@ export function buildRows(matchs, events, { enToFr = buildEnToFr(), nowISO = new
       maj_le: nowISO,
     });
     seen.add(m.id);
-    const teams = byTime ? `${frHome || ev.home_team} v ${frAway || ev.away_team}` : `${m.equipe_dom} v ${m.equipe_ext}`;
-    matched.push(`M${String(m.id).padStart(2, '0')} ${teams}${byTime ? ' (par horaire)' : ''} → 1:${dom.c ?? '–'} N:${o.draw.c ?? '–'} 2:${ext.c ?? '–'}`);
+    matched.push(`M${String(m.id).padStart(2, '0')} ${m.equipe_dom} v ${m.equipe_ext} → 1:${dom.c ?? '–'} N:${o.draw.c ?? '–'} 2:${ext.c ?? '–'}`);
   }
   return { rows, matched, unmatched };
 }
@@ -150,7 +125,7 @@ export function buildRows(matchs, events, { enToFr = buildEnToFr(), nowISO = new
 // ── E/S réseau ─────────────────────────────────────────────────────────────────
 async function fetchMatchs() {
   if (process.env.MATCHS_FIXTURE_FILE) return JSON.parse(fs.readFileSync(process.env.MATCHS_FIXTURE_FILE, 'utf8'));
-  const url = `${process.env.SUPABASE_URL}/rest/v1/matchs?select=id,equipe_dom,equipe_ext,date_match,heure_match`;
+  const url = `${process.env.SUPABASE_URL}/rest/v1/matchs?select=id,equipe_dom,equipe_ext,date_match,groupe,score_dom,score_ext`;
   const res = await fetch(url, { headers: supaHeaders() });
   if (!res.ok) throw new Error(`Supabase GET matchs ${res.status} ${await res.text()}`);
   return res.json();
@@ -203,7 +178,10 @@ async function main() {
     if (!process.env.SUPABASE_URL) throw new Error("Secret manquant : SUPABASE_URL");
     if (!serviceKey()) throw new Error("Secret manquant : la clé service Supabase (SUPABASE_SERVICE_KEY, ou SUPABASE_SERVICE_ROLE_KEY / SUPABASE_KEY) — vérifie le nom exact du secret côté GitHub");
   }
-  const [matchs, rawEvents] = await Promise.all([fetchMatchs(), fetchOdds()]);
+  const [matchsRaw, rawEvents] = await Promise.all([fetchMatchs(), fetchOdds()]);
+  // Résout les libellés de phase finale ("2e Gr.A" -> vraie équipe) pour permettre
+  // l'association des cotes KO par nom.
+  const matchs = resolveKnockout(matchsRaw);
   const now = Date.now();
   const events = rawEvents.filter(ev => !ev.commence_time || new Date(ev.commence_time).getTime() > now);
   const liveSkipped = rawEvents.length - events.length;
