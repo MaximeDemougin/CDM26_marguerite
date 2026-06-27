@@ -134,7 +134,7 @@ async function fetchMatchs() {
 async function fetchOdds() {
   if (process.env.ODDS_FIXTURE_FILE) return JSON.parse(fs.readFileSync(process.env.ODDS_FIXTURE_FILE, 'utf8'));
   const sport = process.env.ODDS_SPORT_KEY || 'soccer_fifa_world_cup';
-  const regions = process.env.ODDS_REGIONS || 'eu,uk';
+  const regions = process.env.ODDS_REGIONS || 'us,uk,eu'; // us inclus : CDM 2026 aux USA, les books US couvrent plus de matchs
   // commenceTimeFrom = maintenant pour exclure les matchs déjà commencés (cotes live indésirables)
   // Format requis par l'API : YYYY-MM-DDTHH:MM:SSZ (sans millisecondes)
   const from = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
