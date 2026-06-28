@@ -1,31 +1,24 @@
 #!/usr/bin/env bash
+# Incrémente automatiquement le patch de version à chaque commit (≈ chaque évolution)
+# et l'inscrit dans version.json + le <span class="app-ver"> de index.html, dans le
+# même commit. Aucune dépendance (bash + grep/sed), pour tourner partout.
+#
+# Activation (une fois par clone) :  git config core.hooksPath .githooks
 set -e
 
-REPO_ROOT="$(git rev-parse --show-toplevel)"
-VERSION_FILE="$REPO_ROOT/version.json"
-INDEX_FILE="$REPO_ROOT/index.html"
+ROOT="$(git rev-parse --show-toplevel)"
+VF="$ROOT/version.json"
+IDX="$ROOT/index.html"
+[ -f "$VF" ] || exit 0
 
-# Read and increment patch
-CURRENT=$(python3 -c "import json; print(json.load(open('$VERSION_FILE'))['version'])")
-NEW=$(python3 -c "
-v = '$CURRENT'.split('.')
-v[2] = str(int(v[2]) + 1)
-print('.'.join(v))
-")
+CUR="$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+' "$VF" | head -1)"
+[ -n "$CUR" ] || exit 0
+MAJOR="${CUR%%.*}"; REST="${CUR#*.}"; MINOR="${REST%%.*}"; PATCH="${REST#*.}"
+NEW="$MAJOR.$MINOR.$((PATCH + 1))"
 
-# Update version.json
-python3 -c "import json; json.dump({'version':'$NEW'}, open('$VERSION_FILE','w'))"
+printf '{"version": "%s"}' "$NEW" > "$VF"
+# Met à jour le numéro affiché (sed BRE, échappements explicites)
+sed -i "s#<span class=\"app-ver\">v[0-9.]\+</span>#<span class=\"app-ver\">v$NEW</span>#" "$IDX"
 
-# Update app-ver span in index.html
-python3 - "$INDEX_FILE" "$NEW" <<'EOF'
-import sys, re
-path, ver = sys.argv[1], sys.argv[2]
-content = open(path).read()
-content = re.sub(r'(<span class="app-ver">)v[\d.]+(<\/span>)', rf'\g<1>v{ver}\2', content)
-open(path, 'w').write(content)
-EOF
-
-# Stage the version files — included automatically in the current commit
-git add "$VERSION_FILE" "$INDEX_FILE"
-
-echo "[version] v$CURRENT → v$NEW"
+git add "$VF" "$IDX"
+echo "[version] v$CUR -> v$NEW"
