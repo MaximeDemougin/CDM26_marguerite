@@ -1484,6 +1484,9 @@ function matchListHtml(sc,matches){
   // Regroupement par jour
   const days=[];const byDay={};
   matches.forEach(m=>{const lbl=dayLabel(m.date);if(!byDay[lbl]){byDay[lbl]=[];days.push(lbl);}byDay[lbl].push(m);});
+  // Tri chronologique dans chaque journée (heure puis n° de match) — sinon un match
+  // de 22:30 peut s'afficher avant un de 19:00 du même jour.
+  Object.values(byDay).forEach(arr=>arr.sort((a,b)=>String(a.h).localeCompare(String(b.h))||a.id-b.id));
   const sectionLabel=filterPhase==="Groupes"?(filterGroupe==="Tous"?"Par journée":filterGroupe==="France"?"La France":"Groupe "+filterGroupe):filterPhase;
   if(sectionLabel!=="Par journée"){
     html+=`<div class="slabel"><span class="slabel-text">${sectionLabel}</span><span class="slabel-line"></span><span class="slabel-count">${matches.length} matchs</span></div>`;
