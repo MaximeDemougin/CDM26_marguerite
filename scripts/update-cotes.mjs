@@ -186,7 +186,6 @@ async function main() {
   const events = rawEvents.filter(ev => !ev.commence_time || new Date(ev.commence_time).getTime() > now);
   const liveSkipped = rawEvents.length - events.length;
   console.log(`[in] ${matchs.length} matchs en base · ${events.length} événements de cotes${liveSkipped ? ` (${liveSkipped} live ignorés)` : ''}`);
-  events.slice().sort((a,b)=>String(a.commence_time).localeCompare(String(b.commence_time))).forEach(e=>console.log(`[ev] ${e.commence_time} | ${e.home_team} v ${e.away_team}`));
   const { rows, matched, unmatched } = buildRows(matchs, events);
   console.log(`[match] ${rows.length} matchs associés`);
   matched.forEach(l => console.log('  ✓ ' + l));
