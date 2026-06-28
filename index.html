@@ -1101,7 +1101,6 @@ const JOURS=["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
 const MOIS=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
 function matchDate(d){const [jj,mm]=d.split("/").map(Number);return new Date(2026,mm-1,jj);}
 function dayLabel(d){const dt=matchDate(d);const nom=JOURS[dt.getDay()];const cap=nom.charAt(0).toUpperCase()+nom.slice(1);const [jj,mm]=d.split("/").map(Number);return `${cap} ${jj} ${MOIS[mm-1]}`;}
-function isPastDay(d){const dt=matchDate(d);const today=new Date();today.setHours(0,0,0,0);return dt<today;}
 
 // État repliage. Par défaut : tout replié sauf cas particuliers gérés au render.
 let openDays={};       // clé = libellé du jour -> true si déplié
@@ -1432,15 +1431,21 @@ function chipPhaseForMatch(m){
   if(m.g)return "Groupes";
   return m.t==="3ème place"?"FINALE":m.t;
 }
-// Journée cible au lancement : la 1re journée pas encore passée dont au moins un match
-// n'a pas de résultat ; à défaut (tournoi fini) la dernière journée avec un match restant,
-// sinon la toute dernière. Renvoie {lbl, match} ou null.
+// Instant (ms) du coup d'envoi d'un match. Heures stockées en heure de Paris
+// (UTC+2 sur toute la CDM), donc on fixe l'offset pour être juste quel que soit
+// le fuseau du navigateur.
+function matchKickoff(m){
+  const [jj,mm]=String(m.date).split("/");
+  return Date.parse(`2026-${mm}-${jj}T${(m.h||"00:00")}:00+02:00`);
+}
+// Match cible au lancement : le PROCHAIN match pas encore commencé (coup d'envoi le
+// plus proche dans le futur), pour ouvrir sur les prochains matchs avec la bonne
+// phase. À défaut (tournoi fini) le dernier match. Renvoie {lbl, match} ou null.
 function pickInitialDay(){
-  const byDay={};const order=[];
-  ALL.forEach(m=>{const l=dayLabel(m.date);if(!byDay[l]){byDay[l]=[];order.push(l);}byDay[l].push(m);});
-  let target=order.find(l=>!isPastDay(byDay[l][0].date)&&!byDay[l].every(m=>results[m.id]));
-  if(!target)target=order.find(l=>byDay[l].some(m=>!results[m.id]))||order[order.length-1];
-  return target?{lbl:target,match:byDay[target][0]}:null;
+  const now=Date.now();
+  const upcoming=ALL.filter(m=>matchKickoff(m)>now).sort((a,b)=>matchKickoff(a)-matchKickoff(b));
+  const m=upcoming[0]||ALL[ALL.length-1];
+  return m?{lbl:dayLabel(m.date),match:m}:null;
 }
 // Place la zone scrollable des matchs sur la journée demandée (sous les filtres).
 // Scroll synchrone (le DOM est déjà posé par render) + relance différée au cas où
