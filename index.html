@@ -2507,17 +2507,25 @@ window.setTieDecision=async function(id,v){
   try{await saveTieChoiceDb(id,tieChoiceMap[id]||null);setSync("ok");showBanner(null);}catch(e){setSync("off");showBanner("Échec de l'enregistrement — base injoignable.");console.error(e);}
 };
 window.setKoProlScore=function(id,field,val,el){
-  const cleaned=String(val).trim();
-  if(cleaned!==''&&(isNaN(Number(cleaned))||Number(cleaned)<0||!Number.isInteger(Number(cleaned)))){if(el)el.value=koWinnerMap[id]?.(field)??'';return;}
+  // Comme la saisie de score (setScoreDraft) : on met à jour la valeur EN PLACE
+  // sans reconstruire la carte à chaque frappe. Un re-render complet pendant la
+  // saisie détruisait l'input (perte de focus -> chiffre non pris en compte) et
+  // provoquait un saut de scroll. Le re-render (badge AET, ligne TAB) est différé.
+  const cleaned=String(val).replace(/[^0-9]/g,"");
+  if(el&&el.value!==cleaned)el.value=cleaned;
   const cur=koWinnerMap[id]||{ps1:'',ps2:''};
   const upd={...cur,[field]:cleaned};
   const p1=upd.ps1!==''?Number(upd.ps1):NaN,p2=upd.ps2!==''?Number(upd.ps2):NaN;
   if(!isNaN(p1)&&!isNaN(p2)&&p1!==p2)delete upd.tab;
   if(upd.ps1===''&&upd.ps2===''&&!upd.tab)delete koWinnerMap[id];else koWinnerMap[id]=upd;
   localStorage.setItem("cdm26_ko_winners",JSON.stringify(koWinnerMap));
-  if(tab==="matchs")renderMatchsOnly();else render();
   if(koScoreTimers[id])clearTimeout(koScoreTimers[id]);
-  koScoreTimers[id]=setTimeout(async()=>{koScoreTimers[id]=null;setSync("busy");try{await saveKoWinnerDb(id,koWinnerMap[id]||null);setSync("ok");showBanner(null);}catch(e){setSync("off");showBanner("Échec de l'enregistrement — base injoignable.");console.error(e);}},600);
+  koScoreTimers[id]=setTimeout(async()=>{
+    koScoreTimers[id]=null;
+    if(tab==="matchs")updateMatchCard(id);else render();
+    setSync("busy");
+    try{await saveKoWinnerDb(id,koWinnerMap[id]||null);setSync("ok");showBanner(null);}catch(e){setSync("off");showBanner("Échec de l'enregistrement — base injoignable.");console.error(e);}
+  },600);
 };
 window.setKoTab=function(id,team){
   const cur=koWinnerMap[id]||{ps1:'',ps2:''};
