@@ -229,6 +229,7 @@ body{font-family:'Manrope',sans-serif;background:linear-gradient(90deg,color-mix
 .ko-et-empty{font-size:9px;color:rgba(99,224,190,.4);font-style:italic;letter-spacing:.3px}
 .ko-extra-time .score-vs{color:rgba(99,224,190,.4);font-size:11px}
 .br-qual{font-size:9px;font-weight:800;font-family:var(--font-cond);letter-spacing:.5px;color:var(--fr);background:rgba(45,92,230,.12);border-radius:3px;padding:1px 4px;margin-left:4px;vertical-align:middle;display:inline-block}
+.br-pen{font-size:9px;font-weight:800;font-family:var(--font-cond);color:var(--fr);opacity:.7;margin-left:3px;vertical-align:middle}
 .rsel{margin-left:auto;background:rgba(15,29,49,.05);border:1px solid rgba(15,29,49,.16);color:var(--ink);font-size:11px;font-weight:500;padding:6px 9px;cursor:pointer;font-family:inherit;border-radius:0 6px 0 6px;box-shadow:none}
 .rsel:focus{outline:none;border-color:var(--accent)}
 .m-score{display:flex;align-items:center;gap:6px;min-height:var(--ctrl-h);min-width:132px;justify-content:center;border:1px solid rgba(30,45,140,.22);background:#fff;border-radius:var(--ctrl-radius);padding:3px 6px;color:var(--ink);box-shadow:0 2px 6px rgba(30,45,140,.10)}
@@ -1778,7 +1779,8 @@ function renderCompetition(){
         const win1=(hasWinner&&a>b)||(qr&&qr.winner==='1');
         const win2=(hasWinner&&b>a)||(qr&&qr.winner==='2');
         const statusLabel=done?"Terminé":"";
-        const modeTag=qr?`<span class="past-mode">${qr.mode==='tab'?'TAB':'ap'}</span>`:'';
+        const ex=qr?koExtraInfo(fm.id):null;
+        const modeTag=qr?`<span class="past-mode"${ex?` title="${ex.full}"`:''}>${qr.mode==='tab'?'TAB':'a.p.'}${ex&&ex.score?` ${ex.score}`:''}</span>`:'';
         const scoreLabel=done?`${s.s1}-${s.s2}`:"—";
           const placed=betPlaced(fm.id);
           const maj=getMajority(votes[fm.id]||[],sc,fm.id);
@@ -2232,6 +2234,21 @@ function koQualResult(id){
   }
   return null;
 }
+// Détail prolongation / tirs au but d'un match KO nul, pour l'affichage (badge,
+// score par équipe, libellé d'info-bulle). Renvoie null si rien de décisif.
+// p1/p2 = score de l'équipe domicile/extérieur (TAB ou prolongation selon le mode).
+function koExtraInfo(id){
+  const qr=koQualResult(id);if(!qr)return null;
+  const kd=koWinnerMap[id]||{};
+  const n=v=>v!==''&&v!=null&&!isNaN(Number(v))?Number(v):null;
+  if(qr.mode==='tab'){
+    const p1=n(kd.tb1),p2=n(kd.tb2);
+    if(p1==null||p2==null)return null; // gagnant via ancien format sans score TAB
+    return {badge:'TAB',p1,p2,score:`${p1}–${p2}`,full:`Tirs au but ${p1}–${p2}`};
+  }
+  const p1=n(kd.ps1),p2=n(kd.ps2);
+  return {badge:'AP',p1,p2,score:`${p1}–${p2}`,full:`Après prolongation ${p1}–${p2}`};
+}
 // === Table officielle FIFA d'attribution des 3es au tour à 32 (Annexe C, 495 combinaisons) ===
 // Clé : les 4 groupes dont le 3e n'est PAS qualifié, triés A→L.
 // Valeur : 8 lettres = groupe du 3e affecté, dans l'ordre des colonnes 1A,1B,1D,1E,1G,1I,1K,1L
@@ -2339,7 +2356,13 @@ function renderKnockout(fixtures){
   const right=sideFromSemi(102);
   const r3=fixtures.filter(x=>x.round==="3ème place");
   const rf=fixtures.filter(x=>x.round==="FINALE");
-  const card=x=>{const has=x.s1!==""&&x.s2!=="";const a=Number(x.s1),b=Number(x.s2);const w=has&&a!==b?(a>b?"1":"2"):null;const qr=has&&a===b?koQualResult(x.id):null;const kwTeam=qr?qr.winner:null;const kwBadge=qr?`<span class="br-qual">${qr.mode==='tab'?'TAB':'AP'}</span>`:'';return `<div class="br-match" onclick="goToMatch(${x.id})"><div class="br-mhead"><span>M${x.id}</span><span>${x.date} · ${x.h}</span></div><div class="br-team ${(w==="1"||kwTeam==="1")?"win":""}">${labelTeamWithFlag(x.e1)}<span class="br-end">${kwTeam==="1"?kwBadge:''}<span class="br-goals">${has?x.s1:""}</span></span></div><div class="br-team ${(w==="2"||kwTeam==="2")?"win":""}">${labelTeamWithFlag(x.e2)}<span class="br-end">${kwTeam==="2"?kwBadge:''}<span class="br-goals">${has?x.s2:""}</span></span></div></div>`;};
+  const card=x=>{const has=x.s1!==""&&x.s2!=="";const a=Number(x.s1),b=Number(x.s2);const w=has&&a!==b?(a>b?"1":"2"):null;const qr=has&&a===b?koQualResult(x.id):null;const kwTeam=qr?qr.winner:null;const ex=qr?koExtraInfo(x.id):null;const kwBadge=qr?`<span class="br-qual">${qr.mode==='tab'?'TAB':'AP'}</span>`:'';
+    // Score TAB/prolongation : petit par équipe + info-bulle de secours (place limitée dans le bracket).
+    const winName=kwTeam==='1'?x.e1:kwTeam==='2'?x.e2:'';
+    const tip=ex?` title="${ex.full} · ${winName} qualifié"`:'';
+    const pen1=ex&&ex.p1!=null?`<span class="br-pen">${ex.p1}</span>`:'';
+    const pen2=ex&&ex.p2!=null?`<span class="br-pen">${ex.p2}</span>`:'';
+    return `<div class="br-match"${tip} onclick="goToMatch(${x.id})"><div class="br-mhead"><span>M${x.id}</span><span>${x.date} · ${x.h}</span></div><div class="br-team ${(w==="1"||kwTeam==="1")?"win":""}">${labelTeamWithFlag(x.e1)}<span class="br-end">${kwTeam==="1"?kwBadge:''}${pen1}<span class="br-goals">${has?x.s1:""}</span></span></div><div class="br-team ${(w==="2"||kwTeam==="2")?"win":""}">${labelTeamWithFlag(x.e2)}<span class="br-end">${kwTeam==="2"?kwBadge:''}${pen2}<span class="br-goals">${has?x.s2:""}</span></span></div></div>`;};
   const col=(title,list,cls)=>`<div class="br-side-col ${cls}"><div class="br-col-title">${title}</div><div class="br-list">${list.length?list.map(card).join(''):"<div class='ko-line'>En attente</div>"}</div></div>`;
   return `<div class="bracket-wrap"><div class="br-main"><div class="br-side left">${col("1/16",left.r16,"r16")}${col("1/8",left.r8,"r8")}${col("Quarts",left.qf,"rqf")}${col("Demi",left.semi,"rsf")}</div><div class="br-center">${col("Finale",rf,"rf")}${col("3e place",r3,"r3")}</div><div class="br-side right">${col("Demi",right.semi,"rsf")}${col("Quarts",right.qf,"rqf")}${col("1/8",right.r8,"r8")}${col("1/16",right.r16,"r16")}</div></div></div>`;
 }
