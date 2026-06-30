@@ -228,9 +228,6 @@ body{font-family:'Manrope',sans-serif;background:linear-gradient(90deg,color-mix
 .ko-et-winner{font-family:var(--font-cond);font-size:11px;font-weight:800;color:#63e0be}
 .ko-et-empty{font-size:9px;color:rgba(99,224,190,.4);font-style:italic;letter-spacing:.3px}
 .ko-extra-time .score-vs{color:rgba(99,224,190,.4);font-size:11px}
-.ko-tab-btn{min-height:30px;border:1.5px solid rgba(99,224,190,.32);background:rgba(99,224,190,.07);color:rgba(99,224,190,.65);font-family:var(--font-cond);font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;border-radius:0 7px 0 7px;padding:0 10px;cursor:pointer;transition:all .15s}
-.ko-tab-btn:hover{border-color:rgba(99,224,190,.65);background:rgba(99,224,190,.15);color:#63e0be;transform:translateY(-1px)}
-.ko-tab-btn.on{border-color:#63e0be;background:rgba(99,224,190,.2);color:#63e0be;box-shadow:0 0 0 2px rgba(99,224,190,.14)}
 .br-qual{font-size:9px;font-weight:800;font-family:var(--font-cond);letter-spacing:.5px;color:var(--fr);background:rgba(45,92,230,.12);border-radius:3px;padding:1px 4px;margin-left:4px;vertical-align:middle;display:inline-block}
 .rsel{margin-left:auto;background:rgba(15,29,49,.05);border:1px solid rgba(15,29,49,.16);color:var(--ink);font-size:11px;font-weight:500;padding:6px 9px;cursor:pointer;font-family:inherit;border-radius:0 6px 0 6px;box-shadow:none}
 .rsel:focus{outline:none;border-color:var(--accent)}
@@ -1574,8 +1571,8 @@ function matchCard(m,sc){
   const resetEditor=`<button class="reset-toggle" onclick="resetMatchAdmin(${m.id})">Réinitialiser</button>`;
   const tieChooser=hasTie?`<div class="tie-chooser">${tieOptions.map(v=>`<button class="tie-btn ${maj===v?'on':''}" onclick="setTieDecision(${m.id},'${v}')">${choiceLabel(v)}</button>`).join('')}</div>`:"";
   const kd=!m.g&&filled&&real==='N'?(koWinnerMap[m.id]||{ps1:'',ps2:''}):null;
-  const koDisplay=kd?(()=>{const ps1=kd.ps1!==''&&kd.ps1!=null?Number(kd.ps1):NaN;const ps2=kd.ps2!==''&&kd.ps2!=null?Number(kd.ps2):NaN;const has=!isNaN(ps1)&&!isNaN(ps2);if(!has)return `<div class="ko-extra-time"><span class="ko-et-lbl">Prol.</span><span class="ko-et-empty">à renseigner ↓</span></div>`;let qual='';if(ps1>ps2)qual=`<span class="ko-et-sep"></span><span class="br-qual">AP</span><span class="ko-et-winner">${s1}</span>`;else if(ps2>ps1)qual=`<span class="ko-et-sep"></span><span class="br-qual">AP</span><span class="ko-et-winner">${s2}</span>`;else if(kd.tab)qual=`<span class="ko-et-sep"></span><span class="br-qual">TAB</span><span class="ko-et-winner">${kd.tab==='1'?s1:s2}</span>`;else qual=`<span class="ko-et-sep"></span><span class="ko-et-lbl" style="opacity:.5">TAB ?</span>`;return `<div class="ko-extra-time"><span class="ko-et-lbl">Prol.</span><span class="ko-et-sc">${ps1}</span><span class="score-vs">–</span><span class="ko-et-sc">${ps2}</span>${qual}</div>`;})():'';
-  const koEditor=kd?(()=>{const ps1=kd.ps1!==''&&kd.ps1!=null?Number(kd.ps1):NaN;const ps2=kd.ps2!==''&&kd.ps2!=null?Number(kd.ps2):NaN;const prolDraw=!isNaN(ps1)&&!isNaN(ps2)&&ps1===ps2;const tabRow=prolDraw?`<div class="retenu-row"><span class="rlabel">TAB :</span><div style="display:flex;gap:6px"><button class="ko-tab-btn${kd.tab==='1'?' on':''}" onclick="setKoTab(${m.id},'1')">${s1}</button><button class="ko-tab-btn${kd.tab==='2'?' on':''}" onclick="setKoTab(${m.id},'2')">${s2}</button></div></div>`:'';return `<div class="retenu-row"><span class="rlabel">Prol. :</span><div class="m-score"><input class="score-in" type="number" min="0" step="1" value="${kd.ps1??''}" oninput="setKoProlScore(${m.id},'ps1',this.value,this)"><span class="score-vs">–</span><input class="score-in" type="number" min="0" step="1" value="${kd.ps2??''}" oninput="setKoProlScore(${m.id},'ps2',this.value,this)"></div></div>${tabRow}`;})():'';
+  const koDisplay=kd?(()=>{const ps1=kd.ps1!==''&&kd.ps1!=null?Number(kd.ps1):NaN;const ps2=kd.ps2!==''&&kd.ps2!=null?Number(kd.ps2):NaN;const has=!isNaN(ps1)&&!isNaN(ps2);if(!has)return `<div class="ko-extra-time"><span class="ko-et-lbl">Prol.</span><span class="ko-et-empty">à renseigner ↓</span></div>`;let qual='';if(ps1>ps2)qual=`<span class="ko-et-sep"></span><span class="br-qual">AP</span><span class="ko-et-winner">${s1}</span>`;else if(ps2>ps1)qual=`<span class="ko-et-sep"></span><span class="br-qual">AP</span><span class="ko-et-winner">${s2}</span>`;else{const t1=kd.tb1!==''&&kd.tb1!=null?Number(kd.tb1):NaN;const t2=kd.tb2!==''&&kd.tb2!=null?Number(kd.tb2):NaN;if(!isNaN(t1)&&!isNaN(t2)&&t1!==t2)qual=`<span class="ko-et-sep"></span><span class="br-qual">TAB</span><span class="ko-et-sc">${t1}</span><span class="score-vs">–</span><span class="ko-et-sc">${t2}</span><span class="ko-et-winner">${t1>t2?s1:s2}</span>`;else if(kd.tab)qual=`<span class="ko-et-sep"></span><span class="br-qual">TAB</span><span class="ko-et-winner">${kd.tab==='1'?s1:s2}</span>`;else qual=`<span class="ko-et-sep"></span><span class="ko-et-lbl" style="opacity:.5">TAB ?</span>`;}return `<div class="ko-extra-time"><span class="ko-et-lbl">Prol.</span><span class="ko-et-sc">${ps1}</span><span class="score-vs">–</span><span class="ko-et-sc">${ps2}</span>${qual}</div>`;})():'';
+  const koEditor=kd?(()=>{const ps1=kd.ps1!==''&&kd.ps1!=null?Number(kd.ps1):NaN;const ps2=kd.ps2!==''&&kd.ps2!=null?Number(kd.ps2):NaN;const prolDraw=!isNaN(ps1)&&!isNaN(ps2)&&ps1===ps2;const tabRow=prolDraw?`<div class="retenu-row"><span class="rlabel">TAB :</span><div class="m-score"><input class="score-in" type="number" min="0" step="1" value="${kd.tb1??''}" oninput="setKoTabScore(${m.id},'tb1',this.value,this)"><span class="score-vs">–</span><input class="score-in" type="number" min="0" step="1" value="${kd.tb2??''}" oninput="setKoTabScore(${m.id},'tb2',this.value,this)"></div></div>`:'';return `<div class="retenu-row"><span class="rlabel">Prol. :</span><div class="m-score"><input class="score-in" type="number" min="0" step="1" value="${kd.ps1??''}" oninput="setKoProlScore(${m.id},'ps1',this.value,this)"><span class="score-vs">–</span><input class="score-in" type="number" min="0" step="1" value="${kd.ps2??''}" oninput="setKoProlScore(${m.id},'ps2',this.value,this)"></div></div>${tabRow}`;})():'';
   const retainedText=majL?`<span class="rval">${majL}</span>`:hasTie?`<span class="rpending">égalité : choisis l'avis final</span>`:'<span class="rpending">en attente</span>';
   return `<div id="match-${m.id}" class="card ${m.fr?'fr':''} ${filled?'filled':''} ${placed?'locked':''} ${betState?`bet-${betState.cls}`:''}" style="${pronostiqueurVoteStyle(me)}"><div class="teams">${teamsHead}<div class="teams-score"><div class="team">${i1}<span class="tname">${m.e1}</span></div><div class="vs${filled?' scored':''}">${filled?`${s.s1}&hairsp;·&hairsp;${s.s2}`:'VS'}</div><div class="team r"><span class="tname">${m.e2}</span>${i2}</div></div>${koDisplay}</div><div class="votes"><div class="votes-title">Choix des pronostics${placed&&!real?`<span class="vlock">🔒 Pari placé · pronos verrouillés</span>`:''}</div>${moRow}${rows}<div class="retenu"><div class="retenu-main"><span class="rlabel">Retenu :</span>${retainedText}${tieChooser}${coteEditor}${betEditor}${resetEditor}</div><div class="retenu-tools"><div class="retenu-row scoreline">${scoreEditor}${gainEditor}</div>${koEditor}</div>${real&&badges?`<div class="badges">${badges}</div>`:''}</div></div></div>`;
 }
@@ -2225,7 +2222,14 @@ function koQualResult(id){
   const ps2=kd.ps2!==''&&kd.ps2!=null?Number(kd.ps2):NaN;
   if(!isNaN(ps1)&&!isNaN(ps2)&&ps1>ps2)return{winner:'1',mode:'aet'};
   if(!isNaN(ps1)&&!isNaN(ps2)&&ps2>ps1)return{winner:'2',mode:'aet'};
-  if(!isNaN(ps1)&&!isNaN(ps2)&&ps1===ps2&&kd.tab)return{winner:kd.tab,mode:'tab'};
+  if(!isNaN(ps1)&&!isNaN(ps2)&&ps1===ps2){
+    // Prolongation nulle -> tirs au but. Le gagnant se déduit du score des TAB ;
+    // repli sur kd.tab (ancien format où seul le vainqueur était choisi).
+    const t1=kd.tb1!==''&&kd.tb1!=null?Number(kd.tb1):NaN;
+    const t2=kd.tb2!==''&&kd.tb2!=null?Number(kd.tb2):NaN;
+    if(!isNaN(t1)&&!isNaN(t2)&&t1!==t2)return{winner:t1>t2?'1':'2',mode:'tab'};
+    if(kd.tab)return{winner:kd.tab,mode:'tab'};
+  }
   return null;
 }
 // === Table officielle FIFA d'attribution des 3es au tour à 32 (Annexe C, 495 combinaisons) ===
@@ -2516,8 +2520,9 @@ window.setKoProlScore=function(id,field,val,el){
   const cur=koWinnerMap[id]||{ps1:'',ps2:''};
   const upd={...cur,[field]:cleaned};
   const p1=upd.ps1!==''?Number(upd.ps1):NaN,p2=upd.ps2!==''?Number(upd.ps2):NaN;
-  if(!isNaN(p1)&&!isNaN(p2)&&p1!==p2)delete upd.tab;
-  if(upd.ps1===''&&upd.ps2===''&&!upd.tab)delete koWinnerMap[id];else koWinnerMap[id]=upd;
+  // Si la prolongation n'est plus nulle, les TAB n'ont plus lieu d'être.
+  if(!isNaN(p1)&&!isNaN(p2)&&p1!==p2){delete upd.tab;delete upd.tb1;delete upd.tb2;}
+  if(koWinnerEmpty(upd))delete koWinnerMap[id];else koWinnerMap[id]=upd;
   localStorage.setItem("cdm26_ko_winners",JSON.stringify(koWinnerMap));
   if(koScoreTimers[id])clearTimeout(koScoreTimers[id]);
   koScoreTimers[id]=setTimeout(async()=>{
@@ -2527,14 +2532,26 @@ window.setKoProlScore=function(id,field,val,el){
     try{await saveKoWinnerDb(id,koWinnerMap[id]||null);setSync("ok");showBanner(null);}catch(e){setSync("off");showBanner("Échec de l'enregistrement — base injoignable.");console.error(e);}
   },600);
 };
-window.setKoTab=function(id,team){
+// true si l'objet KO ne contient plus aucune donnée utile (à purger).
+function koWinnerEmpty(o){const v=k=>o[k]===''||o[k]==null;return v('ps1')&&v('ps2')&&v('tb1')&&v('tb2')&&!o.tab;}
+// Saisie du score des tirs au but (TAB). Même logique que setKoProlScore : maj en
+// place pendant la frappe, re-render différé. Le vainqueur se déduit du score.
+window.setKoTabScore=function(id,field,val,el){
+  const cleaned=String(val).replace(/[^0-9]/g,"");
+  if(el&&el.value!==cleaned)el.value=cleaned;
   const cur=koWinnerMap[id]||{ps1:'',ps2:''};
-  if(cur.tab===team)delete cur.tab;else cur.tab=team;
-  koWinnerMap[id]=cur;
+  const upd={...cur,[field]:cleaned};
+  const t1=upd.tb1!==''&&upd.tb1!=null?Number(upd.tb1):NaN,t2=upd.tb2!==''&&upd.tb2!=null?Number(upd.tb2):NaN;
+  if(!isNaN(t1)&&!isNaN(t2)&&t1!==t2)upd.tab=t1>t2?'1':'2';else delete upd.tab;
+  if(koWinnerEmpty(upd))delete koWinnerMap[id];else koWinnerMap[id]=upd;
   localStorage.setItem("cdm26_ko_winners",JSON.stringify(koWinnerMap));
-  if(tab==="matchs")renderMatchsOnly();else render();
-  setSync("busy");
-  saveKoWinnerDb(id,koWinnerMap[id]).then(()=>{setSync("ok");showBanner(null);}).catch(e=>{setSync("off");showBanner("Échec de l'enregistrement — base injoignable.");console.error(e);});
+  if(koScoreTimers[id])clearTimeout(koScoreTimers[id]);
+  koScoreTimers[id]=setTimeout(async()=>{
+    koScoreTimers[id]=null;
+    if(tab==="matchs")updateMatchCard(id);else render();
+    setSync("busy");
+    try{await saveKoWinnerDb(id,koWinnerMap[id]||null);setSync("ok");showBanner(null);}catch(e){setSync("off");showBanner("Échec de l'enregistrement — base injoignable.");console.error(e);}
+  },600);
 };
 window.setResult=async function(id,v){
   results[id]=v||null;render();setSync("busy");
