@@ -1113,7 +1113,7 @@ function stableStringify(o){
   if(Array.isArray(o))return "["+o.map(stableStringify).join(",")+"]";
   return "{"+Object.keys(o).sort().map(k=>JSON.stringify(k)+":"+stableStringify(o[k])).join(",")+"}";
 }
-function dataSignature(){try{return stableStringify([votes,results,scoreMap,coteMap,marketOddsMap,placedBetMap,tieChoiceMap,customColorMap,contractSignatures]);}catch(e){return String(Math.random());}}
+function dataSignature(){try{return stableStringify([votes,results,scoreMap,coteMap,marketOddsMap,placedBetMap,tieChoiceMap,koWinnerMap,customColorMap,contractSignatures]);}catch(e){return String(Math.random());}}
 let filterDate="Toutes"; // filtre par date (jj/mm) ou "Toutes"
 let autoCollapsed={};    // journées déjà repliées automatiquement (une seule fois)
 const PRONOSTIQUEUR_THEMES={
@@ -2624,17 +2624,35 @@ window.setGroupe=function(g){filterGroupe=g;render();};
 window.setFilterSearch=function(v){filterSearch=v;renderMatchListOnly();};
 window.setFilterTeam=function(v){filterTeam=v;renderMatchsOnly();};
 
-// Rafraîchit les données puis redessine SANS casser le scroll ni les sections ouvertes
+// Vrai si l'utilisateur est en train de saisir quelque chose : on ne reconstruit
+// alors PAS la liste sous ses doigts (perte de focus / chiffre non pris en compte).
+function userIsEditing(){
+  const ae=document.activeElement;
+  if(ae&&(ae.tagName==="INPUT"||ae.tagName==="TEXTAREA"||ae.tagName==="SELECT"))return true;
+  const now=Date.now();
+  return Object.keys(scoreEditTs).some(k=>now-scoreEditTs[k]<4000);
+}
+// Rafraîchit les données puis redessine SANS casser le scroll ni les sections ouvertes.
+// Un verrou évite les exécutions concurrentes (temps réel + focus + intervalle).
+let _softRefreshing=false;
 async function softRefresh(){
+  if(_softRefreshing)return;
+  // Pendant une saisie, on diffère : reconstruire détruirait l'input en cours.
+  // L'intervalle / le prochain événement rejouera une fois la saisie terminée.
+  if(userIsEditing())return;
+  _softRefreshing=true;
   const c=document.getElementById("content");
   const y=c?c.scrollTop:0,wy=window.scrollY;
-  await loadAll();
-  // Si les données n'ont pas changé (ex. écho temps réel de notre propre vote),
-  // on NE reconstruit PAS la liste : évite le flash / micro-scroll pendant qu'on interagit.
-  if(dataSignature()===lastDataSig)return;
-  if(tab==="matchs"){const sc=computeScores();renderWho();renderBoard(sc);c.innerHTML=renderMatchs(sc);c.scrollTop=y;lastDataSig=dataSignature();}
-  else render();
-  window.scrollTo(0,wy);
+  try{
+    await loadAll();
+    // Si les données n'ont pas changé (ex. écho temps réel de notre propre vote),
+    // on NE reconstruit PAS la liste : évite le flash / micro-scroll pendant qu'on interagit.
+    if(dataSignature()===lastDataSig)return;
+    if(userIsEditing())return; // une saisie a pu démarrer pendant le chargement
+    if(tab==="matchs"){const sc=computeScores();renderWho();renderBoard(sc);c.innerHTML=renderMatchs(sc);c.scrollTop=y;lastDataSig=dataSignature();}
+    else render();
+    window.scrollTo(0,wy);
+  }finally{_softRefreshing=false;}
 }
 
 async function refresh(){
@@ -2658,18 +2676,33 @@ async function refresh(){
 }
 
 // ── Temps réel : on écoute les changements et on rafraîchit aussitôt ──
+// Robuste : on rattrape les changements manqués à chaque (re)connexion et on
+// retente automatiquement si le canal tombe (erreur / timeout).
+let _rtRetry=null;
 function subscribeRealtime(){
-  db.channel("cdm26")
+  const ch=db.channel("cdm26")
     .on("postgres_changes",{event:"*",schema:"public",table:"pronostics"},softRefresh)
     .on("postgres_changes",{event:"*",schema:"public",table:"matchs"},softRefresh)
-    .subscribe();
+    .subscribe((status)=>{
+      if(status==="SUBSCRIBED"){
+        if(_rtRetry){clearTimeout(_rtRetry);_rtRetry=null;}
+        softRefresh(); // rattrapage des éventuels changements survenus avant l'abonnement
+      }else if((status==="CHANNEL_ERROR"||status==="TIMED_OUT")&&!_rtRetry){
+        _rtRetry=setTimeout(()=>{_rtRetry=null;try{db.removeChannel(ch);}catch(e){} subscribeRealtime();},3000);
+      }
+    });
 }
-
 
 applyPronostiqueurTheme(me);
 refresh();
 subscribeRealtime();
-setInterval(softRefresh,20000); // filet de sécurité si le temps réel se coupe (ne reconstruit que si les données ont changé)
+// Filet de sécurité si le temps réel est coupé/désactivé (ne reconstruit que si
+// les données ont réellement changé, et jamais pendant une saisie).
+setInterval(softRefresh,10000);
+// Rafraîchissement immédiat quand on revient sur l'onglet / l'appli : on voit
+// aussitôt ce que les autres ont saisi, sans attendre l'intervalle.
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")softRefresh();});
+window.addEventListener("focus",softRefresh);
 </script>
 </body>
 </html>
