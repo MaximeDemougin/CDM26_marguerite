@@ -1070,7 +1070,7 @@ const COLOR_PARTICIPANT_PREFIX="__COLOR__:";
 const SIGNATURE_PARTICIPANT_PREFIX="__SIGN__:";
 const KO_WINNER_PARTICIPANT="__KO_WINNER__";
 
-let votes={},results={},tab="matchs",filterPhase="Groupes",filterGroupe="Tous";
+let votes={},results={},tab="matchs",filterPhase="Toutes",filterGroupe="Tous";
 let compAnimDone=false;
 let filterSearch="",filterTeam="Toutes";
 let me=localStorage.getItem("cdm26_me")||null;
@@ -1406,6 +1406,12 @@ function currentMatches(){
   let matches;
   if(filterPhase==="Groupes"){
     matches=filterGroupe==="Tous"?MG:filterGroupe==="France"?MG.filter(m=>m.fr):MG.filter(m=>m.g===filterGroupe);
+  }else if(filterPhase==="Toutes"){
+    // Vue unifiée : tous les matchs, groupes puis phases finales, en continu et
+    // triés chronologiquement (le regroupement par journée enchaîne les phases).
+    const ko=buildKnockoutProjection(groupTables()).fixtures
+      .map(m=>({id:m.id,date:m.date,h:m.h,t:m.round,e1:m.e1,e2:m.e2,fr:false}));
+    matches=[...MG,...ko].sort((a,b)=>matchKickoff(a)-matchKickoff(b)||a.id-b.id);
   }else{
     const kval=buildKnockoutProjection(groupTables());
     matches=kval.fixtures
@@ -1459,7 +1465,7 @@ function scrollToDay(lbl){
   setTimeout(go,60);
 }
 function renderMatchs(sc){
-  const phases=["Groupes","1/16","1/8","Quart","Demi","FINALE"];
+  const phases=["Toutes","Groupes","1/16","1/8","Quart","Demi","FINALE"];
   const {matches,dates}=currentMatches();
   const groups=["Tous","France",...[...new Set(MG.map(m=>m.g))].sort()];
   const isRealTeam=name=>!(
@@ -1471,7 +1477,7 @@ function renderMatchs(sc){
   );
   const teams=["Toutes",...[...new Set(ALL.flatMap(m=>[m.e1,m.e2]).filter(isRealTeam))].sort((a,b)=>a.localeCompare(b))];
 
-  let html=`<div class="scroller" style="${pronostiqueurVoteStyle(me)}">${phases.map(p=>`<button class="chip ${filterPhase===p?'on':''}" onclick="setPhase('${p}')">${p==="Groupes"?"Phase de groupes":p==="FINALE"?"Finale":p}</button>`).join('')}</div>${filterPhase==="Groupes"?`<div class="scroller sub" style="${pronostiqueurVoteStyle(me)}">${groups.map(g=>`<button class="chip ${filterGroupe===g?'on':''}" onclick="setGroupe('${g}')">${g==="Tous"?"Tous":g==="France"?"France":"Gr. "+g}</button>`).join('')}</div>`:''}`;
+  let html=`<div class="scroller" style="${pronostiqueurVoteStyle(me)}">${phases.map(p=>`<button class="chip ${filterPhase===p?'on':''}" onclick="setPhase('${p}')">${p==="Toutes"?"Tous les matchs":p==="Groupes"?"Phase de groupes":p==="FINALE"?"Finale":p}</button>`).join('')}</div>${filterPhase==="Groupes"?`<div class="scroller sub" style="${pronostiqueurVoteStyle(me)}">${groups.map(g=>`<button class="chip ${filterGroupe===g?'on':''}" onclick="setGroupe('${g}')">${g==="Tous"?"Tous":g==="France"?"France":"Gr. "+g}</button>`).join('')}</div>`:''}`;
   html+=`<div class="filterbar"><input class="searchbox" type="search" placeholder="Rechercher un match ou une équipe" value="${filterSearch}" oninput="setFilterSearch(this.value)"><select class="teamsel" onchange="setFilterTeam(this.value)">${teams.map(t=>`<option value="${t}" ${filterTeam===t?'selected':''}>${t==="Toutes"?"Toutes les équipes":t}</option>`).join('')}</select></div>`;
 
   // Barre de filtre par date
@@ -1490,7 +1496,7 @@ function matchListHtml(sc,matches){
   // Tri chronologique dans chaque journée (heure puis n° de match) — sinon un match
   // de 22:30 peut s'afficher avant un de 19:00 du même jour.
   Object.values(byDay).forEach(arr=>arr.sort((a,b)=>String(a.h).localeCompare(String(b.h))||a.id-b.id));
-  const sectionLabel=filterPhase==="Groupes"?(filterGroupe==="Tous"?"Par journée":filterGroupe==="France"?"La France":"Groupe "+filterGroupe):filterPhase;
+  const sectionLabel=filterPhase==="Toutes"?"Par journée":filterPhase==="Groupes"?(filterGroupe==="Tous"?"Par journée":filterGroupe==="France"?"La France":"Groupe "+filterGroupe):filterPhase;
   if(sectionLabel!=="Par journée"){
     html+=`<div class="slabel"><span class="slabel-text">${sectionLabel}</span><span class="slabel-line"></span><span class="slabel-count">${matches.length} matchs</span></div>`;
   }
@@ -2664,10 +2670,8 @@ async function refresh(){
     const target=pickInitialDay();
     if(target){
       openDays[target.lbl]=true;
-      // Cale la page Matchs sur la phase de la journée cible (groupes ou tour à élim.)
-      const ph=chipPhaseForMatch(target.match);
-      filterPhase=ph;
-      if(ph==="Groupes")filterGroupe="Tous";
+      // Vue unifiée « Tous les matchs » calée (scroll) sur la journée en cours.
+      filterPhase="Toutes";
       scrollTarget=target.lbl;
     }
   }
