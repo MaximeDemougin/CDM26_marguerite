@@ -131,6 +131,23 @@ async function fetchMatchs() {
   return res.json();
 }
 
+// Issues de prolongation / tirs au but saisies dans l'app (participant spécial
+// "__KO_WINNER__" de la table pronostics, choix = JSON {ps1,ps2,tb1,tb2,tab}).
+// Indispensable pour trancher les matchs KO nuls et résoudre le tour suivant
+// (sinon "V.M74" reste un placeholder et ce match n'a jamais de cotes).
+async function fetchKoWinners() {
+  if (process.env.KO_WINNERS_FIXTURE_FILE) return JSON.parse(fs.readFileSync(process.env.KO_WINNERS_FIXTURE_FILE, 'utf8'));
+  if (process.env.MATCHS_FIXTURE_FILE) return {}; // mode test hors-ligne sans fixture KO
+  const url = `${process.env.SUPABASE_URL}/rest/v1/pronostics?participant=eq.__KO_WINNER__&select=match_id,choix`;
+  const res = await fetch(url, { headers: supaHeaders() });
+  if (!res.ok) throw new Error(`Supabase GET ko-winners ${res.status} ${await res.text()}`);
+  const map = {};
+  for (const r of await res.json()) {
+    try { const p = JSON.parse(r.choix); if (p && typeof p === 'object') map[r.match_id] = p; } catch { /* ignore */ }
+  }
+  return map;
+}
+
 async function fetchOdds() {
   if (process.env.ODDS_FIXTURE_FILE) return JSON.parse(fs.readFileSync(process.env.ODDS_FIXTURE_FILE, 'utf8'));
   const sport = process.env.ODDS_SPORT_KEY || 'soccer_fifa_world_cup';
@@ -178,10 +195,11 @@ async function main() {
     if (!process.env.SUPABASE_URL) throw new Error("Secret manquant : SUPABASE_URL");
     if (!serviceKey()) throw new Error("Secret manquant : la clé service Supabase (SUPABASE_SERVICE_KEY, ou SUPABASE_SERVICE_ROLE_KEY / SUPABASE_KEY) — vérifie le nom exact du secret côté GitHub");
   }
-  const [matchsRaw, rawEvents] = await Promise.all([fetchMatchs(), fetchOdds()]);
+  const [matchsRaw, rawEvents, koWinners] = await Promise.all([fetchMatchs(), fetchOdds(), fetchKoWinners()]);
   // Résout les libellés de phase finale ("2e Gr.A" -> vraie équipe) pour permettre
-  // l'association des cotes KO par nom.
-  const matchs = resolveKnockout(matchsRaw);
+  // l'association des cotes KO par nom. koWinners tranche les matchs nuls décidés
+  // en prolongation / aux tirs au but, pour résoudre aussi les tours suivants.
+  const matchs = resolveKnockout(matchsRaw, koWinners);
   const now = Date.now();
   const events = rawEvents.filter(ev => !ev.commence_time || new Date(ev.commence_time).getTime() > now);
   const liveSkipped = rawEvents.length - events.length;

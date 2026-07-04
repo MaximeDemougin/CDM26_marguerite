@@ -63,9 +63,30 @@ function groupStandings(matchs) {
   return sorted;
 }
 
+// Côté qualifié ('1' = domicile, '2' = extérieur) d'un match KO, ou null si indécis.
+// koWinners : { match_id -> {ps1,ps2,tb1,tb2,tab} } (prolongation / tirs au but),
+// mêmes règles que l'app (koQualResult). Sans données KO on ne tranche que les
+// scores décisifs du temps réglementaire.
+export function koWinnerSide(id, a, b, koWinners = {}) {
+  if (Number.isFinite(a) && Number.isFinite(b) && a !== b) return a > b ? '1' : '2';
+  if (!(Number.isFinite(a) && Number.isFinite(b) && a === b)) return null; // score incomplet
+  const kd = koWinners[id];
+  if (!kd) return null;
+  const num = v => (v !== '' && v != null && Number.isFinite(Number(v))) ? Number(v) : NaN;
+  const ps1 = num(kd.ps1), ps2 = num(kd.ps2);
+  if (!Number.isNaN(ps1) && !Number.isNaN(ps2) && ps1 !== ps2) return ps1 > ps2 ? '1' : '2';
+  if (!Number.isNaN(ps1) && !Number.isNaN(ps2) && ps1 === ps2) {
+    const t1 = num(kd.tb1), t2 = num(kd.tb2);
+    if (!Number.isNaN(t1) && !Number.isNaN(t2) && t1 !== t2) return t1 > t2 ? '1' : '2';
+    if (kd.tab === '1' || kd.tab === '2') return kd.tab; // ancien format (vainqueur coché)
+  }
+  return null;
+}
+
 // Renvoie une COPIE des matchs avec les libellés KO résolus en vraies équipes
 // (quand c'est possible avec les résultats disponibles).
-export function resolveKnockout(matchs) {
+// koWinners : issues de prolongation / tirs au but pour trancher les matchs nuls.
+export function resolveKnockout(matchs, koWinners = {}) {
   const tables = groupStandings(matchs);
   const first = {}, second = {}, thirdByGroup = {}, third = [];
   for (const g of Object.keys(tables)) {
@@ -103,10 +124,11 @@ export function resolveKnockout(matchs) {
     m.equipe_ext = resolveLabel(orig.equipe_ext, m.id);
     if (m.score_dom != null && m.score_ext != null) {
       const a = Number(m.score_dom), b = Number(m.score_ext);
-      // Sans prolongation/TAB côté serveur : on ne tranche que les scores décisifs.
-      if (Number.isFinite(a) && Number.isFinite(b) && a !== b) {
-        winners[m.id] = a > b ? m.equipe_dom : m.equipe_ext;
-        losers[m.id] = a > b ? m.equipe_ext : m.equipe_dom;
+      // Vainqueur : score décisif, ou prolongation / tirs au but pour un match nul.
+      const side = koWinnerSide(m.id, a, b, koWinners);
+      if (side) {
+        winners[m.id] = side === '1' ? m.equipe_dom : m.equipe_ext;
+        losers[m.id] = side === '1' ? m.equipe_ext : m.equipe_dom;
       }
     }
   }
