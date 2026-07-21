@@ -4,6 +4,18 @@
 
 ---
 
+## [2026-07-21] — Fin de la compétition 🏁🏆
+
+### Automations coupées
+- **Routine cotes arrêtée** : la CDM 2026 est jouée jusqu'au bout (finale le 19/07), plus rien à récupérer. Le cron quotidien du workflow `update-cotes.yml` (2×/jour, mode live vers Supabase) est **désactivé** (bloc `schedule:` commenté). Le lancement manuel reste dispo si besoin ; pour relancer la routine, il suffit de décommenter.
+- Aucun déclencheur planifié Claude Code actif à couper par ailleurs.
+
+### Verdict final
+- **Vainqueur désigné** : le classement affiche désormais le **verdict définitif** — bandeau champion 🏆 pour le 1er, tournée « c'est officiel » 🍺 pour le dernier — au lieu du message provisoire « rien n'est joué ». Piloté par la constante `COMPETITION_OVER`.
+- **🥇 Thomas — 61 pts** (vainqueur), 🥈 Morgan 60, 🥉 Yohann 56, **🍺 Maxime 54** (paie la tournée). Départage éventuel toujours au risque (cote moyenne la plus élevée), comme le reste du classement.
+
+---
+
 ## [2026-06-25] — Calendrier dynamique & finance par tête 🗓️
 
 ### Calendrier

@@ -404,6 +404,17 @@ body{font-family:'Manrope',sans-serif;background:linear-gradient(90deg,color-mix
 .beer-kicker{font-family:var(--font-cond);font-size:10px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;color:#E8B923}
 .beer-headline{font-family:var(--font-cond);font-size:20px;font-weight:900;color:#fff;line-height:1.08;margin-top:2px}
 .beer-foot{font-size:11px;color:rgba(255,255,255,.58);margin-top:5px;font-weight:600;line-height:1.4}
+/* Classement — bandeau champion (compétition terminée) */
+.champ-card{margin:6px 18px 14px;border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,#2a2410 0%,#0c0b06 100%);box-shadow:0 18px 36px rgba(0,0,0,.42),0 0 0 1px rgba(244,179,21,.28) inset;position:relative;overflow:hidden}
+.champ-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--wc-magenta) 0% 16%,var(--wc-teal) 16% 36%,var(--wc-lime) 36% 58%,var(--wc-yellow) 58% 72%,var(--wc-orange) 72% 86%,var(--wc-purple) 86% 100%);z-index:2}
+.champ-card::after{content:"";position:absolute;right:-10px;top:50%;transform:translateY(-50%);width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(244,179,21,.30),transparent 70%);pointer-events:none}
+.champ-emoji{font-size:44px;line-height:1;flex-shrink:0;filter:drop-shadow(0 4px 12px rgba(244,179,21,.6));animation:beerWiggle 3.4s ease-in-out infinite;transform-origin:bottom center;position:relative;z-index:1}
+@media(prefers-reduced-motion:reduce){.champ-emoji{animation:none}}
+.champ-body{flex:1;min-width:0;position:relative;z-index:1}
+.champ-kicker{font-family:var(--font-cond);font-size:10px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:#F4B315}
+.champ-headline{font-family:var(--font-cond);font-size:23px;font-weight:900;color:#fff;line-height:1.06;margin-top:2px}
+.champ-headline b{color:#FFD65A}
+.champ-foot{font-size:11.5px;color:rgba(255,255,255,.62);margin-top:5px;font-weight:600;line-height:1.4}
 /* Classement — podium top 3 (couleurs joueur + palette CDM) */
 .podium{display:grid;grid-template-columns:1fr 1.18fr 1fr;align-items:end;gap:10px;margin:2px 18px 0;padding:0 2px}
 .pod{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;width:100%}
@@ -922,7 +933,7 @@ body{font-family:'Manrope',sans-serif;background:linear-gradient(90deg,color-mix
           <div class="subtitle" id="who-subtitle">Choisis qui tu es pour pronostiquer&nbsp;:</div>
         </div>
       </div>
-      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.29</span></div>
+      <div class="sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-txt">…</span><span class="app-ver">v1.5.30</span></div>
     </div>
     <div class="who" id="who"></div>
   </div>
@@ -1062,6 +1073,10 @@ const MKO=[
   {id:104,date:"19/07",h:"21:00",t:"FINALE",e1:"V.M101",e2:"V.M102"}
 ];
 let ALL=[...MG,...MKO];const MEDALS=["🥇","🥈","🥉","🍺"];
+// Compétition terminée (CDM 2026 jouée jusqu'à la finale) : le classement affiche
+// le verdict définitif (bandeau champion + tournée officielle) plutôt que le
+// message provisoire « rien n'est joué ». Repasser à false rouvrirait le suivi.
+const COMPETITION_OVER=true;
 const METADATA_MATCH_ID=ALL[0].id;
 const TIE_BREAK_PARTICIPANT="__TIE_BREAK__";
 const BET_PLACED_PARTICIPANT="__BET_PLACED__";
@@ -1727,8 +1742,16 @@ function renderClassement(sc){
 
   const beerNames=lastPlayers.map(p=>`<span style="color:color-mix(in oklab,${themeForPronostiqueur(p).accent} 70%,#fff);font-weight:900">${p}</span>`).join(' &amp; ');
   const beerVerb=lastPlayers.length>1?'paient':'paie';
-  const beerCard=total>0?`<div class="beer-card"><span class="beer-emoji">🍺</span><div class="beer-body"><div class="beer-kicker">À ce stade…</div><div class="beer-headline">${beerNames} ${beerVerb} la tournée 🍻</div><div class="beer-foot">Bon dernier au classement — mais rien n'est joué, ça peut encore tourner !</div></div></div>`:'';
-  return `<div class="slabel"><span class="slabel-text">Classement pronos</span><span class="slabel-line"></span><span class="slabel-count">${total} joués</span></div>${podium}${beerCard}${pCards}<div style="height:16px"></div>`;
+  const over=COMPETITION_OVER&&total>0;
+  const beerKicker=over?'Verdict final':'À ce stade…';
+  const beerFoot=over?`Bon dernier de la compétition — la tournée est pour ${lastPlayers.length>1?'eux':'lui'}, c'est officiel ! 🍻`:`Bon dernier au classement — mais rien n'est joué, ça peut encore tourner !`;
+  const beerCard=total>0?`<div class="beer-card"><span class="beer-emoji">🍺</span><div class="beer-body"><div class="beer-kicker">${beerKicker}</div><div class="beer-headline">${beerNames} ${beerVerb} la tournée 🍻</div><div class="beer-foot">${beerFoot}</div></div></div>`:'';
+  // Bandeau champion — compétition terminée : couronne le vainqueur (1er du classement).
+  const champ=sorted[0];
+  const champExAequo=over&&(sc[sorted[1]]||0)===(sc[champ]||0)&&(avgOdds[sorted[1]]||0)===(avgOdds[champ]||0);
+  const champName=over?`<span style="color:color-mix(in oklab,${themeForPronostiqueur(champ).accent} 60%,#FFD65A);font-weight:900">${champ}</span>`:'';
+  const champCard=over?`<div class="champ-card"><span class="champ-emoji">🏆</span><div class="champ-body"><div class="champ-kicker">Compétition terminée · CDM 2026</div><div class="champ-headline">${champName} — <b>Vainqueur</b> 🥇</div><div class="champ-foot">${sc[champ]||0} bons pronos sur ${total} matchs · cote moyenne ${(avgOdds[champ]||0).toFixed(2)}${champExAequo?' · départagé au risque':''}</div></div></div>`:'';
+  return `<div class="slabel"><span class="slabel-text">Classement pronos</span><span class="slabel-line"></span><span class="slabel-count">${total} joués</span></div>${champCard}${podium}${beerCard}${pCards}<div style="height:16px"></div>`;
 }
 function renderCompetition(){
   const sc=computeScores();

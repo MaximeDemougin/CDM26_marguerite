@@ -19,11 +19,13 @@ on:
           - selftest
           - dry-run
           - live
-  # Planification automatique 2×/jour (mode live : récupère et écrit en base).
-  # GitHub utilise UTC ; heures données en heure de Paris (CEST = UTC+2 l'été).
-  schedule:
-    - cron: "0 6 * * *"    # 08:00 Paris (été) · 07:00 (hiver)
-    - cron: "0 14 * * *"   # 16:00 Paris (été) · 15:00 (hiver)
+  # Planification automatique DÉSACTIVÉE — compétition (CDM 2026) terminée.
+  # Plus aucune récupération de cotes n'est nécessaire ; on ne garde que le
+  # lancement manuel (workflow_dispatch) ci-dessus au cas où. Pour réactiver la
+  # routine quotidienne, décommenter le bloc `schedule:` ci-dessous.
+  # schedule:
+  #   - cron: "0 6 * * *"    # 08:00 Paris (été) · 07:00 (hiver)
+  #   - cron: "0 14 * * *"   # 16:00 Paris (été) · 15:00 (hiver)
 
 permissions:
   contents: read
